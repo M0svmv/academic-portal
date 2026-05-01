@@ -129,7 +129,9 @@ exports.getCurrentEnrollment = async (req, res) => {
     const currentEnrollment = await Enrollment.findOne({
       studentId,
       semesterId: currentSemester._id,
-    });
+    }).populate("semesterId", "semesterName")
+      .populate({ path: "courses.courseOfferingId", populate: { path: "courseId" }, select: "courseId" });
+    ;
     if (!currentEnrollment) {
       return res.status(404).json({ message: "Current enrollment not found" });
     }
