@@ -1,6 +1,7 @@
 {
   "name": "academic-portal",
   "version": "0.1.0",
+  "author": "Reem Mohammed",
   "private": true,
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

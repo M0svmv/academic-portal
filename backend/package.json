@@ -7,9 +7,9 @@
     "dev": "nodemon server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Mohammed Osama",
   "license": "ISC",
-  "description": "",
+  "description": "ECE Academic Portal Backend",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
