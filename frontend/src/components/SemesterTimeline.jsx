@@ -14,7 +14,6 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
 
     const today = new Date();
 
-    // مصفوفة الأحداث مرتبة زمنياً لحساب التقدم وتوزيع النقط
     const academicEvents = [
         { name: "Semester Start", date: new Date(startDate), isBoundary: true },
         { name: "Pre-Registration", key: "preRegistration", dates: timeLine?.preRegistration, date: new Date(timeLine?.preRegistration?.start) },
@@ -23,7 +22,6 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
         { name: "Semester End", date: new Date(endDate), isBoundary: true }
     ];
 
-    // دالة حساب التقدم الذكي بين النقط الثابتة (Space Between)
     const calculateProgress = () => {
         const totalPoints = academicEvents.length;
         const segmentWidth = 100 / (totalPoints - 1); // كل قسم يمثل 25% من الشريط
@@ -93,10 +91,11 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
 
             await api.put(`/semesters/${semesterId}/${editModal.type}`, payload);
 
+            setEditModal({ ...editModal, show: false });
             // 3. رسالة نجاح سريعة
             await swalService.success("Timeline Updated", `The ${editModal.type} period has been updated.`);
 
-            setEditModal({ ...editModal, show: false });
+            // setEditModal({ ...editModal, show: false });
             if (onUpdate) onUpdate();
         } catch (err) {
             console.error("Update Error:", err);

@@ -79,18 +79,15 @@ const SemesterModal = ({ show, onClose, onSuccess }) => {
         };
 
         try {
-            // 2. إظهار لودينج لأن إنشاء ترم جديد عملية تقيلة ومهمة
             swalService.showLoading("Launching new semester...");
 
             const res = await api.post("/semesters", data);
 
-            // 3. تنبيه بالنجاح مع أيقونة الـ Rocket اللي إنت كنت حاططها
             await swalService.success("Congratulations!", "Semester Created Successfully! 🚀");
 
             onSuccess(res.data);
-            onClose(); // قفل المودال بعد النجاح
+            onClose(); 
         } catch (err) {
-            // 4. معالجة الخطأ
             console.error(err);
             const errorMessage = err.response?.data?.message || "Error creating semester";
             swalService.error("Launch Failed", errorMessage);
