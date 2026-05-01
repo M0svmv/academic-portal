@@ -11,7 +11,6 @@ const EditTimelineModal = ({ show, type, currentDates, semesterId, onClose, onSu
     const handleUpdate = async (e) => {
         e.preventDefault();
 
-        // 1. التحقق من أن التاريخ مش فاضي قبل ما نبعت
         if (!dates.start || !dates.end) {
             return swalService.error("Missing Dates", "Please select both start and end dates.");
         }
@@ -27,13 +26,12 @@ const EditTimelineModal = ({ show, type, currentDates, semesterId, onClose, onSu
 
             await api.put(`/semesters/${semesterId}/${type}`, payload);
 
-            // 2. تنبيه بالنجاح
             await swalService.success("Updated!", "Timeline has been updated successfully.");
 
-            onSuccess(); // تحديث البيانات في الصفحة الأساسية
-            onClose();   // قفل المودال
+
+            onSuccess();
+            onClose();
         } catch (err) {
-            // 3. معالجة الخطأ بشكل نضيف
             console.error("Update Error:", err);
             const errorMessage = err.response?.data?.message || "Something went wrong while updating dates.";
             swalService.error("Update Failed", errorMessage);

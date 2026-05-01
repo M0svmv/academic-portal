@@ -4,7 +4,7 @@ import api from "../../services/api";
 import swalService from "../../services/swal";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
-    Trash2, Settings, X, RefreshCw, Layers, User, Hash, Menu, Download, Megaphone, Search, Eye, Save, Clock, Users
+    Trash2, Settings, X, RefreshCw, Layers, User, Hash, Menu, Download, Megaphone, Search, Eye, Save, Clock, Users, UserPlus, Briefcase, MoreVertical
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -15,9 +15,20 @@ const ScheduleManager = () => {
     const [offerings, setOfferings] = useState([]);
     const [periods, setPeriods] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false); // Period Config Modal
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+
+    const [activeMenu, setActiveMenu] = useState(null);
+
+    // --- New States for Staff Assignment ---
+    const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
+    const [modalType, setModalType] = useState("");
+    const [selectedStaff, setSelectedStaff] = useState("");
+    const [lecturers, setLecturers] = useState([]);
+    const [tas, setTas] = useState([]);
+    const [assigning, setAssigning] = useState(false);
+    const [activeOfferingId, setActiveOfferingId] = useState(null);
 
     // Configuration for bulk generation
     const [config, setConfig] = useState({
@@ -34,12 +45,14 @@ const ScheduleManager = () => {
 
     useEffect(() => {
         fetchData();
+        fetchStaff();
     }, []);
 
     const fetchData = async () => {
         try {
             const res = await api.get('/schedule');
             setOfferings(res.data.courseOfferings || []);
+            console.log(res.data.courseOfferings)
             const fetchedPeriods = res.data.schedule[0]?.periodsTime || [];
             setPeriods(fetchedPeriods);
             setTempPeriods(fetchedPeriods);
@@ -48,6 +61,16 @@ const ScheduleManager = () => {
             swalService.error("Fetch Error", "Could not load schedule data.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchStaff = async () => {
+        try {
+            const staffRes = await api.get("/staff");
+            setLecturers(staffRes.data.filter(s => s.roles.includes("lecturer")));
+            setTas(staffRes.data.filter(s => s.roles.includes("ta")));
+        } catch (err) {
+            console.error("❌ Staff fetch error:", err);
         }
     };
 
@@ -81,6 +104,44 @@ const ScheduleManager = () => {
             setIsModalOpen(false);
         } catch (err) {
             swalService.error("Update Failed", "Failed to update periods configuration");
+        }
+    };
+
+    // --- Assignment Logic ---
+    const openStaffModal = (offeringId, type) => {
+        setActiveOfferingId(offeringId);
+        setModalType(type);
+        setSelectedStaff("");
+        setIsStaffModalOpen(true);
+    };
+
+    const handleAssignInstructor = async () => {
+        if (!selectedStaff) return swalService.error("Wait!", "Please select a lecturer");
+        setAssigning(true);
+        try {
+            await api.post(`/course-offerings/${activeOfferingId}/assign-instructor`, { instructorId: selectedStaff });
+            swalService.success("Success", "Instructor assigned successfully!");
+            setIsStaffModalOpen(false);
+            fetchData();
+        } catch (err) {
+            swalService.error("Failed", "Failed to assign instructor.");
+        } finally {
+            setAssigning(false);
+        }
+    };
+
+    const handleAssignTA = async () => {
+        if (!selectedStaff) return swalService.error("Wait!", "Please select a TA");
+        setAssigning(true);
+        try {
+            await api.post(`/course-offerings/${activeOfferingId}/assign-ta`, { taId: selectedStaff });
+            swalService.success("Success", "TA assigned successfully!");
+            setIsStaffModalOpen(false);
+            fetchData();
+        } catch (err) {
+            swalService.error("Failed", "Failed to assign TA.");
+        } finally {
+            setAssigning(false);
         }
     };
 
@@ -255,46 +316,153 @@ const ScheduleManager = () => {
         }
     };
 
-    const renderCourseCard = (offering, isInsideGrid = false) => (
-        <div className={`uniform-card-s ${isInsideGrid ? 'grid-version' : ''}`} title={offering.courseId?.courseName}>
-            {isInsideGrid && (
-                <div className="card-top-badges">
-                    <button className="len-btn" onClick={(e) => {
-                        e.stopPropagation();
-                        toggleLecLength(offering);
-                    }}>
-                        <Layers size={10} /> {offering.schedule?.lecLength}P
-                    </button>
-                    {offering.enrolledCount !== undefined && (
-                        <div className="enroll-badge" title="Enrolled Students">
-                            <Users size={10} /> {offering.enrolledCount}
+    const renderCourseCard = (offering, isInsideGrid = false) => {
+        const isMenuOpen = activeMenu === offering._id;
+
+        return (
+            <div
+                className={`uniform-card-s ${isInsideGrid ? 'grid-version' : 'sidebar-version'}`}
+                title={offering.courseId?.courseName}
+                onMouseLeave={() => setActiveMenu(null)}
+            >
+                {/* الجزء العلوي (Badges & Menu) */}
+                {isInsideGrid && (<div className="card-top-badges">
+                    <div className="left-badges">
+                        {offering.enrolledCount !== undefined && (
+                            <div className="enroll-badge" title="Enrolled Students">
+                                <Users size={10} /> {offering.enrolledCount}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="right-actions">
+                        {isInsideGrid && (
+                            <button className="len-btn" onClick={(e) => {
+                                e.stopPropagation();
+                                toggleLecLength(offering);
+                            }}>
+                                <Layers size={10} /> {offering.schedule?.lecLength}P
+                            </button>
+                        )}
+
+                        {/* زر الـ 3 نقط */}
+
+                        <button
+                            className="dots-btn"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMenu(isMenuOpen ? null : offering._id);
+                            }}
+                        >
+                            <MoreVertical size={14} />
+                        </button>
+
+                        {isMenuOpen && (
+                            <div className="card-dropdown-menu">
+                                <button onClick={() => { openStaffModal(offering._id, "instructor"); setActiveMenu(null); }}>
+                                    <UserPlus size={12} /> Assign Instructor
+                                </button>
+                                <button onClick={() => { openStaffModal(offering._id, "ta"); setActiveMenu(null); }}>
+                                    <Briefcase size={12} /> Assign TA
+                                </button>
+                            </div>
+                        )}
+
+                    </div>
+                </div>
+                )}
+
+                {/* اسم المادة */}
+                <div className="course-header-row" style={{
+                    display: 'flex',
+                    justifyContent: 'space-between'
+                }}>
+                    <p className="course-name-text-s">
+                        {offering.courseId?.courseName || "Unknown"}
+                    </p>
+                    {!isInsideGrid && (
+                        <div className="compact-actions">
+                            <button className="mini-action-btn" onClick={() => openStaffModal(offering._id, "instructor")} title="Assign Instructor">
+                                <UserPlus size={14} />
+                            </button>
+                            <button className="mini-action-btn" onClick={() => openStaffModal(offering._id, "ta")} title="Assign TA">
+                                <Briefcase size={14} />
+                            </button>
                         </div>
                     )}
                 </div>
-            )}
-            <div className="course-header-row">
-                <p className="course-name-text-s">
-                    {offering.courseId?.courseName || "Unknown"}
-                </p>
-            </div>
-            <div className="course-details-wrapper">
-                <div className="detail-item-s">
-                    <Hash size={12} />
-                    <span>{offering.courseId?._id || "N/A"}</span>
+
+                {/* التفاصيل الأساسية فقط */}
+                <div className="course-details-wrapper">
+
+                    {isInsideGrid && (
+                        <div className="aca_det">
+                            <div className="detail-item-s">
+                                <Hash size={10} />
+                                <span>{offering.courseId?._id || "N/A"}</span>
+                            </div>
+                            <div className="detail-item-s" title={`Instructor: ${offering.instructorId?.staffName || 'None'}`}>
+                                <User size={10} />
+                                <span className="truncate">{offering.instructorId?.staffName || "No Instructor"}</span>
+                            </div>
+
+
+                            <div className="detail-item-s" title={`TA: ${offering.taId?.staffName || 'None'}`}>
+                                <Briefcase size={10} />
+                                <span className="truncate">{offering.taId?.staffName || "No TA"}</span>
+                            </div>
+                        </div>
+
+                    )}
+
+
+                    {!isInsideGrid && (
+                        <div className="course-details-wrapper">
+                            <div className="aca_det" style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                            }}>
+                                <div className="detail-item-s" style={{
+                                    width: '50%'
+                                }}>
+                                    <Hash size={10} />
+                                    <span>{offering.courseId?._id || "N/A"}</span>
+                                </div>
+                                {offering.enrolledCount !== undefined && (
+                                    <div className="detail-item-s" title="Enrolled Students" style={{
+                                        width: '50%'
+                                    }}>
+                                        <Users size={12} /> {offering.enrolledCount}
+                                    </div>
+
+                                )}
+                            </div>
+                            <div className="aca_det" style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                            }}>
+                                <div className="detail-item-s" title={`Instructor: ${offering.instructorId?.staffName || 'None'}`} style={{
+                                    width: '50%'
+                                }}>
+                                    <User size={12} />
+                                    <span className="truncate">{offering.instructorId?.staffName || "No Instructor"}</span>
+                                </div>
+                                <div className="detail-item-s" title={`TA: ${offering.taId?.staffName || 'None'}`} style={{
+                                    width: '50%'
+                                }}>
+                                    <Briefcase size={12} />
+                                    <span className="truncate">{offering.taId?.staffName || "No TA"}</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    )}
+
+
                 </div>
-                <div className="detail-item-s">
-                    <User size={12} />
-                    <span>{offering.instructorId?.staffName || "No Instructor"}</span>
-                </div>
-                {!isInsideGrid && offering.enrolledCount !== undefined && (
-                    <div className="detail-item-s enrollment-info">
-                        <Users size={12} />
-                        <span>{offering.enrolledCount} Students</span>
-                    </div>
-                )}
             </div>
-        </div>
-    );
+        );
+    };
 
     // Sidebar search filter
     const filteredOfferings = offerings
@@ -369,7 +537,13 @@ const ScheduleManager = () => {
                                                         return (
                                                             <td ref={provided.innerRef} {...provided.droppableProps}
                                                                 className={`slot ${snapshot.isDraggingOver ? 'drop-hover' : ''}`}>
-                                                                <div className="courses-stack">
+                                                                {/* --- التعديل هنا: إضافة CSS Inline لضمان الرص بجانب بعض --- */}
+                                                                <div className="courses-stack" style={{
+                                                                    display: 'flex',
+                                                                    flexWrap: 'wrap',
+                                                                    gap: '8px',
+                                                                    justifyContent: 'center'
+                                                                }}>
                                                                     {assignedCourses.map((course, idx) => (
                                                                         <Draggable key={course._id} draggableId={course._id} index={idx}>
                                                                             {(provided) => (
@@ -421,7 +595,8 @@ const ScheduleManager = () => {
 
                     <Droppable droppableId="sidebar">
                         {(provided) => (
-                            <div ref={provided.innerRef} {...provided.droppableProps} className="course-list">
+                            /* --- التعديل هنا: الـ Catalog أيضاً يُرص بجانب بعضه --- */
+                            <div ref={provided.innerRef} {...provided.droppableProps} className="course-list" >
                                 {filteredOfferings.map((offering, index) => (
                                     <Draggable key={offering._id} draggableId={offering._id} index={index}>
                                         {(provided) => (
@@ -450,6 +625,7 @@ const ScheduleManager = () => {
 
             </DragDropContext>
 
+            {/* Existing Manage Periods Modal */}
             {isModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content period-modal-wide">
@@ -510,6 +686,66 @@ const ScheduleManager = () => {
                             <button className="btn-cancel" onClick={() => setIsModalOpen(false)}>Cancel</button>
                             <button className="btn-1" onClick={savePeriods}>
                                 <Save size={18} /> Save All Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Staff Assignment Modal */}
+            {isStaffModalOpen && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center',
+                    alignItems: 'center', zIndex: 1000
+                }}>
+                    <div className="modal-content" style={{
+                        backgroundColor: '#fff', borderRadius: '12px', width: '450px',
+                        padding: '0', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                    }}>
+                        <div className="modal-header" style={{
+                            padding: '20px', borderBottom: '1px solid #eee', display: 'flex',
+                            justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9fafb'
+                        }}>
+                            <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#111827' }}>
+                                {modalType === "instructor" ? "Assign Instructor" : "Assign TA"}
+                            </h2>
+                            <button onClick={() => setIsStaffModalOpen(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#667085' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="modal-body" style={{ padding: '25px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>
+                                Select {modalType === "instructor" ? "Lecturer" : "Teaching Assistant"}:
+                            </label>
+                            <select
+                                value={selectedStaff}
+                                onChange={(e) => setSelectedStaff(e.target.value)}
+                                style={{
+                                    width: '100%', padding: '12px', borderRadius: '8px',
+                                    border: '1px solid #d1d5db', outline: 'none', fontSize: '1rem',
+                                    color: '#000'
+                                }}
+                            >
+                                <option value="">-- Choose {modalType === "instructor" ? "a Lecturer" : "a TA"} --</option>
+                                {(modalType === "instructor" ? lecturers : tas).map(staff => (
+                                    <option key={staff._id} value={staff._id}>
+                                        {staff.staffName} ({staff._id})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="modal-footer" style={{
+                            padding: '15px 25px', backgroundColor: '#f9fafb', borderTop: '1px solid #eee',
+                            display: 'flex', justifyContent: 'flex-end', gap: '10px'
+                        }}>
+                            <button className="btn-cancel" onClick={() => setIsStaffModalOpen(false)}>Cancel</button>
+                            <button
+                                className="btn-1"
+                                disabled={assigning}
+                                onClick={modalType === "instructor" ? handleAssignInstructor : handleAssignTA}
+                            >
+                                {assigning ? "Assigning..." : "Confirm Assignment"}
                             </button>
                         </div>
                     </div>

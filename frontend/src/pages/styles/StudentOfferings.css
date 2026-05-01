@@ -62,7 +62,7 @@
   color: var( --primary-blue-color);
 }
 
-/* اللون الأخضر العادي للكريديت */
+
 .credit-text strong {
   font-size: 1.4rem;
   color: #4a6cf7;
@@ -82,18 +82,17 @@
   transition: width 0.4s ease-in-out;
 }
 
-/* حالة الـ Limit Reached (استخدام الأزرق الداكن/النيلي بدل الأحمر) */
 .credit-info-card.limit-reached {
   background: #f0f7ff;
   border: 1px solid #3498db;
 }
 
 .limit-reached .progress-fill {
-  background: linear-gradient(90deg, #3498db, #2c3e50); /* تدرج أزرق وقور */
+  background: linear-gradient(90deg, #3498db, #2c3e50); 
 }
 
 .limit-reached .credit-text strong {
-  color: #2c3e50; /* تغيير لون الرقم للأزرق الغامق بدل الأحمر */
+  color: #2c3e50;
 }
 
 /* ===== Tables & Sections ===== */
@@ -101,33 +100,7 @@
   margin-top: 30px;
 }
 
-.table-wrapper {
-  max-height: 400px;
-  overflow-y: auto;
-  border-radius: 10px;
-  border: 1px solid #eee;
-  background: #fff;
-}
 
-.offerings-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.offerings-table th {
-  background: var( --primary-blue-color);
-  color: white;
-  padding: 12px;
-  text-align: left;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.offerings-table td {
-  padding: 12px;
-  border-bottom: 1px solid #f1f5f9;
-}
 
 
 
@@ -209,7 +182,7 @@ button {
   font-style: italic;
 }
 
-/* زرار الـ Action العام في الجدول */
+
 .action-btn {
 
     border-radius: 8px;
@@ -221,7 +194,7 @@ button {
     cursor: pointer;
 }
 
-/* ستايل زرار الإضافة */
+
 .add-in-table {
     color: var( --primary-blue-color);
 }
@@ -241,20 +214,20 @@ button {
     transform: scale(1.05);
 }
 
-/* تمييز الصف المختار بشكل هادي جداً */
+
 .row-selected {
-    background-color: #f8fafc !important; /* رمادي خفيف أوي */
+    background-color: #f8fafc !important; 
 }
 
 .row-selected td {
     border-bottom: 1px solid #e2e8f0;
-    font-weight: 500; /* تقلي الخط شوية للمواد المختارة */
+    font-weight: 500; 
 }
 
-/* إخفاء الصفوف المختارة اختيارياً (لو حبيتي) أو تظليلها */
+
 .row-selected {
     opacity: 0.9;
-}/* زرار الـ Action العام في الجدول */
+}
 .action-btn {
     border-radius: 8px;
     display: flex;
@@ -265,7 +238,7 @@ button {
     cursor: pointer;
 }
 
-/* ستايل زرار الإضافة */
+
 .add-in-table {
     color: var( --primary-blue-color);
 }
@@ -285,17 +258,16 @@ button {
     transform: scale(1.05);
 }
 
-/* تمييز الصف المختار بشكل هادي جداً */
+
 .row-selected {
-    background-color: #f8fafc !important; /* رمادي خفيف أوي */
+    background-color: #f8fafc !important; 
 }
 
 .row-selected td {
     border-bottom: 1px solid #e2e8f0;
-    font-weight: 500; /* تقلي الخط شوية للمواد المختارة */
+    font-weight: 500; 
 }
 
-/* إخفاء الصفوف المختارة اختيارياً (لو حبيتي) أو تظليلها */
 .row-selected {
     opacity: 0.9;
 }
@@ -304,7 +276,7 @@ button {
 .recommendations-section {
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.03); /* خلفية خفيفة جداً للتمييز */
+    background: rgba(255, 255, 255, 0.03);
     border-radius: 16px;
     border: 1px border rgba(255, 255, 255, 0.05);
 }
@@ -332,7 +304,7 @@ button {
 /* Individual Card Style */
 .rec-card {
     position: relative;
-    background: #1e1e1e; /* لون كارت داكن */
+    background: #1e1e1e; 
     border: 1px solid #333;
     border-radius: 12px;
     padding: 1.5rem;
@@ -467,7 +439,7 @@ button {
 
 .recommendations-section {
     border: 1px solid rgba(241, 196, 15, 0.2);
-    background: rgba(241, 196, 15, 0.02); /* خلفية خفيفة جداً ذهبية */
+    background: rgba(241, 196, 15, 0.02); 
 }
 
 .star-highlight {
@@ -497,11 +469,11 @@ button {
 }
 
 .premium-status-alert.open {
-    border-left: 4px solid #38bdf8; /* Cyan accent */
+    border-left: 4px solid #38bdf8;
 }
 
 .premium-status-alert.closed {
-    border-left: 4px solid #f87171; /* Red accent */
+    border-left: 4px solid #f87171; 
 }
 
 .status-icon-container {

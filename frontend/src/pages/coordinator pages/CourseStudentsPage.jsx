@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../../services/api";
+import swalService from "../../services/swal";
 import {
     ArrowLeft, Search, Users, Eye, UserPlus, X,
     GraduationCap, Filter, FileText, Layout, Info, UserCheck
@@ -81,28 +82,28 @@ const CourseStudentsPage = () => {
     }, [filteredStudents]);
 
     const handleAssignInstructor = async () => {
-        if (!selectedStaff) return alert("Please select a lecturer");
+        if (!selectedStaff) return swalService.error("Wait!", "Please select a lecturer");
         setAssigning(true);
         try {
             await api.post(`/course-offerings/${offeringId}/assign-instructor`, { instructorId: selectedStaff });
-            alert("Instructor assigned successfully!");
+            swalService.success("Success", "Instructor assigned successfully!");
             setIsModalOpen(false);
         } catch (err) {
-            alert("Failed to assign instructor.");
+            swalService.error("Failed", "Failed to assign instructor.");
         } finally {
             setAssigning(false);
         }
     };
 
     const handleAssignTA = async () => {
-        if (!selectedStaff) return alert("Please select a TA");
+        if (!selectedStaff) return swalService.error("Wait!", "Please select a TA");
         setAssigning(true);
         try {
             await api.post(`/course-offerings/${offeringId}/assign-ta`, { taId: selectedStaff });
-            alert("TA assigned successfully!");
+            swalService.success("Success", "TA assigned successfully!");
             setIsModalOpen(false);
         } catch (err) {
-            alert("Failed to assign TA.");
+            swalService.error("Failed", "Failed to assign TA.");
         } finally {
             setAssigning(false);
         }
