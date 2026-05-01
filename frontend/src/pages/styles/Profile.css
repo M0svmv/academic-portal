@@ -1,0 +1,192 @@
+.management-container {
+    /* padding: 0 30px; */
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.management-header {
+    margin-bottom: 30px;
+}
+
+
+
+.title-section p {
+    color: #64748b;
+    font-size: 15px;
+}
+
+.profile-page .profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+    margin-top: 20px;
+}
+
+.profile-page-insight-card {
+    background: white;
+    padding: 25px !important;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.profile-page .insight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+
+    /* border-bottom: 1px solid #f1f5f9; */
+}
+
+.profile-page .header-label-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-page .insight-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-page .insight-label {
+    font-size: 17px;
+    font-weight: 700;
+    color: var( --primary-blue-color);
+}
+
+.profile-page .profile-form-layout .form-group {
+    margin-bottom: 18px;
+}
+
+.profile-page .profile-form-layout label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var( --primary-blue-color);
+    margin-bottom: 6px;
+}
+
+.profile-page .profile-form-layout input {
+    width: inherit;
+    padding: 11px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14.5px;
+    transition: all 0.2s;
+}
+
+.profile-page .profile-form-layout input:focus:not([readonly]) {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.profile-page .profile-form-layout input[readonly] {
+    background-color: #f8fafc;
+    color: #64748b;
+    border-color: #f1f5f9;
+    cursor: default;
+}
+
+.profile-page .disabled-input {
+    background-color: #f1f5f9 !important;
+    color: #94a3b8 !important;
+}
+
+.profile-page .btn-edit-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #eff6ff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-edit-toggle:hover {
+    background: #eef4fb;
+    border-color: #cbd5e1;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.main-add-btn-profile {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-save {
+    padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: var( --primary-blue-color);
+  color: white;
+  font-weight: 550;
+  cursor: pointer;
+  transition: 0.2s ease;
+ }
+.btn-save:hover:not(:disabled) { background: var( --primary-blue-color); }
+.btn-save:disabled { background: var( --primary-blue-color); cursor: not-allowed; }
+
+.btn-cancel { background: #186F8F; color: #fff; font-weight: 550; }
+.btn-cancel:hover { background: #2892b8; }
+
+.btn-password { background: #f59e0b; color: white; }
+.btn-password:hover:not(:disabled) { background: #d97706; }
+
+.icon-blue { background: #eff6ff; color: #3b82f6; }
+.icon-orange { background: #fff7ed; color: #f59e0b; }
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.password-strength-wrapper {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.strength-bar-container {
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.05); /* هادي ومش مزعج */
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.strength-bar-fill {
+    height: 100%;
+    transition: all 0.4s ease-in-out; /* حركة ناعمة */
+}
+
+.strength-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: right;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}

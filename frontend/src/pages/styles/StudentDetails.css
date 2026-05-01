@@ -1,0 +1,603 @@
+/* --- Variables & Base Setup --- */
+:root {
+    --primary-color: var( --primary-blue-color);
+    --primary-hover: #4338ca;
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --text-main: var( --primary-blue-color);
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.student-details-wrapper {
+    padding: 0 2rem !important;
+    background-color: var(--bg-main);
+    min-height: 100vh;
+    color: var(--text-main);
+}
+
+/* --- Header & Navigation --- */
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    /* background: var(--bg-card); */
+    /* padding: 1.5rem; */
+    border-radius: 12px;
+    /* box-shadow: var(--shadow); */
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.back-btn-round {
+    background: #f1f5ff;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.3s;
+    color: var(--text-main);
+}
+
+.back-btn-round:hover {
+    background: var(--border-color);
+}
+
+.student-main-info h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.username-tag {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.status-container {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge.safe { background: #dcfce7; color: #166534; }
+.badge.risk { background: #fee2e2; color: #991b1b; }
+.badge.dept { background: #e0e7ff; color: #3730a3; }
+
+/* Advisor Card */
+.advisor-brief {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f1f5ff;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.contact-info{
+    display: flex;
+    flex-direction: column;
+}
+
+.advisory-info{
+    display: flex;
+    gap: 10px;
+}
+
+.advisor-icon-box {
+    background: #f1f5ff;
+    /* padding: 0.75rem; */
+    border-radius: 8px;
+    color: var(--primary-color);
+    /* box-shadow: 0 2px 4px rgba(0,0,0,0.05); */
+}
+
+/* --- Dashboard Grid --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.dash-card {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    border-top: 4px solid transparent;
+}
+
+.dash-card.primary { border-top-color: #58b777; }
+
+.dash-card label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.gpa-display {
+    margin-top: 0.5rem;
+}
+
+.gpa-value { font-size: 2rem; font-weight: 800;  }
+.gpa-max { color: var(--text-muted); font-size: 1rem; }
+
+.mini-progress-bar {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 10px;
+    margin-top: 0.75rem;
+    overflow: hidden;
+}
+
+.mini-progress-bar .fill {
+    height: 100%;
+    background: #58b777;
+    border-radius: 10px;
+}
+
+.big-val { font-size: 1.75rem; font-weight: 700; }
+.sub-info { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; }
+
+/* --- Tables Section --- */
+.details-content-sections {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.data-section {
+    /* background: var(--bg-card); */
+    border-radius: 12px;
+    /* padding: 1.5rem; */
+    /* box-shadow: var(--shadow); */
+}
+
+.section-title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* margin-top: 1.5rem; */
+    margin-bottom: 1rem;
+    /* border-bottom: 1px solid var(--border-color); */
+}
+
+
+.grade-pill {
+    /* background: #f1f5f9; */
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.edit-icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.edit-icon-btn:hover { color: var(--primary-color); }
+
+.add-action-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* --- Modals CSS --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.5); /* Semi-transparent dark bg */
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 450px;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    padding: 0 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.student-details-wrapper .modal-body {
+    padding: 0 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.student-details-wrapper .form-group input, 
+.student-details-wrapper .form-group select {
+    width: 92%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.modal-footer {
+    padding: 1.25rem 1.5rem;
+    /* background: #f8fafc; */
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.btn-secondary {
+    background: white;
+    border: 1px solid var(--border-color);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.text-warn { color: var(--warning); }
+.capitalize { text-transform: capitalize; }
+.bold { font-weight: 700; }
+
+
+@media (max-width: 768px) {
+    .details-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .advisor-brief { width: 100%; }
+}
+
+.advisor-text{
+    margin: auto !important;
+    display: flex;
+    /* align-items: center; */
+    flex-direction: column;
+    justify-content: center;
+}
+
+.advisor-text p{
+ margin: 0;
+}
+
+
+.level-freshman { background-color: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; }
+.level-sophomore { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; } 
+.level-junior { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; } 
+.level-senior, .level-senior-1, .level-senior-2 { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.level-graduated { background-color: var( --primary-blue-color); color: #ffffff; } 
+
+
+.reg-new { background-color: #ecfdf5; color: #059669; border: 1px dashed #10b981; }
+.reg-old { background-color: #fff1f2; color: #e11d48; border: 1px dashed #fb7185; }
+.reg-last { background-color: #f8fafc; color: var( --primary-blue-color); border: 1px dashed #cbd5e1; }
+
+.badge {
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    text-transform: capitalize;
+}
+
+/* --- Academic Profile Card (Top Right) --- */
+.academic-profile-card {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 12px;
+    /* box-shadow: var(--shadow); */
+    border: 1px solid #783fab;
+    min-width: 215px;
+}
+
+.advisor-info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* margin-bottom: 12px; */
+    /* border-bottom: 1px solid #f1f5f9; */
+}
+
+.icon-circle {
+    width: 35px;
+    height: 35px;
+    background: #eff6ff;
+    color: #4d408e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.advisor-info-row .label { font-size: 0.75rem;  margin: 0; }
+.advisor-info-row .name { font-size: 0.95rem; font-weight: 700; margin: 0; }
+
+.contact-info-row-details {
+    padding: 0 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.contact-info-row-details span { display: flex; align-items: center; gap: 8px; }
+
+/* --- Table Filters & Search --- */
+.filter-search-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    /* margin-bottom: 1.5rem; */
+    /* background: #fff; */
+    /* padding: 10px; */
+    border-radius: 10px;
+}
+
+.search-box {
+
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 8px 15px;
+    border-radius: 10px;
+    color: var(--text-muted);
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    outline: none;
+    font-size: 0.9rem;
+}
+
+.filter-dropdown {
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    outline: none;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+/* --- Status Pills (Simple & Clean) --- */
+.status-pill {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-pill.safe { background: #dcfce7; color: #15803d; }
+.status-pill.risk { background: #fee2e2; color: #b91c1c; }
+
+/* --- Dashboard Enhancements --- */
+.card-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.card-select { width: 50%;border: none; font-size: 0.75rem; color: #2563eb; font-weight: 600; cursor: pointer; background: #eff6ff; padding: 2px 6px; border-radius: 4px; }
+.unit { font-size: 0.9rem; color: var(--text-muted); margin-left: 5px; }
+.alert-card { cursor: pointer; transition: 0.2s; }
+.alert-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+
+.id-tags { display: flex; gap: 8px; margin: 4px 0 10px 0; }
+.id-badge { background: #f1f5f9; color: var( --primary-blue-color); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; }
+
+
+/* صف تواصل الطالب الجديد */
+.student-contact-bar {
+    display: flex;
+    gap: 25px;
+    margin: 10px 0 20px 0;
+    padding: 12px 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px dashed #ddd;
+    font-size: 0.95rem;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #444;
+}
+
+.contact-item .icon {
+    color: #3498db;
+}
+
+.contact-item .label {
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+/* بيانات تواصل الأدفايزور داخل الكارد */
+.advisor-contact-minimal {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: #666;
+    padding-top: 8px;
+}
+
+.advisor-contact-minimal span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.delete-btn-table {
+    background: none;
+    /* border: 1px solid #ffcccc; */
+    padding: 5px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-btn-table:hover {
+    background-color: #fff5f5;
+    border-color: #e74c3c;
+    transform: scale(1.1);
+}
+
+.sec-2 h3{
+    margin: 0 !important;
+}
+
+.badge-select {
+    border: none;
+    border-radius: 12px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+background-color: #e8f4fd; color: #2b6cb0;
+    border: 1px solid #1e90ff;
+    outline: none;
+}
+.reg-last { background-color: #e8f4fd; color: #2b6cb0; }
+
+
+/* تنظيم المسافات داخل الجدول */
+.modern-table.dynamic-table td {
+    padding: 12px 15px;
+    vertical-align: middle;
+}
+
+/* تنسيق اسم المادة تحت الكود */
+.course-code {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+.course-name-sub {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin-top: 2px;
+}
+
+/* النوع والساعات */
+.type-tag {
+    font-size: 0.75rem;
+    background: #f1f2f6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    color: #57606f;
+}
+.credits-sub {
+    font-size: 0.8rem;
+    color: #2f3542;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* اللائحة */
+.reg-badge {
+   border: none;
+    border-radius: 12px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+background-color: #e8f4fd; color: #2b6cb0;
+    border: 1px solid #1e90ff;
+    outline: none;
+
+}
+
+/* تنسيق الأزرار بشكل جانبي */
+
+
+/* جعل الجدول يتمدد بمرونة */
+.table-wrapper {
+    overflow-x: auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}

@@ -1,0 +1,69 @@
+/* استخدم نفس متغيرات الألوان اللي بعتها لتوحيد الـ Theme */
+:root {
+    --primary-color: var( --primary-blue-color);
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --text-main: var( --primary-blue-color);
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.student-details-wrapper-ad {
+    padding:  2rem;
+    background-color: var(--bg-main);
+}
+
+/* Header & Cards Styling - Copy-Paste من الكومبوننت بتاعك */
+.student-details-wrapper-ad .details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.student-details-wrapper-ad .academic-profile-card {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid #783fab;
+    min-width: 215px;
+}
+
+.student-details-wrapper-ad .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.student-details-wrapper-ad .dash-card {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    border-top: 4px solid transparent;
+}
+
+.student-details-wrapper-ad .dash-card.primary { border-top-color: #3a86ff; }
+
+
+.student-details-wrapper-ad .status-pill {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 550;
+}
+
+.student-details-wrapper-ad .status-pill.safe { background: #dcfce7; color: #15803d; }
+.student-details-wrapper-ad .status-pill.risk { background: #fee2e2; color: #b91c1c; }
+
+/* Animation لشغل عالي */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.student-details-wrapper-ad .student-details-wrapper {
+    animation: fadeIn 0.4s ease-out;
+}

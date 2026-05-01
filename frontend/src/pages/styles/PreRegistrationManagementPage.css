@@ -1,0 +1,365 @@
+.prereg-container{
+  padding:0 30px ;
+}
+
+.prereg-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.start-semester-btn,
+.close-semester-btn{
+  padding:10px 16px;
+  border:none;
+  border-radius:8px;
+  background:var( --primary-blue-color);
+  color:white;
+  cursor:pointer;
+    font-weight:600;
+  
+}
+
+.close-semester-btn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background:#e74c3c;
+  font-weight:600;
+  border: solid, 1px, #b91c1c;
+}
+
+.close-semester-btn:hover{
+  
+  background:#b91c1c;
+}
+
+
+.semester-info{
+  background:#f8f9ff;
+  padding:18px;
+  border-radius:10px;
+  margin-bottom:25px;
+}
+
+.courses-section{
+  margin-top:20px;
+}
+
+
+.courses-table-wrapper {
+  max-height: 400px;
+  overflow-y: auto;
+  /* background: white; */
+  border-radius: 10px;
+  border: solid, 1px, #eee;
+  /* padding: 20px; */
+  /* box-shadow: 0 2px 8px rgba(0,0,0,0.08); */
+}
+
+.courses-table{
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 20px !important;
+}
+
+.courses-table th,
+.courses-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.courses-table td{
+  background-color: #fff;
+}
+
+.courses-table th {
+  background: var( --primary-blue-color);
+  color: #fff;
+  font-weight: 600;
+}
+
+
+.publish-section{
+  background:#f8f9ff;
+  border-radius:10px;
+}
+
+.publish-btn{
+  margin-top:10px;
+  padding:10px 16px;
+  border:none;
+  border-radius:8px;
+  background:#186F8F;
+  color:white;
+ font-weight:600;
+  cursor:pointer;
+}
+
+
+.empty-semester{
+  margin-top:80px;
+  text-align:center;
+  padding:40px;
+  background:#f8f9ff;
+  border-radius:12px;
+}
+
+.empty-semester h3{
+  margin-bottom:10px;
+}
+
+.history-btn{
+  margin-top:10px;
+  background:#27ae60;
+  color:white;
+  border:none;
+  padding:10px 16px;
+  border-radius:8px;
+  cursor:pointer;
+   font-weight:600;
+}
+
+.row-status-open { background-color: #d4edda !important; } /* أخضر فاتح */
+.row-status-closed { background-color: #f8d7da !important; } /* أحمر فاتح */
+.row-status-proposed { background-color: transparent; } /* العادي */
+
+
+/* --- إضافات لتحسين شكل الجدول والكنترولز --- */
+
+.table-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    justify-content: space-between;
+}
+.search-in-prereg{
+  flex: 1;
+  display: flex;
+  gap: 10px;
+/* max-width: 40%; */
+align-items: center;
+}
+
+.search-input {
+    
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.search-input:focus {
+    border-color: var( --primary-blue-color);
+}
+
+.filter-select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    cursor: pointer;
+}
+
+.course-count {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* --- Status Badges (Live / Draft) --- */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-badge.live {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.status-badge.draft {
+    background: #f1f5f9;
+    color: var( --primary-blue-color);
+}
+
+
+
+.courses-table tr.row-status-open td { 
+    background-color: #f0fdf4 !important; /* أخضر أرق بكتير */
+    border-bottom: 1px solid #bbf7d0;
+}
+
+.courses-table tr.row-status-closed td { 
+    background-color: #fef2f2 !important; /* أحمر أرق */
+    border-bottom: 1px solid #fecaca;
+}
+
+/* --- تعطيل الزرار بعد النشر --- */
+.publish-btn.disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    opacity: 0.7;
+}
+
+.publish-btn:hover:not(.disabled) {
+    background: #2892b8;
+    transform: translateY(-1px);
+}
+
+/* --- تحسينات عامة للـ Table Wrapper --- */
+.courses-table-wrapper {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.courses-table th:first-child {
+    border-top-left-radius: 10px;
+}
+
+.courses-table th:last-child {
+    border-top-right-radius: 10px;
+}
+
+/* تحسين شكل الـ Checkbox */
+.courses-table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var( --primary-blue-color);
+}
+
+.courses-table input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.status-filter {
+    /* border-left: 3px solid var( --primary-blue-color); */
+    font-weight: 500;
+}
+
+/* لو عايزة ألوان جوه الاختيارات نفسها */
+.status-filter option[value="open"] { color: #27ae60; }
+.status-filter option[value="closed"] { color: #e74c3c; }
+.status-filter option[value="proposed"] { color: #64748b; }
+
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modal-container {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    width: 100%;
+    max-width: 450px;
+    animation: modalIn 0.3s ease-out;
+}
+
+@keyframes modalIn {
+    from { transform: translateY(15px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.status-badge.enrollment-on {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.enrollment-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.start-enrollment-btn {
+    background: #3b82f6;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.stop-enrollment-btn {
+    background: #64748b;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.warning-text {
+    color: #b91c1c;
+    background: #fef2f2;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 12px;
+    border: 1px solid #fee2e2;
+}
+
+.edit-timeline-btn {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    padding: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s;
+}
+
+.edit-timeline-btn:hover {
+    background: var( --primary-blue-color);
+    color: white;
+}
+
+
+
+
+.row-loading {
+    opacity: 0.6;
+    pointer-events: none; /* يمنع الضغط مرة تانية لحد ما يخلص */
+}
+
+.mini-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #186F8F;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

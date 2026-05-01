@@ -1,0 +1,21 @@
+.sidebar {
+  width: 230px;
+  background: var( --primary-blue-color);
+  color: white;
+  padding: 20px;
+}
+
+.logo {
+  margin-bottom: 30px;
+}
+
+.sidebar a {
+  display: block;
+  color: white;
+  text-decoration: none;
+  margin: 12px 0;
+}
+
+.sidebar a.active {
+  font-weight: bold;
+}

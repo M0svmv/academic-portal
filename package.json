@@ -1,0 +1,17 @@
+{
+  "name": "ece-academic-portal",
+  "version": "1.0.0",
+  "main": "start.js",
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm start",
+    "start-all": "concurrently \"npm run backend\" \"npm run frontend\""
+  },
+  "keywords": [],
+  "author": "Mohammed Osama",
+  "license": "ISC",
+  "description": "new academic portal for ECE department",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

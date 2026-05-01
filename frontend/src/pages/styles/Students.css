@@ -1,0 +1,260 @@
+/* Container & Header tweaks if needed */
+.management-container {
+   padding:  2rem;
+}
+
+/* Specific Select Styles (The ones that were inline) */
+.card-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.inline-card-select {
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    appearance: none;
+    padding-right: 20px;
+    color: var( --primary-blue-color);
+    text-decoration: underline;
+    outline: none;
+}
+
+.select-chevron {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* Insight Cards Text */
+.insight-value-large {
+  font-size: 1.75rem;
+    font-weight: 700;
+    color: var( --primary-blue-color);
+    margin-bottom: 5px;
+}
+
+.insight-footer-text {
+    margin-top: 10px;
+    color: #64748b;
+}
+
+/* Search Bar Wrapper */
+.search-container {
+    display: flex;
+    align-items: center;
+
+    border-radius: 8px;
+    /* padding: 0 12px; */
+    flex: 1;
+}
+
+.search-container input {
+    margin-left: 10px;
+    border: none;
+    width: 100%;
+    outline: none;
+    padding: 10px;
+}
+
+/* Table Cell Helpers */
+.student-name-text {
+    font-weight: 600;
+    color: var( --primary-blue-color);
+}
+
+.capitalize-text {
+    text-transform: capitalize;
+}
+
+.performance-info {
+    font-size: 14px;
+}
+
+.credits-info {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.view-btn-transparent {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+/* تحسين شكل الصف اللي فيه رسوب */
+.row-fail { background-color: #fff1f2; }
+
+/* الـ Contact Info تحت الاسم */
+.contact-info-row {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.dot { width: 4px; height: 4px; background: #cbd5e1; border-radius: 50%; }
+
+/* مربع الدرجة الملون */
+.grade-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 3px solid #ccc;
+    padding-left: 8px;
+}
+.grade-letter { font-weight: 800; font-size: 1.1rem; }
+
+/* الفلتر */
+/* .filter-select {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    outline: none;
+    font-size: 0.9rem;
+    background: #f8fafc;
+} */
+
+.title-with-filter {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Badge Status */
+.status-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-tag.safe { color: #166534; }
+.status-tag.risk { color: #991b1b; }
+
+.border-danger { border-top: 4px solid var(--danger) !important; }
+
+.unassigned-alert-banner {
+    background: linear-gradient(90deg, #fff5f5 0%, #fff 100%);
+    border-left: 5px solid #ef4444;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #b91c1c;
+}
+
+.alert-icon-pulse {
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.fix-now-btn {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.fix-now-btn:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+}
+
+/* شريط الفلاتر النشطة */
+.active-filters-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px dashed #cbd5e1;
+    animation: fadeIn 0.3s ease;
+}
+
+.filters-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.filter-chip {
+    background: #fffbeb;
+    color: #f59e0b;
+        border: 1px solid #f59e0b;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.reset-filters-link {
+    background: none;
+    border: none;
+    color: #f59e0b;
+    cursor: pointer;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+/* التنبيه باللون الأصفر الدافئ */
+.unassigned-alert-banner {
+    background: linear-gradient(90deg, #fffbeb 0%, #fff 100%); /* لون Creamy yellow */
+    border-left: 5px solid #f59e0b; /* Amber color */
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #92400e; /* بني غامق متناسق مع الأصفر */
+}
+
+.fix-now-btn {
+    background-color: #f59e0b;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.fix-now-btn:hover {
+    background-color: #d97706;
+}

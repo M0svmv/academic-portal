@@ -1,0 +1,166 @@
+/* Custom Multi-Select Styles */
+.custom-select-container {
+    position: relative;
+    width: 100%;
+}
+
+.selected-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.select-tag {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #334155;
+}
+
+.select-tag svg {
+    cursor: pointer;
+    color: #94a3b8;
+}
+
+.select-tag svg:hover {
+    color: #ef4444;
+}
+
+.custom-select-trigger {
+    border: 1px solid #cbd5f5;
+    border-radius: 6px;
+    padding: 10px 12px;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.custom-select-trigger.active {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.custom-select-trigger .arrow {
+    transition: transform 0.2s;
+}
+
+.custom-select-trigger .arrow.up {
+    transform: rotate(180deg);
+}
+
+.custom-select-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdown-search-wrapper {
+    padding: 10px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #94a3b8;
+}
+
+.dropdown-search-wrapper input {
+    border: none !important;
+    outline: none !important;
+    padding: 0 !important;
+    width: 100%;
+    font-size: 14px;
+}
+
+.dropdown-options-list {
+    overflow-y: auto;
+    max-height: 220px;
+}
+
+.dropdown-option-item {
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.dropdown-option-item:hover {
+    background: #f8fafc;
+}
+
+.dropdown-option-item.selected {
+    background: #eff6ff;
+}
+
+.option-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.option-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.option-id {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.check-icon {
+    color: #3b82f6;
+}
+
+.no-options {
+    padding: 20px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/* ألوان الحالات (Status) */
+.status-pending { background: #fff6ee; color: #c2410c; border: 1px solid #fdba74; } /* برتقالي */
+.status-approved { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; } /* أخضر */
+.status-rejected { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; } /* أحمر */
+
+/* ألوان أنواع الطلبات (Request Types) */
+.type-withdrawal { border-left: 4px solid #ef4444; } /* خط أحمر للسحب */
+.type-add-drop { border-left: 4px solid #3b82f6; } /* خط أزرق للإضافة والحذف */
+
+/* تصميم الـ Chips داخل الدرور */
+.chip.add { display: flex; justify-content: center; font-weight: 500; background: #dcfce7; color: #166534; padding: 6px 10px; border-radius: 10px; font-size: 0.8rem; }
+.chip.drop {display: flex; justify-content: center; font-weight: 500; background: #fee2e2; color: #991b1b; padding: 6px 10px; border-radius: 10px; font-size: 0.8rem; }
+
+.course-chips span{
+  margin-bottom: 5px;
+}
+
+.detail-value-green {
+    
+    background: #f9fafc;
+    padding:  12px;
+    border-radius: 8px;
+    border: 1px solid #f2f3f8;
+    line-height: 1.6;
+}

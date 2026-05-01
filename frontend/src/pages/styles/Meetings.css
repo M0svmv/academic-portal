@@ -1,0 +1,113 @@
+Badges for Meeting Status
+.badge-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.badge-status.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-status.success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-status.danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-status.gray {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.icon-box-header {
+    background: #eef2ff;
+    color: #3a86ff;
+    padding: 8px;
+    border-radius: 10px;
+}
+
+/* Insights Grid */
+.m_insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.m_insight-card {
+
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #edf2f7;
+    transition: transform 0.2s ease;
+}
+
+.m_insight-card:hover {
+    transform: translateY(-3px);
+}
+
+.m_insight-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Icons Colors */
+.m_insight-icon.total { background: #e0e7ff; color: #4338ca; }
+.m_insight-icon.approved { background: #dcfce7; color: #15803d; }
+.m_insight-icon.pending { background: #fef9c3; color: #a16207; }
+
+.m_insight-label {
+    display: block;
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.m_insight-value {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: var( --primary-blue-color);
+}
+
+.text-success { color: #10b981; }
+.text-warning { color: #f59e0b; }
+
+
+
+/* تحسين شكل الـ Badge */
+.badge-status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.badge-status.pending { background: #fffbeb; color: #92400e; border: 1px solid #fef3c7; }
+.badge-status.success { background: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
+.badge-status.danger { background: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
+
+.meeting-header{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
