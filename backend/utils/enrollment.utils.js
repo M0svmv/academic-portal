@@ -7,6 +7,12 @@ const SemesterWork = require("../models/SemesterWork");
 
 
 const {getCurrentSemester} = require("./semester.utils");
+const {assignAllowedCredits, validateCredits, sumCredits} = require("./credits.util");
+
+const {CREDITS_LIMITS, GPA_THRESHOLDS} = require("../constants/limits.constants");
+
+
+
 
 
 exports.isEnrollmentOpen = (semester) => {
@@ -39,23 +45,27 @@ exports.getSemesterPreRegValidation = async () => {
     throw new Error("you can't enroll now");
   }
 
+  
+
   return currentSemester;
+
+  
 };
 
 
+
+
+
 exports.getStudentWithRules = async (studentId) => {
-  const student = await Student.findById(studentId);
-  if (!student) throw new Error("Student not found");
+  const [student, transcript] = await Promise.all([
+  Student.findById(studentId),
+  Transcript.findOne({ studentId }),
+]);
 
-  const transcript = await Transcript.findOne({ studentId });
+if (!student) throw new Error("Student not found");
+if (!transcript) throw new Error("Transcript not found");
 
-  if (transcript.GPA === 0 && transcript.completedCourses.length === 0) {
-    student.allowedCredits = 18;
-  } else if (transcript.GPA < 2.0) {
-    student.allowedCredits = 12;
-  } else if (transcript.GPA >= 3.0) {
-    student.allowedCredits = 21;
-  }
+  student.allowedCredits = assignAllowedCredits(transcript.GPA, transcript.completedCourses.length);
 
   student.transcript = transcript;
   return student;
@@ -78,23 +88,6 @@ exports.getOfferings = async (courses, semesterId) => {
 
   return offerings;
 };
-
-
-exports.validateCredits = (offerings, student) => {
-  const totalCredits = offerings.reduce(
-    (sum, o) => sum + o.courseId.courseCredits,
-    0
-  );
-
-  if (totalCredits > student.allowedCredits) {
-    throw new Error(
-      `Credit limit exceeded. Allowed: ${student.allowedCredits}, Attempted: ${totalCredits}`
-    );
-  }
-
-  return totalCredits;
-};
-
 
 
 exports.validatePrerequisites = async (studentId, newCourses) => {
@@ -128,10 +121,10 @@ exports.validatePrerequisites = async (studentId, newCourses) => {
 };
 
 
-exports.computeChanges = async (studentId, courses, offerings) => {
+exports.computeChanges = async (studentId, courses, offerings, semesterId) => {
   const enrollment = await Enrollment.findOne({
     studentId,
-    semesterId: offerings[0].semesterId,
+    semesterId,
   });
 
   const oldCourses = enrollment
@@ -143,10 +136,7 @@ exports.computeChanges = async (studentId, courses, offerings) => {
   const addedCourses = newCourses.filter(id => !oldCourses.includes(id));
   const removedCourses = oldCourses.filter(id => !newCourses.includes(id));
 
-  const currentCredits = offerings.reduce(
-    (sum, o) => sum + o.courseId.courseCredits,
-    0
-  );
+  const currentCredits = sumCredits(offerings);
 
   return { addedCourses, removedCourses, currentCredits };
 };

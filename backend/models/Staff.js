@@ -22,8 +22,9 @@ const staffSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      unique: true,
-      trim: true
+      unique: false,
+      trim: true,
+      sparse: true
     },
     phone: {
       type: String,

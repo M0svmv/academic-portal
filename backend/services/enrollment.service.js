@@ -2,7 +2,7 @@ const {
   getSemesterPreRegValidation,
   getStudentWithRules,
   getOfferings,
-  validateCredits,
+  
   validatePrerequisites,
   computeChanges,
   updateCounters,
@@ -10,25 +10,52 @@ const {
   saveEnrollment
 } = require("../utils/enrollment.utils");
 
+const { assignAllowedCredits, validateCredits, sumCredits } = require("../utils/credits.util");
+
+const { getCurrentSemester } = require("../utils/semester.utils");
+
 exports.enrollStudent = async (studentId, body) => {
   const { courses } = body;
 
-  const currentSemester = await getSemesterPreRegValidation();
+  // 🔹 step 1: الأساسي
+  const [currentSemester, student] = await Promise.all([
+    getSemesterPreRegValidation(),
+    getStudentWithRules(studentId),
+  ]);
 
-  const student = await getStudentWithRules(studentId);
+  
 
-  const offerings = await getOfferings(courses, currentSemester._id);
+  // 🔹 step 2: الداتا المستقلة
+  const [offerings, prerequisiteCheck] = await Promise.all([
+    getOfferings(courses, currentSemester._id),
+    validatePrerequisites(studentId, courses),
+  ]);
 
+  
+
+  // 🔹 step 3: validation
   validateCredits(offerings, student);
 
-  const prerequisiteCheck = await validatePrerequisites(studentId, courses);
+  
 
+  // 🔹 step 4: compute
   const { addedCourses, removedCourses, currentCredits } =
-    await computeChanges(studentId, courses, offerings);
+    await computeChanges(studentId, courses, offerings, currentSemester._id);
 
+    console.log("Current Semester:", currentSemester);
+
+  // 🔹 step 5: updates (ترتيب مهم)
   await updateCounters(addedCourses, removedCourses, student);
 
-  await syncSemesterWork(studentId, currentSemester._id, addedCourses, removedCourses, offerings);
+  await syncSemesterWork(
+    studentId,
+    currentSemester._id,
+    addedCourses,
+    removedCourses,
+    offerings
+  );
+
+  console.log(currentSemester._id)
 
   const enrollment = await saveEnrollment(
     studentId,

@@ -32,7 +32,8 @@ const studentSchema = new mongoose.Schema(
     studentEmail:{
         type: String,
         unique: false,
-        lowercase: true
+        lowercase: true,
+        sparse: true
     },
 
     roles: [

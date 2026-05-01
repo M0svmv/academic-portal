@@ -1,14 +1,39 @@
-exports.calculateAllowedCredits = (gpa, completedCoursesLength) => {
-  if (gpa === 0 && completedCoursesLength === 0) return 18;
-  if (gpa < 2.0) return 12;
-  if (gpa >= 3.0) return 21;
-  return 15; // default fallback
+
+
+const { CREDITS_LIMITS, GPA_THRESHOLDS } = require("../constants/limits.constants");
+
+exports.assignAllowedCredits = (gpa, completedCoursesLength) => {
+  if (gpa === 0 && completedCoursesLength === 0) {
+    return CREDITS_LIMITS.STANDARD_CREDITS;
+  } else if (gpa < GPA_THRESHOLDS.LOW) {
+    return CREDITS_LIMITS.LOW_CREDITS;
+  } else if (gpa >= GPA_THRESHOLDS.HIGH) {
+    return CREDITS_LIMITS.HIGH_CREDITS;
+  }
+
+  return CREDITS_LIMITS.STANDARD_CREDITS;
 };
 
 
-exports.sumCredits = (offerings) => {
+
+const sumCredits = (offerings) => {
   return offerings.reduce(
     (total, offer) => total + (offer.courseId?.courseCredits || 0),
     0
   );
+};
+
+exports.sumCredits = sumCredits;
+
+
+exports.validateCredits = (offerings, student) => {
+  const totalCredits = sumCredits(offerings);
+
+  if (totalCredits > student.allowedCredits) {
+    throw new Error(
+      `Credit limit exceeded. Allowed: ${student.allowedCredits}, Attempted: ${totalCredits}`
+    );
+  }
+
+  return totalCredits;
 };
