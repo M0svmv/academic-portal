@@ -23,7 +23,7 @@ exports.isEnrollmentOpen = (semester) => {
 
 
 exports.getSemesterPreRegValidation = async () => {
-  const currentSemester = getCurrentSemester();
+  const currentSemester = await getCurrentSemester();
 
   if (!currentSemester) {
     throw new Error("No active semester found");

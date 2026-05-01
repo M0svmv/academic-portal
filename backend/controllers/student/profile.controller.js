@@ -18,6 +18,17 @@ const AcademicRequest = require("../../models/AcademicRequest");
 const enrollmentService = require("../../services/enrollment.service");
 const recommendationService = require("../../services/recommendations.service");
 
+// Enroll in courses for the current semester
+exports.enrollStudent = async (req, res) => {
+  try {
+    const result = await enrollmentService.enrollStudent(req.user._id, req.body);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// Get course recommendations for the student
 exports.getRecommendations = async (req, res) => {
   try {
     const studentId = req.user._id;
@@ -184,14 +195,7 @@ exports.getAvailableCourses = async (req, res) => {
 };
 
 // Enroll in courses for the current semester
-exports.enrollStudent = async (req, res) => {
-  try {
-    const result = await enrollmentService.enrollStudent(req.user._id, req.body);
-    return res.status(200).json(result);
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
+
 
 // get student all details
 exports.getStudentDetails = async (req, res) => {
