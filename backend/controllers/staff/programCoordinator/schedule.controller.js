@@ -80,7 +80,8 @@ exports.getSchedule = async (req, res) => {
     })
       .populate("courseId")
       .populate("instructorId", "staffName")
-      .select("courseId schedule instructorId enrolledCount");
+      .populate("taId", "staffName")
+      .select("courseId schedule instructorId enrolledCount taId");
     const schedule = await Schedule.find();
     res.status(200).json({ schedule, courseOfferings });
   } catch (error) {
