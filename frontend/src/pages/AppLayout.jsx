@@ -58,6 +58,7 @@ const AppLayout = () => {
             Cookies.remove("userType");
             Cookies.remove("currentUser");
             Cookies.remove("activeRole");
+            localStorage.clear();
             navigate("/login");
         }
     };

@@ -46,14 +46,13 @@ const CooEnrollmentPage = () => {
             // بناءً على الـ JSON اللي بعته: enrolledRes.data.courses
             const enrolledData = enrolledRes.data?.courses || [];
 
-            // استخراج الـ IDs فقط لعمل المقارنة والـ Draft
+
             const currentIds = enrolledData.map((item) => {
-                // لو الـ courseOfferingId عبارة عن Object ناخد منه الـ _id
                 if (item.courseOfferingId && typeof item.courseOfferingId === 'object') {
                     return item.courseOfferingId._id;
                 }
                 return item.courseOfferingId;
-            }).filter(id => !!id); // إزالة أي قيم undefined
+            }).filter(id => !!id); 
 
             setOriginalEnrolled(currentIds);
 
