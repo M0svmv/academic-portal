@@ -69,7 +69,7 @@ const StudentCourseOfferingsPage = () => {
             const distance = end - now;
 
             if (distance < 0) {
-                setTimeLeft("Pre-Registration Closed");
+                setTimeLeft("No Time");
                 clearInterval(interval);
             } else {
                 const days = Math.floor(distance / (1000 * 60 * 60 * 24));
@@ -216,7 +216,8 @@ const StudentCourseOfferingsPage = () => {
         <div className="management-container student-offerings-container">
             {/* التعديل الجديد للـ Alert: شكل Dark/Glassmorphism */}
             <div className="registration-status-bar">
-                {semesterData?.settings?.allowEnrollment ? (
+                {semesterData?.settings?.allowEnrollment && timeLeft !== "No Time" ? (
+                    /* الحالة الأولى: التسجيل مفتوح والوقت لسه مخلصش */
                     <div className="premium-status-alert open">
                         <div className="status-icon-container">
                             <FaClock className="pulse-icon" />
@@ -226,16 +227,26 @@ const StudentCourseOfferingsPage = () => {
                             <span className="timer">{timeLeft} remaining</span>
                         </div>
                     </div>
-                ) : (
+                ) : timeLeft === "No Time" ? (
+                    /* الحالة الثانية: الوقت انتهى تماماً */
                     <div className="premium-status-alert closed">
                         <div className="status-icon-container">
                             <AlertTriangle className="pulse-icon" />
                         </div>
                         <div className="status-content">
                             <span className="label">Enrollment Status</span>
-                            <span className="timer">
-                                {semesterData?.status === "paused" ? "Currently Paused" : "Currently Closed"}
-                            </span>
+                            <span className="timer">Registration Period Ended</span>
+                        </div>
+                    </div>
+                ) : (
+                    /* الحالة الثالثة: التسجيل مقفول يدوياً (Paused) والوقت لسه فيه */
+                    <div className="premium-status-alert closed">
+                        <div className="status-icon-container">
+                            <AlertTriangle className="pulse-icon" />
+                        </div>
+                        <div className="status-content">
+                            <span className="label">Enrollment Status</span>
+                            <span className="timer">Currently Paused</span>
                         </div>
                     </div>
                 )}
