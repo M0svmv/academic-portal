@@ -193,8 +193,7 @@ exports.assignGradingSchema = async (req, res) => {
       (course.gradingSchema.midTerm || 0) +
       (course.gradingSchema.attendance || 0) +
       (course.gradingSchema.lab || 0) +
-      (course.gradingSchema.practical || 0) +
-      (course.gradingSchema.bonus || 0);
+      (course.gradingSchema.practical || 0) ;
 
     if (total > 50) {
       return res.status(400).json({

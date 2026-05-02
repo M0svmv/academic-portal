@@ -373,7 +373,7 @@ const CourseGrading = () => {
                                             { key: 'labGrade', max: course.gradingSchema.lab },
                                             { key: 'attendanceGrade', max: course.gradingSchema.attendance }, // ده اللي هيقفل
                                             { key: 'practicalGrade', max: course.gradingSchema.practical },
-                                            { key: 'bonusGrade', max: 10 }
+                                            { key: 'bonusGrade', max: course.gradingSchema.bonus },
                                         ].map(field => {
                                             const isChanged = originalStudent && s.grade[field.key] !== originalStudent.grade[field.key];
                                             const isAttendance = field.key === 'attendanceGrade';
