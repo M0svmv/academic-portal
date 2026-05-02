@@ -6,6 +6,9 @@ const Transcript = require('../../../models/Transcript');
 const SemesterWork = require('../../../models/SemesterWork');
 
 
+const EnrollmentService = require('../../../services/enrollment.service');
+
+
 //get student available courses
 exports.getStudentAvailableCourses = async (req, res) => {
   try {
@@ -79,167 +82,11 @@ exports.getStudentAvailableCourses = async (req, res) => {
 exports.enrollStudent = async (req, res) => {
   try {
     const studentId = req.params.id;
-    const { courses } = req.body;
-
-    const currentSemester = await Semester.findOne({ isCurrent: true });
-    const semesterId = currentSemester._id;
-
-    // check student
-    const student = await Student.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ error: "Student not found" });
-    }
-    const transcript = await Transcript.findOne({ studentId });
-
-    if (transcript.GPA === 0 && transcript.completedCourses.length === 0) {
-      student.allowedCredits = 18;
-    } else if (transcript.GPA < 2.0) {
-      student.allowedCredits = 12;
-    } else if (transcript.GPA >= 3.0) {
-      student.allowedCredits = 21;
-    }
-
-    const offeringIds = courses.map(c => c.courseOfferingId);
-
-    const offerings = await CourseOffering.find({
-      _id: { $in: offeringIds },
-      semesterId,
-      status: { $in: ["open", "proposed"] }
-    }).populate("courseId", "courseCredits");
-
-    if (offerings.length !== offeringIds.length) {
-      return res.status(400).json({
-        error: "One or more courses are not available"
-      });
-    }
-
-    console.log(offerings);
-    
-
-    const currentCredits = offerings.reduce(
-      (total, offer) => total + offer.courseId.courseCredits,
-      0
-    );
-
-    console.log(currentCredits);
-
-    if (currentCredits > student.allowedCredits) {
-      return res.status(400).json({
-        message: `Credit limit exceeded. Allowed: ${student.allowedCredits}, Attempted: ${currentCredits}`
-      });
-    }
-
-    // get current enrollment
-    let enrollment = await Enrollment.findOne({ studentId, semesterId });
-    
-
-    let oldCourses = [];
-    if (enrollment) {
-      oldCourses = enrollment.courses.map(c => c.courseOfferingId.toString());
-    }
-
-    const newCourses = courses.map(c => c.courseOfferingId.toString());
-
-const preRequiredCourses = await CourseOffering.find({
-  _id: { $in: newCourses }
-}).populate(
-   "courseId"
-  
-);
-const requiredCourses = preRequiredCourses.map(course => course.courseId.prerequisiteCourses).flat();
-const completedCourses = transcript.completedCourses
-  .filter(course => course.status !== "failed")
-  .map(course => course.courseId);
-    console.log("requiredCourses =>",completedCourses);
-    // إزالة التكرار
-const uniqueRequiredCourses = requiredCourses.filter((course, index, self) =>
-  index === self.findIndex(c => c.toString() === course.toString())
-);
-
-// تحويل completed لـ string للمقارنة
-const completedIds = completedCourses.map(c => c.toString());
-
-// check missing
-const missingCourses = uniqueRequiredCourses.filter(
-  req => !completedIds.includes(req.toString())
-);
-
-if (missingCourses.length > 0) {
-  return res.status(400).json({
-    error: "You must complete prerequisites first",
-    missingCourses
-  });
-}
-
-    const addedCourses = newCourses.filter(id => !oldCourses.includes(id));
-    const removedCourses = oldCourses.filter(id => !newCourses.includes(id));
-
-    // 🔥 update counters
-    await CourseOffering.updateMany(
-      { _id: { $in: addedCourses } },
-      { $inc: { enrolledCount: 1 } }
-    );
-
-    await CourseOffering.updateMany(
-      { _id: { $in: removedCourses } },
-      { $inc: { enrolledCount: -1 } }
-    );
-
-    console.log("addedCourses =>",addedCourses);
-    console.log("removedCourses =>",removedCourses);
-
-    // Map offerings by ID for fast lookup
-const offeringMap = {};
-offerings.forEach(o => {
-  offeringMap[o._id.toString()] = o;
-});
-
-// Insert new courses
-if (addedCourses.length > 0) {
-  await SemesterWork.insertMany(
-    addedCourses.map(offerId => {
-      const offer = offeringMap[offerId];
-      if (!offer || !offer.courseId) {
-        throw new Error(`Invalid offering or missing courseId for ${offerId}`);
-      }
-      return {
-        _id: studentId + '-' + offerId, // اختياري
-        studentId,
-        semesterId,
-        courseId: offer.courseId._id // لازم
-      };
-    })
-  );
-}
-
-// Delete removed courses
-if (removedCourses.length > 0) {
-  await SemesterWork.deleteMany({
-    _id: { $in: removedCourses.map(c => studentId + '-' + c) }
-  });
-}
-
-    
-
-    // save enrollment
-    if (!enrollment) {
-      enrollment = new Enrollment({ studentId, semesterId, courses,currentEnrolledCredits: currentCredits, allowedCredits: student.allowedCredits });
-    } else {
-      enrollment.courses = courses;
-      enrollment.currentEnrolledCredits = currentCredits;
-      enrollment.allowedCredits = student.allowedCredits;
-    }
-
-    await enrollment.save();
-
-    res.status(200).json({
-      addedCourses,
-      removedCourses,
-      message: "Enrollment updated successfully",
-      totalCredits: currentCredits,
-      allowedCredits: student.allowedCredits,
-      enrollment
-    });
+    console.log("================================");
+    console.log("Enrollment request for student:", studentId + " with body:", req.body);
+    console.log("================================");
+    const result = await EnrollmentService.enrollStudent(studentId, req.body);
+    res.status(200).json(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({

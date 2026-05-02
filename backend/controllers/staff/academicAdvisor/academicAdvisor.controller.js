@@ -193,7 +193,7 @@ exports.getStudentAvailableCourses = async (req, res) => {
 };
 
 //get student current enrollment
-exports.getStudentCurrentEnrollment = async (req, res) => {
+exports.getCurrentEnrollment = async (req, res) => {
   try {
     const studentId = req.params.id;
 
@@ -220,7 +220,6 @@ exports.getStudentCurrentEnrollment = async (req, res) => {
       semesterId: currentSemester._id
     }).populate({
       path: "courses.courseOfferingId",
-      select: "courseName courseCredits",
       populate: {
         path: "courseId",
         select: "courseName courseCredits"
@@ -238,37 +237,37 @@ exports.getStudentCurrentEnrollment = async (req, res) => {
   }
 };
 
-exports.getCurrentEnrollment = async (req, res) => {
-  try {
-    const studentId = req.params.id;
-    const advisingList = await AdvisingList.findOne({
-      advisor: req.user._id,
-      "students.student": studentId
-    });
+// exports.getCurrentEnrollment = async (req, res) => {
+//   try {
+//     const studentId = req.params.id;
+//     const advisingList = await AdvisingList.findOne({
+//       advisor: req.user._id,
+//       "students.student": studentId
+//     });
 
-    if (!advisingList) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-    const currentSemester = await Semester.findOne({ isCurrent: true }).select(
-      "semesterId",
-    );
-    console.log("Current semester:", currentSemester);
-    if (!currentSemester) {
-      return res.status(404).json({ message: "Current semester not found" });
-    }
-    const currentEnrollment = await Enrollment.findOne({
-      studentId,
-      semesterId: currentSemester._id,
-    });
-    if (!currentEnrollment) {
-      return res.status(404).json({ message: "Current enrollment not found" });
-    }
-    res.status(200).json(currentEnrollment);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-};
+//     if (!advisingList) {
+//       return res.status(403).json({ message: "Not authorized" });
+//     }
+//     const currentSemester = await Semester.findOne({ isCurrent: true }).select(
+//       "semesterId",
+//     );
+//     console.log("Current semester:", currentSemester);
+//     if (!currentSemester) {
+//       return res.status(404).json({ message: "Current semester not found" });
+//     }
+//     const currentEnrollment = await Enrollment.findOne({
+//       studentId,
+//       semesterId: currentSemester._id,
+//     });
+//     if (!currentEnrollment) {
+//       return res.status(404).json({ message: "Current enrollment not found" });
+//     }
+//     res.status(200).json(currentEnrollment);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
 
 //enroll student from advising list
 exports.enrollStudent = async (req, res) => {

@@ -91,11 +91,11 @@ exports.getOfferings = async (courses, semesterId) => {
 
 
 exports.validatePrerequisites = async (studentId, newCourses) => {
-  const transcript = await Transcript.findOne({ studentId });
-
-  const preReqCourses = await CourseOffering.find({
+  const [transcript,preReqCourses] = await Promise.all([Transcript.findOne({ studentId }),
+     CourseOffering.find({
     _id: { $in: newCourses.map(c => c.courseOfferingId) }
-  }).populate("courseId");
+  }).populate("courseId")
+  ]);
 
   const required = preReqCourses
     .map(c => c.courseId.prerequisiteCourses)

@@ -5,6 +5,8 @@ const transcriptSchema = new mongoose.Schema({
   department: {
     type: String,
     trim: true,
+    default: "ECE",
+    enum: ["ECE"],
   },
   GPA: { type: Number, default: 0, MIN: 0.0, MAX: 4.0 },
   completedCredits: { type: Number, default: 0 },
