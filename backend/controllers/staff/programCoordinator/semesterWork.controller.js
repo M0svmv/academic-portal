@@ -1,5 +1,6 @@
 const SemesterWork = require("../../../models/SemesterWork");
 const Semester = require("../../../models/Semester");
+const CourseOffering = require("../../../models/CourseOffering");
 // Create a new semester work
 exports.createSemesterWork = async (req, res) => {
   try {
@@ -107,5 +108,89 @@ exports.deleteSemesterWork = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Failed to delete semester work" });
   }
+};
+
+
+
+exports.assignCourseFinalGrades = async (req, res) => {
+  try {
+      const { grades } = req.body;
+
+      
+  
+      const semester = await Semester.findOne({ isCurrent: true });
+      
+      const semesterId = semester._id;
+
+      const currentDate = new Date();
+
+      if (semester.timeLine.finalExams.start > currentDate ) {
+        return res.status(400).json({ message: "Final exams are not in progress" });
+      }
+  
+      const course = await CourseOffering.findById(req.params.id);
+  
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+  
+  
+      const courseId = course.courseId;
+  
+      const bulkOps = [];
+      const errors = [];
+  
+      for (let g of grades) {
+        const updateFields = {};
+  
+        // ✅ validations + build update object
+        if (g.finalGrade !== undefined) {
+          if (g.finalGrade > course.gradingSchema.final) {
+            errors.push({ studentId: g.studentId, error: "Final grade exceeds max" });
+            continue;
+          }
+          updateFields["grade.finalGrade"] = g.finalGrade;
+        }   
+  
+        if (Object.keys(updateFields).length === 0) continue;
+  
+        // ✅ add bulk operation
+        bulkOps.push({
+          updateOne: {
+            filter: {
+              studentId: g.studentId,
+              courseId,
+              semesterId,
+            },
+            update: {
+              $set: updateFields,
+            },
+          },
+        });
+      }
+  
+      // ✅ execute bulk
+      if (bulkOps.length > 0) {
+        await SemesterWork.bulkWrite(bulkOps);
+      }
+  
+      // ✅ نحسب التوتال بعد كده
+      const updatedWorks = await SemesterWork.find({
+        courseId,
+        semesterId,
+      });
+  
+      for (let work of updatedWorks) {
+        await work.calculateTotalGrade();
+      }
+  
+      res.status(200).json({
+        message: "Grades processed",
+        successCount: bulkOps.length,
+        errors,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
 };
 

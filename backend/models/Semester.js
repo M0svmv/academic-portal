@@ -30,7 +30,8 @@ const semesterSchema = new mongoose.Schema({
   settings: {
     allowEnrollment: {type: Boolean, default: false},
     allowWithdrawal: {type: Boolean, default: false},
-    announceSchedule: {type: Boolean, default: false}
+    announceSchedule: {type: Boolean, default: false},
+    announceGrades: {type: Boolean, default: false},
   },
 
   forceEnd:{
