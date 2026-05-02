@@ -42,7 +42,7 @@ const staffSchema = new mongoose.Schema(
     roles: [
       {
         type: String,
-        enum: ['coordinator', 'lecturer', 'ta', 'admin', 'academic-advisor'],
+        enum: ['coordinator', 'lecturer', 'ta', 'admin', 'academic-advisor', 'control-member'],
         required: true
       }
     ]

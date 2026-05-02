@@ -22,6 +22,6 @@ router.put('/:id', semesterWorkController.updateGradeInCourse);
 router.delete('/:id', semesterWorkController.deleteSemesterWork);
 
 //assign final grades for a course
-router.put('/assignFinalGrades/:id', semesterWorkController.assignCourseFinalGrades);
+router.put('/assignFinalGrades/:id',authMiddleware, roleCheckMiddleware('coordinator', 'admin', 'control-member'), semesterWorkController.assignCourseFinalGrades);
 
 module.exports = router;
