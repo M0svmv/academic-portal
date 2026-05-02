@@ -52,7 +52,7 @@ const CooEnrollmentPage = () => {
                     return item.courseOfferingId._id;
                 }
                 return item.courseOfferingId;
-            }).filter(id => !!id); 
+            }).filter(id => !!id);
 
             setOriginalEnrolled(currentIds);
 
@@ -146,7 +146,7 @@ const CooEnrollmentPage = () => {
 
             swalService.success("Success", "Enrollment updated successfully.");
         } catch (err) {
-            swalService.error("Failed", err.response?.data?.message || "Update failed");
+            swalService.error("Failed", err.response?.data?.message || "Update failed, Something went wrong!");
         } finally {
             setSaving(false);
         }

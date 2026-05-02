@@ -1,6 +1,9 @@
 import Swal from 'sweetalert2';
 
 const swalService = {
+
+    defaultWidth: '450px',
+
     success: (title, text) => {
         return Swal.fire({
             icon: 'success',
@@ -10,26 +13,27 @@ const swalService = {
             showConfirmButton: false,
             iconColor: '#10b981',
             padding: '2em',
+            width: swalService.defaultWidth,
             customClass: {
                 popup: 'rounded-2xl',
             }
         });
     },
 
-    // تنبيه الخطأ المعدل ليدعم النص والـ HTML تلقائياً
+
     error: (title, content) => {
-        // فحص ما إذا كان المحتوى نصاً يحتوي على وسم HTML
+
         const isHtml = typeof content === 'string' && content.trim().startsWith('<');
 
         return Swal.fire({
             icon: 'error',
             title: title || 'Error!',
-            // استخدام الخاصية المناسبة بناءً على نوع المحتوى
+
             [isHtml ? 'html' : 'text']: content || 'Something went wrong.',
             confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Try Again',
-            // زيادة العرض فقط في حالة عرض جدول التعارضات ليكون مريحاً للعين
-            width: isHtml ? '600px' : 'auto',
+            confirmButtonText: 'Understood',
+
+            width: isHtml ? '600px' : swalService.defaultWidth,
             customClass: {
                 popup: 'rounded-2xl',
             }
@@ -47,6 +51,7 @@ const swalService = {
             confirmButtonText: confirmText,
             cancelButtonText: 'Cancel',
             reverseButtons: true,
+            width: swalService.defaultWidth,
             customClass: {
                 popup: 'rounded-2xl',
             }
@@ -57,6 +62,7 @@ const swalService = {
         Swal.fire({
             title: title,
             allowOutsideClick: false,
+            width: swalService.defaultWidth,
             didOpen: () => {
                 Swal.showLoading();
             },
