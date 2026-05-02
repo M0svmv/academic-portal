@@ -70,6 +70,7 @@ const StudentRequestsManagement = () => {
             const enrolledRes = await api.get("/student/me/enrollments/current");
 
             const coursesList = enrolledRes.data.courses || [];
+            console.log(coursesList)
 
             const normalized = coursesList.map(c => ({
                 _id: c.courseOfferingId?.courseId?._id,
