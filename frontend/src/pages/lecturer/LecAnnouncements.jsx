@@ -85,8 +85,10 @@ const LecAnnouncements = () => {
     const fetchCourseStudents = async (courseId) => {
         if (!courseId) return;
         try {
-            const courseCode = courses.find(c => c._id === courseId)?.courseId?.courseCode || courseId.split('-')[0];
+            const courseCode = courses.find(c => c._id === courseId).courseId._id|| courseId.split('-')[0];
+            
             const res = await api.get(`/semester-work/course/${courseCode}`);
+            console.log("Fetching students for course code:", res.data);
             setStudents(Array.isArray(res.data) ? res.data : []);
         } catch (err) {
             console.error("Error fetching students:", err);
