@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../../services/api";
+import swalService from "../../services/swal";
 import {
     Edit, UserPlus, ListPlus, UserCheck, Trash2,
     Loader2, PlusCircle, Edit3, X, Save, Search, Eye, ChevronDown,
@@ -356,7 +357,34 @@ const AdvisingManagementPage = () => {
                                             <button
                                                 className="btn-delete"
                                                 title="Make Advisor"
-                                                onClick={() => api.post("/advisors/advisor", { _id: staff._id }).then(loadData)}
+                                                onClick={async () => {
+                                                    const result = await swalService.confirm(
+                                                        "Promote to Advisor?",
+                                                        `Are you sure you want to promote ${staff.staffName} to an advisor?`,
+                                                        "Yes, Promote!"
+                                                    );
+
+
+                                                    if (result.isConfirmed) {
+                                                        try {
+                                                            swalService.showLoading("Promoting staff...");
+
+                                                            const response = await api.post("/advisors/advisor", { _id: staff._id });
+
+                                                            loadData();
+
+                                                            swalService.success(
+                                                                "Success!",
+                                                                `${staff.staffName} is now an advisor.`
+                                                            );
+                                                        } catch (err) {
+                                                            swalService.error(
+                                                                "Action Failed",
+                                                                err.response?.data?.message || "Could not complete the promotion."
+                                                            );
+                                                        }
+                                                    }
+                                                }}
                                                 style={{ background: 'none', border: 'none', color: '#059669', cursor: 'pointer' }}
                                             >
                                                 <UserPlus size={18} />
