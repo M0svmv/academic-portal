@@ -12,11 +12,13 @@ const { all } = require("../../../routes/lecturer.route");
 // Get courses assigned to TA
 exports.getTACourses = async (req, res) => {
   try {
+    const semester = await Semester.findOne({ isCurrent: true });
     const TA = await Staff.findById(req.user._id).select("-password");
+    
     if (!TA) {
       return res.status(404).json({ message: "TA not found" });
     }
-    const courses = await CourseOffering.find({ taId: TA._id }).populate(
+    const courses = await CourseOffering.find({ taId: TA._id, semesterId: semester._id }).populate(
       "courseId",
     );
 

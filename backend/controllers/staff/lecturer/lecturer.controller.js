@@ -13,12 +13,14 @@ const { Cursor } = require("mongoose");
 //get lecturer courses
 exports.getLecturerCourses = async (req, res) => {
   try {
+    const semester = await Semester.findOne({ isCurrent: true });
     const lecturer = await Staff.findById(req.user._id).select("-password");
     if (!lecturer) {
       return res.status(404).json({ message: "Lecturer not found" });
     }
     const courses = await CourseOffering.find({
       instructorId: lecturer._id,
+      semesterId: semester._id,
     }).populate("courseId");
 
     res.status(200).json(courses);
@@ -193,8 +195,7 @@ exports.assignGradingSchema = async (req, res) => {
       (course.gradingSchema.midTerm || 0) +
       (course.gradingSchema.attendance || 0) +
       (course.gradingSchema.lab || 0) +
-      (course.gradingSchema.practical || 0) +
-      (course.gradingSchema.bonus || 0);
+      (course.gradingSchema.practical || 0) ;
 
     if (total > 50) {
       return res.status(400).json({
