@@ -27,6 +27,12 @@ const StaffDashboard = () => {
             {role === "admin" && (
                 <p>Here you can manage users and system settings.</p>
             )}
+
+
+
+            {role === "control-member" && (
+                <p>Here you can manage users and system settings.</p>
+            )}
         </div>
     );
 };

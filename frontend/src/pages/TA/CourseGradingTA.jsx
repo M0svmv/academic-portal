@@ -339,9 +339,11 @@ const CourseGradingTA = () => {
                                         style={{
                                             backgroundColor: isPresent ? '#f0f9ff' : (isExpanded ? '#f8fafc' : 'inherit'),
                                             borderLeft: isExpanded ? '4px solid #3b82f6' : 'none',
-                                            opacity: isTodayAttendanceTaken && isPresent ? 1 : (isTodayAttendanceTaken ? 0.8 : 1)
+                                            opacity: isTodayAttendanceTaken && isPresent ? 1 : (isTodayAttendanceTaken ? 0.8 : 1),
+                                            transition: 'all 0.2s ease'
                                         }}
                                     >
+                                        {/* Attendance Checkbox */}
                                         <td style={{ textAlign: 'center' }}>
                                             <button onClick={() => toggleAttendance(s.studentId._id)}
                                                 disabled={isTodayAttendanceTaken}
@@ -350,32 +352,32 @@ const CourseGradingTA = () => {
                                                 {isPresent ? <CheckSquare size={20} color="#2563eb" fill="#eff6ff" /> : <Square size={20} color="#cbd5e1" />}
                                             </button>
                                         </td>
+
+                                        {/* Student Info */}
                                         <td
                                             onClick={() => setExpandedStudentId(isExpanded ? null : s.studentId._id)}
                                             style={{ cursor: 'pointer' }}
                                         >
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                <div style={{ width: '35px', height: '35px', borderRadius: '8px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' }}>
-                                                    {s.studentId.studentName.charAt(0)}
-                                                </div>
                                                 <div>
-                                                    <div style={{ fontWeight: '600', color: 'var( --primary-blue-color)' }}>{s.studentId.studentName}</div>
+                                                    <div style={{ fontWeight: '600', color: 'var(--primary-blue-color)' }}>{s.studentId.studentName}</div>
                                                     <div style={{ fontSize: '11px', color: '#64748b' }}>ID: {s.studentId._id}</div>
                                                 </div>
                                             </div>
                                         </td>
 
+                                        {/* Grades Inputs Loop */}
                                         {[
-                                            { key: 'midTermGrade', label: 'midTerm' },
-                                            { key: 'labGrade', label: 'lab' },
-                                            { key: 'attendanceGrade', label: 'attendance' },
-                                            { key: 'practicalGrade', label: 'practical' },
-                                            { key: 'bonusGrade', label: 'bonus' }
+                                            { key: 'midTermGrade', label: 'Midterm' },
+                                            { key: 'labGrade', label: 'Lab' },
+                                            { key: 'attendanceGrade', label: 'Attendance' },
+                                            { key: 'practicalGrade', label: 'Practical' },
+                                            { key: 'bonusGrade', label: 'Bonus' }
                                         ].map(field => {
                                             const isChanged = originalStudent && s.grade[field.key] !== originalStudent.grade[field.key];
 
-                                            // 🔥 الصلاحيات: اللاب والعملي فقط هم القابلين للتعديل
-                                            const isEditable = field.key === 'labGrade' || field.key === 'practicalGrade';
+                                            // تعديل الصلاحيات: الميدترم واللاب والعملي قابلين للتعديل
+                                            const isEditable = field.key === 'midTermGrade' || field.key === 'labGrade' || field.key === 'practicalGrade';
 
                                             return (
                                                 <td key={field.key} style={{ textAlign: 'center' }}>
@@ -390,31 +392,45 @@ const CourseGradingTA = () => {
                                                             padding: '4px',
                                                             borderRadius: '4px',
                                                             textAlign: 'center',
-                                                            border: !isEditable ? '1px solid #cbd5e1' : (isChanged ? '1px solid #f59e0b' : '1px solid #e2e8f0'),
+                                                            border: !isEditable ? '1px solid #cbd5e1' : (isChanged ? '2px solid #f59e0b' : '1px solid #e2e8f0'),
                                                             backgroundColor: !isEditable ? '#f1f5f9' : (isChanged ? '#fffbeb' : 'white'),
-                                                            color: !isEditable ? '#64748b' : 'var( --primary-blue-color)',
+                                                            color: !isEditable ? '#64748b' : 'var(--primary-blue-color)',
                                                             cursor: !isEditable ? 'not-allowed' : 'text',
-                                                            fontWeight: isChanged ? 'bold' : 'normal'
+                                                            fontWeight: isChanged ? 'bold' : 'normal',
+                                                            transition: 'border 0.2s'
                                                         }}
                                                     />
                                                 </td>
                                             );
                                         })}
+
+                                        {/* Total Grade */}
                                         <td style={{ textAlign: 'center' }}>
-                                            <span style={{ fontWeight: 'bold', color: '#2563eb' }}>{total}</span>
+                                            <span style={{
+                                                fontWeight: 'bold',
+                                                color: total < 25 ? '#ef4444' : '#2563eb',
+                                                background: total < 25 ? '#fee2e2' : '#dbeafe',
+                                                padding: '2px 8px',
+                                                borderRadius: '12px',
+                                                fontSize: '0.9em'
+                                            }}>
+                                                {total}
+                                            </span>
                                         </td>
                                     </tr>
 
+                                    {/* Expanded Details Row */}
                                     {isExpanded && (
                                         <tr>
-                                            <td colSpan="8" style={{ padding: '0' }}>
-                                                <div style={{ background: '#f8fafc', padding: '15px 50px', borderBottom: '1px solid #e2e8f0', position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            {/* الـ colSpan هنا لازم يساوي إجمالي عدد الأعمدة (1 للحضور + 1 للاسم + 5 للدرجات + 1 للتوتال = 8) */}
+                                            <td colSpan="8" style={{ padding: '0', borderLeft: '4px solid #3b82f6' }}>
+                                                <div style={{ background: '#f8fafc', padding: '15px 50px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                     <div style={{ display: 'flex', gap: '30px' }}>
                                                         <div>
                                                             <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>GPA Score</p>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                                 <Award size={16} color="#f59e0b" />
-                                                                <span style={{ fontWeight: 'bold', color: 'var( --primary-blue-color)' }}>{s.studentId.transcript?.GPA || 'N/A'}</span>
+                                                                <span style={{ fontWeight: 'bold', color: 'var(--primary-blue-color)' }}>{s.studentId.transcript?.GPA || 'N/A'}</span>
                                                             </div>
                                                         </div>
                                                         <div>
@@ -425,7 +441,7 @@ const CourseGradingTA = () => {
                                                         </div>
                                                         <div>
                                                             <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Regulation</p>
-                                                            <span style={{ fontWeight: '500', color: 'var( --primary-blue-color)' }}>{s.studentId.transcript?.regulation || 'Standard'}</span>
+                                                            <span style={{ fontWeight: '500', color: 'var(--primary-blue-color)' }}>{s.studentId.transcript?.regulation || 'Standard'}</span>
                                                         </div>
                                                         <div>
                                                             <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Contact</p>

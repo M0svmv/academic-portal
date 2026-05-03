@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import '../pages/styles/ProgramCourses.css';
 
-const ROLES = ['coordinator', 'lecturer', 'ta', 'admin', 'academic-advisor'];
+const ROLES = ['coordinator', 'lecturer', 'ta', 'admin', 'academic-advisor', 'control - member'];
 
 const StaffModal = ({ isOpen, onClose, onSave, initialData = null }) => {
     const [formData, setFormData] = useState({

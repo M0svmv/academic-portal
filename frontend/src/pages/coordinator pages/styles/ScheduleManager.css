@@ -739,3 +739,27 @@ font-weight: 500;
     font-size: 10px;
     margin-bottom: 2px;
 }
+
+
+/* Conflict Modal Specific Styles */
+.conflict-modal-wide {
+    max-width: 800px !important;
+    width: 90% !important;
+}
+/* 
+.conflict-course-section {
+    background: #ffffff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+} */
+
+
+
+/* التنسيق للـ Scroll لو البيانات كتير */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}

@@ -3,7 +3,7 @@ import { X, Upload, Download, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 import '../pages/styles/ProgramCourses.css';
 
-const VALID_ROLES = ['coordinator', 'lecturer', 'ta', 'admin', 'academic-advisor'];
+const VALID_ROLES = ['coordinator', 'lecturer', 'ta', 'admin', 'academic-advisor', 'control-member'];
 
 const StaffCSVModal = ({ isOpen, onClose, onUploadSuccess }) => {
     const [data, setData] = useState([]);

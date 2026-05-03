@@ -206,5 +206,28 @@ export const menuConfig = {
             path: "/staff/admin/settings",
             icon: <Settings size={iconSize} />
         }
+    ],
+
+    "control-member": [
+        {
+            name: "Dashboard",
+            path: "/staff/control/dashboard",
+            icon: <LayoutDashboard size={iconSize} />
+        },
+        {
+            name: "Results Management",
+            path: "/staff/control/results",
+            icon: <ClipboardCheck size={iconSize} />
+        },
+        {
+            name: "Grades Audit",
+            path: "/staff/control/audit",
+            icon: <FileText size={iconSize} />
+        },
+        {
+            name: "Results History",
+            path: "/staff/control/history",
+            icon: <History size={iconSize} />
+        }
     ]
 };

@@ -15,13 +15,15 @@ const ScheduleManager = () => {
     const [offerings, setOfferings] = useState([]);
     const [periods, setPeriods] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false); // Period Config Modal
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
 
     const [activeMenu, setActiveMenu] = useState(null);
 
-    // --- New States for Staff Assignment ---
+    const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
+    const [conflictData, setConflictData] = useState([]);
+
     const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
     const [modalType, setModalType] = useState("");
     const [selectedStaff, setSelectedStaff] = useState("");
@@ -30,14 +32,11 @@ const ScheduleManager = () => {
     const [assigning, setAssigning] = useState(false);
     const [activeOfferingId, setActiveOfferingId] = useState(null);
 
-    // Configuration for bulk generation
     const [config, setConfig] = useState({
         startTime: "09:00",
         duration: 45,
         count: 12
     });
-
-    // Temporary state for manual editing in modal
     const [tempPeriods, setTempPeriods] = useState([]);
 
     const daysOfWeek = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"];
@@ -199,41 +198,9 @@ const ScheduleManager = () => {
     const handleScheduleError = (err) => {
         const errorData = err.response?.data;
         if (errorData?.conflictCourses) {
-            window.viewStudent = (id) => navigate(`/staff/${role}/students/${id}`);
-
-            const conflictRows = errorData.conflictCourses.map(c =>
-                c.conflictStudents.map(s => `
-                <tr style="border-bottom: 1px solid #333;">
-                    <td style="padding: 10px; color: #f94545;">${c.courseName}</td>
-                    <td style="padding: 10px; font-family: monospace;">${s.studentId.id}</td>
-                    <td style="padding: 10px;">${s.studentId.studentName}</td>
-                    <td style="padding: 10px; text-align: center;">
-                        <button onclick="viewStudent('${s.studentId._id}')" 
-                                style="background: none; border: none; cursor: pointer; color: #3a86ff;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        </button>
-                    </td>
-                </tr>`).join('')
-            ).join('');
-
-            const tableHtml = `
-                <div style="max-height: 400px; overflow-y: auto; background: #1a1a1a; border-radius: 8px; margin-top: 15px;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85em;">
-                        <thead>
-                            <tr style="background: #2d2d2d; position: sticky; top: 0;">
-                                <th style="padding: 12px; text-align: left;">Conflict With</th>
-                                <th style="padding: 12px; text-align: left;">ID</th>
-                                <th style="padding: 12px; text-align: left;">Student</th>
-                                <th style="padding: 12px;">View</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${conflictRows}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            swalService.error("Schedule Conflict", tableHtml);
+            setConflictData(errorData.conflictCourses); // تخزين الكورسات المتعارضة
+            setIsConflictModalOpen(true); // فتح المودال
+            swalService.close(); // إغلاق أي loading alert
         } else {
             swalService.error("Error", errorData?.message || "Something went wrong");
         }
@@ -344,8 +311,6 @@ const ScheduleManager = () => {
                                 <Layers size={10} /> {offering.schedule?.lecLength}P
                             </button>
                         )}
-
-                        {/* زر الـ 3 نقط */}
 
                         <button
                             className="dots-btn"
@@ -746,6 +711,91 @@ const ScheduleManager = () => {
                                 onClick={modalType === "instructor" ? handleAssignInstructor : handleAssignTA}
                             >
                                 {assigning ? "Assigning..." : "Confirm Assignment"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+            {/* Conflict Details Modal */}
+            {isConflictModalOpen && (
+                <div className="modal-overlay">
+                    <div className="modal-content conflict-modal-wide">
+                        <div className="modal-header" style={{ borderBottom: '2px solid #b5b5b5' }}>
+                            <div className="title-with-icon" >
+                                <X size={24} />
+                                <h2>Schedule Conflict Detected</h2>
+                            </div>
+                            <button className="close-sidebar-btn" onClick={() => setIsConflictModalOpen(false)}>
+                                <X />
+                            </button>
+                        </div>
+
+                        <div className="modal-body">
+                            <p style={{ marginBottom: '20px', color: '#666' }}>
+                                The following courses have overlapping schedules for some students:
+                            </p>
+
+                            {conflictData.map((course, cIdx) => (
+                                <div key={cIdx} className="conflict-course-section" style={{ marginBottom: '30px' }}>
+                                    <div className="conflict-course-header" style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        background: '#fff5f5',
+                                        padding: '10px 15px',
+                                        borderRadius: '8px',
+                                        borderLeft: '4px solid #f94545'
+                                    }}>
+                                        <h4 style={{ margin: 0, color: '#d90429' }}>{course.courseName}</h4>
+                                        <span className="conflict-count-badge" style={{
+                                            background: '#f94545',
+                                            color: 'white',
+                                            padding: '2px 10px',
+                                            borderRadius: '12px',
+                                            fontSize: '0.85em'
+                                        }}>
+                                            {course.conflictNumber} Students Affected
+                                        </span>
+                                    </div>
+
+                                    <div className="table-wrapper" style={{ marginTop: '10px', overflowX: 'auto' }}>
+                                        <table className="management-table compact">
+                                            <thead>
+                                                <tr>
+                                                    <th>Student ID</th>
+                                                    <th>Student Name</th>
+                                                    <th style={{ textAlign: 'center' }}>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {course.conflictStudents.map((student, sIdx) => (
+                                                    <tr key={sIdx}>
+                                                        <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
+                                                            {student.studentId.id}
+                                                        </td>
+                                                        <td>{student.studentId.studentName}</td>
+                                                        <td style={{ textAlign: 'center' }}>
+                                                            <button
+                                                                className="btn-view"
+                                                                onClick={() => navigate(`/staff/${role}/students/${student.studentId._id}`)}
+                                                                title="View Profile"
+                                                            >
+                                                                <Eye size={18} />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                            <button className="btn-2" onClick={() => setIsConflictModalOpen(false)}>
+                                Close
                             </button>
                         </div>
                     </div>

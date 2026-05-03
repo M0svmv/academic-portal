@@ -358,9 +358,9 @@ const CourseGrading = () => {
                                             style={{ cursor: 'pointer' }}
                                         >
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                <div style={{ width: '35px', height: '35px', borderRadius: '8px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' }}>
+                                                {/* <div style={{ width: '35px', height: '35px', borderRadius: '8px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' }}>
                                                     {s.studentId.studentName.charAt(0)}
-                                                </div>
+                                                </div> */}
                                                 <div>
                                                     <div style={{ fontWeight: '600', color: 'var( --primary-blue-color)' }}>{s.studentId.studentName}</div>
                                                     <div style={{ fontSize: '11px', color: '#64748b' }}>ID: {s.studentId._id}</div>

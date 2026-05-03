@@ -304,24 +304,40 @@ const AdvisedStudentDetails = () => {
                                 <tr>
                                     <th>Code</th>
                                     <th>Course Name</th>
-                                    <th>Grade</th>
+                                    <th title="Midterm">Mid.</th>
+                                    <th title="Lab / Practical">Lab/Prac.</th>
+                                    <th title="Attendance & Bonus">Att./Bon.</th>
+                                    <th>Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {semesterWorks?.length > 0 ? (
-                                    semesterWorks.map((work) => (
-                                        <tr key={work._id}>
-                                            <td className="bold">{work.courseId?._id}</td>
-                                            <td>{work.courseId?.courseName}</td>
-                                            <td>
-                                                <span className="grade-pill">
-                                                    {work.grade?.totalGrade ?? 0}/50
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))
+                                    semesterWorks.map((work) => {
+                                        // استخراج الدرجات للسهولة
+                                        const g = typeof work.grade === 'object' ? work.grade : {};
+                                        const total = g.totalGrade ?? work.grade ?? 0;
+
+                                        return (
+                                            <tr key={work._id}>
+                                                <td className="course-id-cell">{work.courseId?._id}</td>
+                                                <td>{work.courseId?.courseName}</td>
+
+                                                {/* تفاصيل الدرجات */}
+                                                <td>{g.midTermGrade ?? 0}</td>
+                                                <td>{(g.labGrade ?? 0) + (g.practicalGrade ?? 0)}</td>
+                                                <td>{(g.attendanceGrade ?? 0) + (g.bonusGrade ?? 0)}</td>
+
+                                                <td>
+                                                    <span className={`grade-pill ${total < 30 ? 'low-grade' : ''}`}>
+                                                        {total}/50
+                                                    </span>
+                                                </td>
+
+                                            </tr>
+                                        );
+                                    })
                                 ) : (
-                                    <tr><td colSpan="3" className="empty-msg">No current works found</td></tr>
+                                    <tr><td colSpan="6" className="empty-msg">No courses enrolled this semester</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -363,7 +379,7 @@ const AdvisedStudentDetails = () => {
                                             return (
                                                 <tr key={index}>
                                                     <td className="course-main-td">
-                                                        <div className="course-code">{courseDetails._id}</div>
+                                                        <div className="course-id-cell">{courseDetails._id}</div>
                                                         <div className="course-name-sub">{courseDetails.courseName}</div>
                                                     </td>
                                                     <td>

@@ -32,6 +32,10 @@ const roleColors = {
     "academic-advisor": {
         bg: "rgba(162, 143, 208, 0.12)",   // #a28fd0
         color: "#7b6bb8"
+    },
+    "control-member": {
+        bg: "rgba(93, 138, 201, 0.12)",      // Slate-700
+        color: "#2b7df1"
     }
 };
 
@@ -57,7 +61,7 @@ const AppLayout = () => {
             Cookies.remove("token");
             Cookies.remove("userType");
             Cookies.remove("currentUser");
-            Cookies.remove("activeRole");
+            Cookies.remove("active");
             localStorage.clear();
             navigate("/login");
         }

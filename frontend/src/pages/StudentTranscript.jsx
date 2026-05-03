@@ -343,34 +343,46 @@ const StudentTranscript = () => {
                         <h3>Semester Works</h3>
                         <span className="badge dept">{semester?.name}</span>
                     </div>
-                    <div className="table-wrapper">
+                    <div className="table-responsive table-wrapper">
                         <table className="modern-table">
                             <thead>
                                 <tr>
                                     <th>Code</th>
-                                    <th>Course</th>
-                                    <th>Semester Work</th>
+                                    <th>Course Name</th>
+                                    <th title="Midterm">Mid.</th>
+                                    <th title="Lab / Practical">Lab/Prac.</th>
+                                    <th title="Attendance & Bonus">Att./Bon.</th>
+                                    <th>Total</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {semesterWorks && semesterWorks.length > 0 ? (
-                                    semesterWorks.map((work) => (
-                                        <tr key={work._id}>
-                                            <td className="bold">{work.courseId?._id}</td>
-                                            <td>{work.courseId?.courseName}</td>
-                                            <td>
-                                                <span className="grade-pill">
-                                                    {work.grade?.totalGrade} / 50
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))
+                                {semesterWorks?.length > 0 ? (
+                                    semesterWorks.map((work) => {
+                                        // استخراج الدرجات للسهولة
+                                        const g = typeof work.grade === 'object' ? work.grade : {};
+                                        const total = g.totalGrade ?? work.grade ?? 0;
+
+                                        return (
+                                            <tr key={work._id}>
+                                                <td className="course-id-cell">{work.courseId?._id}</td>
+                                                <td>{work.courseId?.courseName}</td>
+
+                                                {/* تفاصيل الدرجات */}
+                                                <td>{g.midTermGrade ?? 0}</td>
+                                                <td>{(g.labGrade ?? 0) + (g.practicalGrade ?? 0)}</td>
+                                                <td>{(g.attendanceGrade ?? 0) + (g.bonusGrade ?? 0)}</td>
+
+                                                <td>
+                                                    <span className={`grade-pill ${total < 30 ? 'low-grade' : ''}`}>
+                                                        {total}/50
+                                                    </span>
+                                                </td>
+
+                                            </tr>
+                                        );
+                                    })
                                 ) : (
-                                    <tr>
-                                        <td colSpan="3" className="empty-state-cell">
-                                            <FaInfoCircle /> No semester works recorded for the current term.
-                                        </td>
-                                    </tr>
+                                    <tr><td colSpan="6" className="empty-msg">No courses enrolled this semester</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -423,7 +435,7 @@ const StudentTranscript = () => {
                                         const info = getGradeDisplay(course.grade, course.status);
                                         return (
                                             <tr key={index}>
-                                                <td className="bold">{course.courseId?._id}</td>
+                                                <td className="course-id-cell">{course.courseId?._id}</td>
                                                 <td>{course.courseId?.courseName}</td>
                                                 <td><span className={`status-pill ${info.class}`}>{info.label}</span></td>
                                                 <td className="bold">{course.grade} <small>[{info.letter}]</small></td>

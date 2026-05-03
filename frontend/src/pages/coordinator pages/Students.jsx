@@ -294,7 +294,6 @@ const Students = () => {
                             >
                                 <option value="all">All Regulations</option>
                                 <option value="New">New Regulation</option>
-                                <option value="Old">Old Regulation</option>
                                 <option value="last">Last Regulation</option>
                             </select>
                             <ChevronDown size={12} className="select-chevron" />
@@ -330,7 +329,6 @@ const Students = () => {
                 <select value={filterReg} onChange={e => setFilterReg(e.target.value)} className="filter-select">
                     <option value="">All Regulations</option>
                     <option value="New">New Regulation</option>
-                    <option value="Old">Old Regulation</option>
                     <option value="last">Last Regulation</option>
                 </select>
 

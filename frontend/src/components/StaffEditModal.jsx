@@ -5,7 +5,7 @@ import swalService from "../services/swal";
 
 import '../pages/styles/ProgramCourses.css';
 
-const ROLES = ['coordinator', 'lecturer', 'ta', 'admin', 'academic-advisor'];
+const ROLES = ['coordinator', 'lecturer', 'ta', 'admin', 'academic-advisor', 'control-member'];
 
 const EditStaffModal = ({ isOpen, onClose, staffId, onUpdate }) => {
     const [formData, setFormData] = useState({

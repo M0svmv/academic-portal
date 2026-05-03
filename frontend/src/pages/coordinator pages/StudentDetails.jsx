@@ -184,7 +184,8 @@ const StudentDetails = () => {
         try {
             setLoading(true);
             const res = await api.get(`/students/${id}/details`);
-            
+            console.log(res)
+
             setData(res.data);
             setLoading(false);
         } catch (err) {
@@ -193,36 +194,6 @@ const StudentDetails = () => {
         }
     };
 
-    // دالة تحديث اللائحة (Regulation)
-    // const handleUpdateRegulation = async (newRegulation) => {
-    //     const oldRegulation = data.transcript.regulation;
-
-    //     if (newRegulation === oldRegulation) return;
-
-    //     const result = await swalService.confirm(
-    //         "Update Regulation?",
-    //         `You are about to change the student's regulation from "${oldRegulation}" to "${newRegulation}". This may affect credit calculations and graduation requirements. Are you sure?`,
-    //         "Yes, update it",
-    //         "warning"
-    //     );
-
-    //     if (result.isConfirmed) {
-    //         try {
-    //             swalService.showLoading("Updating Regulation...");
-    //             await api.put(`/transcripts/${data.transcript._id}`, {
-    //                 regulation: newRegulation
-    //             });
-    //             await fetchStudentDetails();
-    //             swalService.success("Success", `Regulation updated to ${newRegulation}`);
-    //         } catch (err) {
-    //             console.error(err);
-    //             swalService.error("Error", "Failed to update regulation.");
-    //             await fetchStudentDetails();
-    //         }
-    //     } else {
-    //         await fetchStudentDetails();
-    //     }
-    // };
 
     const handleUpdateGrade = async (courseId, newGrade) => {
         try {
@@ -439,43 +410,60 @@ const StudentDetails = () => {
                             </button>
                         </div>
                     </div>
+
                     <div className="table-responsive table-wrapper">
                         <table className="modern-table">
                             <thead>
                                 <tr>
                                     <th>Code</th>
                                     <th>Course Name</th>
-                                    <th>Grade</th>
+                                    <th title="Midterm">Mid.</th>
+                                    <th title="Lab / Practical">Lab/Prac.</th>
+                                    <th title="Attendance & Bonus">Att./Bon.</th>
+                                    <th>Total</th>
                                     {/* <th>Actions</th> */}
                                 </tr>
                             </thead>
                             <tbody>
                                 {semesterWorks?.length > 0 ? (
-                                    semesterWorks.map((work) => (
-                                        <tr key={work._id}>
-                                            <td className="bold">{work.courseId?._id}</td>
-                                            <td>{work.courseId?.courseName}</td>
-                                            <td>
-                                                <span className="grade-pill">
-                                                    {typeof work.grade === 'object' ? work.grade.totalGrade : work.grade}/50
-                                                </span>
-                                            </td>
-                                            {/* <td>
-                                                <button
-                                                    className="edit-btn-table"
-                                                    title="Edit Grade"
-                                                    onClick={() => {
-                                                        setEditingCourse(work);
-                                                        setIsEditModalOpen(true);
-                                                    }}
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                            </td> */}
-                                        </tr>
-                                    ))
+                                    semesterWorks.map((work) => {
+                                        // استخراج الدرجات للسهولة
+                                        const g = typeof work.grade === 'object' ? work.grade : {};
+                                        const total = g.totalGrade ?? work.grade ?? 0;
+
+                                        return (
+                                            <tr key={work._id}>
+                                                <td className="course-id-cell">{work.courseId?._id}</td>
+                                                <td>{work.courseId?.courseName}</td>
+
+                                                {/* تفاصيل الدرجات */}
+                                                <td>{g.midTermGrade ?? 0}</td>
+                                                <td>{(g.labGrade ?? 0) + (g.practicalGrade ?? 0)}</td>
+                                                <td>{(g.attendanceGrade ?? 0) + (g.bonusGrade ?? 0)}</td>
+
+                                                <td>
+                                                    <span className={`grade-pill ${total < 30 ? 'low-grade' : ''}`}>
+                                                        {total}/50
+                                                    </span>
+                                                </td>
+
+                                                {/* <td>
+                                <button
+                                    className="edit-btn-table"
+                                    title="Edit Grade"
+                                    onClick={() => {
+                                        setEditingCourse(work);
+                                        setIsEditModalOpen(true);
+                                    }}
+                                >
+                                    <Edit size={16} />
+                                </button>
+                            </td> */}
+                                            </tr>
+                                        );
+                                    })
                                 ) : (
-                                    <tr><td colSpan="4" className="empty-msg">No courses enrolled this semester</td></tr>
+                                    <tr><td colSpan="6" className="empty-msg">No courses enrolled this semester</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -528,7 +516,7 @@ const StudentDetails = () => {
                                             return (
                                                 <tr key={index}>
                                                     <td className="course-main-td">
-                                                        <div className="course-code">{courseDetails._id}</div>
+                                                        <div className="course-id-cell">{courseDetails._id}</div>
                                                         <div className="course-name-sub">{courseDetails.courseName}</div>
                                                     </td>
 
