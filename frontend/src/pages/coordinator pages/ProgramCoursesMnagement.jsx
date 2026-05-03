@@ -47,6 +47,7 @@ const ProgramCoursesManagement = () => {
     const [filterLevel, setFilterLevel] = useState('');
     const [filterType, setFilterType] = useState('');
     const [filterCredits, setFilterCredits] = useState('');
+    const [filterRegulation, setFilterRegulation] = useState('');
 
     const fetchCourses = async () => {
         try {
@@ -167,7 +168,8 @@ const ProgramCoursesManagement = () => {
             c._id.toLowerCase().includes(search.toLowerCase())) &&
         (filterLevel ? c.courseLevel === filterLevel : true) &&
         (filterType ? c.courseType === filterType : true) &&
-        (filterCredits ? c.courseCredits === Number(filterCredits) : true)
+        (filterCredits ? c.courseCredits === Number(filterCredits) : true) &&
+        (filterRegulation ? c.courseRegulation === filterRegulation : true) // إضافة هذا السطر
     );
 
     return (
@@ -266,6 +268,12 @@ const ProgramCoursesManagement = () => {
                     onChange={(e) => setSearch(e.target.value)}
                 />
 
+                <select value={filterRegulation} onChange={e => setFilterRegulation(e.target.value)}>
+                    <option value="">All Regulations</option>
+                    {VALID_Regulations.map(r => <option key={r} value={r}>{r} Regulation</option>)}
+                </select>
+
+
                 <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)}>
                     <option value="">All Levels</option>
                     {VALID_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
@@ -290,7 +298,8 @@ const ProgramCoursesManagement = () => {
                         <tr>
                             <th>ID</th>
                             <th>Course Name</th>
-                            <th>Course Level</th>
+                            <th>Level</th>
+                            <th>Regulation</th>
                             <th>Type</th>
                             <th>Credits</th>
                             <th>Prerequisite</th>
@@ -301,22 +310,33 @@ const ProgramCoursesManagement = () => {
                         {filteredCourses.map(course => (
                             <tr key={course._id}>
                                 <td className="course-id-cell">{course._id}</td>
-                                <td style={{ fontWeight: '500' }}>{course.courseName}</td>
-                                <td><div>{course.courseLevel}</div>
-                                    <div style={{ fontSize: '12px', color: '#64748b' }}>
-                                        {course.courseRegulation} Regulation
-                                    </div>
+                                <td style={{ fontWeight: '500', }}>{course.courseName}</td>
+                                <td>{course.courseLevel}</td>
+
+                                {/* خلية اللائحة بتنسيق بسيط */}
+                                <td>
+                                    <span style={{
+                                        fontSize: '12px',
+                                        padding: '2px 6px',
+                                        borderRadius: '4px',
+                                        background: '#f1f5f9',
+                                        color: '#475569',
+                                        border: '1px solid #e2e8f0'
+                                    }}>
+                                        {course.courseRegulation}
+                                    </span>
                                 </td>
+
                                 <td>
                                     <span
                                         className="type-badge"
-                                        style={{ backgroundColor: TYPE_COLORS[course.courseType] || "#ccc" }}
+                                        style={{ backgroundColor: TYPE_COLORS[course.courseType] || "#ccc", fontSize: '11px' }}
                                     >
                                         {course.courseType}
                                     </span>
                                 </td>
                                 <td style={{ fontWeight: 'bold' }}>{course.courseCredits}</td>
-                                <td>
+                                <td style={{ fontSize: '12px', maxWidth: '150px' }}>
                                     {Array.isArray(course.prerequisiteCourses)
                                         ? course.prerequisiteCourses.join(', ')
                                         : course.prerequisiteCourses
