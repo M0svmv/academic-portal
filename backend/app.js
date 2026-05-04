@@ -41,6 +41,8 @@ app.use('/api/schedule', require('./routes/schedule.route'));
 
 app.use('/api/academic-requests', require('./routes/academicRequests.route'));
 
+app.use('/api/control', require('./routes/controlMember.route'));
+
 
 
 module.exports = app;

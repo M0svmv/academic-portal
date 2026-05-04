@@ -42,6 +42,12 @@ const courseOfferingSchema = new mongoose.Schema({
   bonus: { type: Number, default: 0 }
 },
 
+finalExamGradesStatus: {
+  type: String,
+  enum: ['pending', 'approved'],
+  default: 'pending'
+},
+
 lecDates: [{
   type: Date,
 }],
@@ -74,6 +80,11 @@ lecNum: {
           min: 0,
         }
 
+    },
+
+    finalExamSchedule: {
+      date: Date,
+      startTime: String
     },
 
     enrolledCount: {
