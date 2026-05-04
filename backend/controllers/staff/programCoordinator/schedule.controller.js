@@ -6,6 +6,7 @@ const SemesterWork = require("../../../models/SemesterWork");
 const Announcement = require("../../../models/announcement");
 const Schedule = require("../../../models/Schedule");
 const Student = require("../../../models/Student");
+const Transcript = require("../../../models/Transcript");
 
 //set schedule time schema
 exports.setScheduleTimeSchema = async (req, res) => {
@@ -136,11 +137,23 @@ exports.setCourseSchedules = async (req, res) => {
         ),
       );
 
+      const conflictStudentsTranscript = await Transcript.find({
+        studentId: { $in: conflictStudents.map((s) => s.studentId._id) },
+        
+      }).select("level regulation studentId").populate("studentId", "studentName");
+
+      const conflictGraduatesNum = conflictStudentsTranscript.filter(
+        (t) => t.level === "senior" || t.level === "senior-2"
+      ).length;
+
+  
+
       if (conflictStudents.length > 0) {
         conflictCourses.push({
           courseName: offering.courseId.courseName,
           conflictNumber: conflictStudents.length,
-          conflictStudents,
+          graduatesConflictNumber: conflictGraduatesNum,
+          conflictStudents: conflictStudentsTranscript,
         });
       }
     }

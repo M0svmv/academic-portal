@@ -14,6 +14,9 @@ router.get('/courses/:id/students', authMiddleware, roleCheckMiddleware(['contro
 // Assign final grades to students in a course
 router.put('/courses/:id/assign-final-grades', authMiddleware, roleCheckMiddleware(['controlMember']), controlMemberController.assignCourseFinalGrades);
 
+// approve final grades for a course
+router.put('/courses/:id/approve-final-grades', authMiddleware, roleCheckMiddleware(['controlMember']), controlMemberController.approveFinalGrades);
+
 // Update final grades for students in a course
 router.put('/courses/:id/update-grades', authMiddleware, roleCheckMiddleware(['controlMember']), controlMemberController.updateCourseGrades);
 
