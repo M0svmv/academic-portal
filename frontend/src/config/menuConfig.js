@@ -216,7 +216,7 @@ export const menuConfig = {
         },
         {
             name: "Results Management",
-            path: "/staff/control/results",
+            path: "/staff/control-member/results",
             icon: <ClipboardCheck size={iconSize} />
         },
         {

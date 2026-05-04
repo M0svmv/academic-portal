@@ -10,6 +10,12 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import './styles/ScheduleManager.css';
 
+const STUDENTS_LEVELS = ["freshman", "sophomore", "junior", "senior-1", "senior-2", "senior"];
+
+
+
+const STUDENTS_REGULATION = ["New", "Last"]
+
 const ScheduleManager = () => {
     const navigate = useNavigate();
     const [offerings, setOfferings] = useState([]);
@@ -18,7 +24,8 @@ const ScheduleManager = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-
+    const [levelFilter, setLevelFilter] = useState("All");
+    const [regulationFilter, setRegulationFilter] = useState("All");
     const [activeMenu, setActiveMenu] = useState(null);
 
     const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
@@ -198,9 +205,9 @@ const ScheduleManager = () => {
     const handleScheduleError = (err) => {
         const errorData = err.response?.data;
         if (errorData?.conflictCourses) {
-            setConflictData(errorData.conflictCourses); // تخزين الكورسات المتعارضة
-            setIsConflictModalOpen(true); // فتح المودال
-            swalService.close(); // إغلاق أي loading alert
+            setConflictData(errorData.conflictCourses);
+            setIsConflictModalOpen(true);
+            swalService.close();
         } else {
             swalService.error("Error", errorData?.message || "Something went wrong");
         }
@@ -722,9 +729,9 @@ const ScheduleManager = () => {
             {isConflictModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content conflict-modal-wide">
-                        <div className="modal-header" style={{ borderBottom: '2px solid #b5b5b5' }}>
+                        <div className="modal-header" >
                             <div className="title-with-icon" >
-                                <X size={24} />
+                                <X size={24} color='white' />
                                 <h2>Schedule Conflict Detected</h2>
                             </div>
                             <button className="close-sidebar-btn" onClick={() => setIsConflictModalOpen(false)}>
@@ -737,60 +744,121 @@ const ScheduleManager = () => {
                                 The following courses have overlapping schedules for some students:
                             </p>
 
-                            {conflictData.map((course, cIdx) => (
-                                <div key={cIdx} className="conflict-course-section" style={{ marginBottom: '30px' }}>
-                                    <div className="conflict-course-header" style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        background: '#fff5f5',
-                                        padding: '10px 15px',
-                                        borderRadius: '8px',
-                                        borderLeft: '4px solid #f94545'
-                                    }}>
-                                        <h4 style={{ margin: 0, color: '#d90429' }}>{course.courseName}</h4>
-                                        <span className="conflict-count-badge" style={{
-                                            background: '#f94545',
-                                            color: 'white',
-                                            padding: '2px 10px',
-                                            borderRadius: '12px',
-                                            fontSize: '0.85em'
-                                        }}>
-                                            {course.conflictNumber} Students Affected
-                                        </span>
-                                    </div>
+                            {/* Filters Section */}
+                            <div className="filters-row" style={{
+                                display: 'flex',
+                                justifyContent: 'space-around',
 
-                                    <div className="table-wrapper" style={{ marginTop: '10px', overflowX: 'auto' }}>
-                                        <table className="management-table compact">
-                                            <thead>
-                                                <tr>
-                                                    <th>Student ID</th>
-                                                    <th>Student Name</th>
-                                                    <th style={{ textAlign: 'center' }}>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {course.conflictStudents.map((student, sIdx) => (
-                                                    <tr key={sIdx}>
-                                                        <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
-                                                            {student.studentId.id}
-                                                        </td>
-                                                        <td>{student.studentId.studentName}</td>
-                                                        <td style={{ textAlign: 'center' }}>
-                                                            <button
-                                                                className="btn-view"
-                                                                onClick={() => navigate(`/staff/${role}/students/${student.studentId._id}`)}
-                                                                title="View Profile"
-                                                            >
-                                                                <Eye size={18} />
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                            }}>
+                                <div className="filter-part" style={{
+                                    display: 'flex',
+                                    gap: '10px',
+                                    alignItems: 'center'
+                                }}>
+                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>Student Level:</label>
+                                    <select
+                                        className="filter-select"
+                                        value={levelFilter}
+                                        onChange={(e) => setLevelFilter(e.target.value)}
+                                        style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ccc', minWidth: '150px' }}
+                                    >
+                                        <option value="All">All Levels</option>
+                                        {STUDENTS_LEVELS.map(lvl => (
+                                            <option key={lvl} value={lvl}>{lvl.toUpperCase()}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            ))}
+
+                                <div className="filter-part" style={{
+                                    display: 'flex',
+                                    gap: '10px',
+                                    alignItems: 'center'
+                                }}>
+                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>Regulation:</label>
+                                    <select
+                                        className="filter-select"
+                                        value={regulationFilter}
+                                        onChange={(e) => setRegulationFilter(e.target.value)}
+                                        style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ccc', minWidth: '150px' }}
+                                    >
+                                        <option value="All">All Regulations</option>
+                                        {STUDENTS_REGULATION.map(reg => (
+                                            <option key={reg} value={reg}>{reg}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {conflictData.map((course, cIdx) => {
+                                // Filtering logic for students within each course
+                                const filteredStudents = course.conflictStudents.filter(student => {
+                                    const matchesLevel = levelFilter === "All" || student.level === levelFilter;
+                                    const matchesReg = regulationFilter === "All" || student.regulation === regulationFilter;
+                                    return matchesLevel && matchesReg;
+                                });
+
+                                // Skip rendering the course if no students match the filters
+                                if (filteredStudents.length === 0) return null;
+
+                                return (
+                                    <div key={cIdx} className="conflict-course-section" style={{ marginBottom: '30px' }}>
+                                        <div className="conflict-course-header" style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            background: '#fff5f5',
+                                            padding: '10px 15px',
+                                            borderRadius: '8px',
+                                            borderLeft: '4px solid #f94545'
+                                        }}>
+                                            <h4 style={{ margin: 0, color: '#d90429' }}>{course.courseName}</h4>
+                                            <span className="conflict-count-badge" style={{
+                                                background: '#f94545',
+                                                color: 'white',
+                                                padding: '2px 10px',
+                                                borderRadius: '12px',
+                                                fontSize: '0.85em'
+                                            }}>
+                                                {filteredStudents.length} Students Affected
+                                            </span>
+                                        </div>
+
+                                        <div className="table-wrapper" style={{ marginTop: '10px', overflowX: 'auto' }}>
+                                            <table className="management-table compact">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Student ID</th>
+                                                        <th>Student Name</th>
+                                                        <th>Level</th>
+                                                        <th>Regulation</th>
+                                                        <th style={{ textAlign: 'center' }}>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {filteredStudents.map((student, sIdx) => (
+                                                        <tr key={sIdx}>
+                                                            <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
+                                                                {student.studentId.id}
+                                                            </td>
+                                                            <td>{student.studentId.studentName}</td>
+                                                            <td style={{ textTransform: 'capitalize' }}>{student.level}</td>
+                                                            <td>{student.regulation}</td>
+                                                            <td style={{ textAlign: 'center' }}>
+                                                                <button
+                                                                    className="btn-view"
+                                                                    onClick={() => navigate(`/staff/${role}/students/${student.studentId._id}`)}
+                                                                    title="View Profile"
+                                                                >
+                                                                    <Eye size={18} />
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>

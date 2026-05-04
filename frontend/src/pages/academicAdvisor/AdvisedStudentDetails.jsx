@@ -305,8 +305,10 @@ const AdvisedStudentDetails = () => {
                                     <th>Code</th>
                                     <th>Course Name</th>
                                     <th title="Midterm">Mid.</th>
-                                    <th title="Lab / Practical">Lab/Prac.</th>
-                                    <th title="Attendance & Bonus">Att./Bon.</th>
+                                    <th title="Lab">Lab</th>
+                                    <th title="Practical">Prac.</th>
+                                    <th title="Attendance">Att.</th>
+                                    <th title="Bonus">Bon.</th>
                                     <th>Total</th>
                                 </tr>
                             </thead>
@@ -322,10 +324,12 @@ const AdvisedStudentDetails = () => {
                                                 <td className="course-id-cell">{work.courseId?._id}</td>
                                                 <td>{work.courseId?.courseName}</td>
 
-                                                {/* تفاصيل الدرجات */}
+                                                {/* تفاصيل الدرجات منفصلة */}
                                                 <td>{g.midTermGrade ?? 0}</td>
-                                                <td>{(g.labGrade ?? 0) + (g.practicalGrade ?? 0)}</td>
-                                                <td>{(g.attendanceGrade ?? 0) + (g.bonusGrade ?? 0)}</td>
+                                                <td>{g.labGrade ?? 0}</td>
+                                                <td>{g.practicalGrade ?? 0}</td>
+                                                <td>{g.attendanceGrade ?? 0}</td>
+                                                <td>{g.bonusGrade ?? 0}</td>
 
                                                 <td>
                                                     <span className={`grade-pill ${total < 30 ? 'low-grade' : ''}`}>
@@ -337,7 +341,7 @@ const AdvisedStudentDetails = () => {
                                         );
                                     })
                                 ) : (
-                                    <tr><td colSpan="6" className="empty-msg">No courses enrolled this semester</td></tr>
+                                    <tr><td colSpan="8" className="empty-msg">No courses enrolled this semester</td></tr>
                                 )}
                             </tbody>
                         </table>

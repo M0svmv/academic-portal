@@ -24,7 +24,7 @@ const AdviserEnrollmentPage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    const levels = ["Freshman", "Sophomore", "Junior", "Senior"];
+    const levels = ["Freshman", "Sophomore", "Junior", "senior - 1", "senior - 2", "senior"];
 
     // 1. Fetch Data on Mount
     useEffect(() => {

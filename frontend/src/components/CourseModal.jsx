@@ -13,7 +13,7 @@ const COURSE_TYPES = [
     "training",
 ];
 
-const COURSE_LEVELS = ["freshman", "sophomore", "junior", "senior-1", "senior-2","senior"];
+const COURSE_LEVELS = ["freshman", "sophomore", "junior", "senior-1", "senior-2", "senior"];
 
 const COURSE_REGULATION = ["New", "Last"]
 
