@@ -2,18 +2,20 @@ const express = require('express');
 const router = express.Router();
 const controlMemberController = require('../controllers/staff/controlMember/controlMember.controller');
 const semesterWorkController = require('../controllers/staff/programCoordinator/semesterWork.controller');
+const authMiddleware = require('../middlewares/auth.middleware');
+const roleCheckMiddleware = require('../middlewares/role.middleware');
 
 // Get all courses with enrolled students
-router.get('/courses', controlMemberController.getAllCourses);
+router.get('/courses', authMiddleware, roleCheckMiddleware(['controlMember']), controlMemberController.getAllCourses);
 
 // Get all students in a course
-router.get('/courses/:id/students',controlMemberController.getCourseData);
+router.get('/courses/:id/students', authMiddleware, roleCheckMiddleware(['controlMember']), controlMemberController.getCourseData);
 
 // Assign final grades to students in a course
-router.put('/courses/:id/assign-final-grades', controlMemberController.assignCourseFinalGrades);
+router.put('/courses/:id/assign-final-grades', authMiddleware, roleCheckMiddleware(['controlMember']), controlMemberController.assignCourseFinalGrades);
 
 // Update final grades for students in a course
-router.put('/courses/:id/update-grades', controlMemberController.updateCourseGrades);
+router.put('/courses/:id/update-grades', authMiddleware, roleCheckMiddleware(['controlMember']), controlMemberController.updateCourseGrades);
 
 
 
