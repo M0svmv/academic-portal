@@ -212,3 +212,22 @@ exports.updateCourseGrades = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+exports.approveFinalGrades = async (req, res) => {
+  try {
+    const semester = await Semester.findOne({ isCurrent: true });
+    const course = await CourseOffering.findOne({ _id: req.params.id, semesterId: semester._id });
+
+    
+
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    course.finalExamGradesStatus = 'approved';
+    await course.save();
+    res.status(200).json({ message: "Grades approved" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
