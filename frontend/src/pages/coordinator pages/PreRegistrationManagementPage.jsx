@@ -155,7 +155,7 @@ const PreRegistrationManagementPage = () => {
         const offeringId = `${courseId}-${currentSemester._id}`;
         try {
             swalService.showLoading("Updating...");
-            await api.put(`/course-offerings/${offeringId}`, { status: newStatus });
+            await api.put(`/course-offerings/${offeringId}/status`, { status: newStatus });
             setCourses(prev => prev.map(c => c._id === courseId ? { ...c, status: newStatus } : c));
             swalService.success("Updated", `Course is now ${newStatus}`, 1500);
         } catch (err) {
