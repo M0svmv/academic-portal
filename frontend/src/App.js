@@ -44,7 +44,8 @@ import LecSchedule from "./pages/lecturer/LecSchedule";
 import TASchedule from "./pages/TA/TASchedule";
 import TAAnnouncements from "./pages/TA/TAAnnouncements";
 
-import CoursesWStudents from "./pages/controlMember/CoursesWStudents"
+import CoursesWStudents from "./pages/controlMember/CoursesWStudents";
+import ResultsManagement from "./pages/controlMember/ResultsManagement";
 
 import StudentCourseOfferingsPage from "./pages/student pages/CourseOffering";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -136,6 +137,7 @@ function App() {
           <Route path=":role/TA-anouncements" element={<TAAnnouncements />} />
           {/* _______________ */}
           <Route path=":role/results" element={<CoursesWStudents />} />
+          <Route path=":role/final-grading/:id/:courseId" element={<ResultsManagement />} />
         </Route>
 
 

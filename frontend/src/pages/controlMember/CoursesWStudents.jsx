@@ -198,7 +198,7 @@ const CoursesWStudents = () => {
                                             <button
                                                 className="btn-icon"
                                                 title="View Students"
-                                                onClick={() => navigate(`/staff/${role}/grading/${course._id}/${course.courseId?._id}`)}
+                                                onClick={() => navigate(`/staff/${role}/final-grading/${course._id}/${course.courseId?._id}`)}
                                             >
                                                 <Users size={18} color='#62b986' />
                                             </button>
