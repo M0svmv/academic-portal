@@ -57,15 +57,21 @@ const CourseStudentsPage = () => {
         fetchData();
     }, [courseId]);
 
+    
+
     // منطق التصفية الموحد
     const filteredStudents = useMemo(() => {
         return students.filter(item => {
+            console.log("Filtering item:", item);
             const matchesSearch = item.studentId?.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 item.studentId?._id?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesLevel = selectedLevel === "All" || item.studentId?.transcript?.level === selectedLevel;
             const matchesReg = selectedRegulation === "All" || item.studentId?.transcript?.regulation === selectedRegulation;
+            
+            
+            
 
-            return matchesSearch && matchesLevel && matchesReg;
+            return matchesSearch && matchesLevel && matchesReg ;
         });
     }, [students, searchTerm, selectedLevel, selectedRegulation]);
 
@@ -297,13 +303,23 @@ const CourseStudentsPage = () => {
                                 <th>Student Name</th>
                                 <th>Level</th>
                                 <th>Regulation</th>
-                                <th>Actions</th>
+                                <th>Mid. Exam</th>
+                                <th>Attend.</th>
+                                <th>Lab.</th>
+                                <th>Pract.</th>
+                                <th>Bonus</th>
+                                <th>Final</th>
+                                <th>Total</th>
+                                
                             </tr>
                         </thead>
                         <tbody>
                             {filteredStudents.length > 0 ? (
                                 filteredStudents.map((item) => (
-                                    <tr key={item.studentId?._id}>
+                                    <tr
+                                    onClick={() => navigate(`/staff/${role}/students/${item.studentId?._id}`)}
+                                    style={{ cursor: "pointer" }}
+                                     key={item.studentId?._id}>
                                         <td className="bold">#{item.studentId?._id}</td>
                                         <td>{item.studentId?.studentName}</td>
                                         <td>
@@ -316,14 +332,13 @@ const CourseStudentsPage = () => {
                                                 {item.studentId?.transcript?.regulation}
                                             </span>
                                         </td>
-                                        <td>
-                                            <button
-                                                className="view-btn-transparent"
-                                                onClick={() => navigate(`/staff/${role}/students/${item.studentId?._id}`)}
-                                            >
-                                                <Eye size={18} color="#3a86ff" />
-                                            </button>
-                                        </td>
+                                        <td>{item.grade?.midTermGrade ?? "N/A"}</td>
+                                        <td>{item.grade?.attendanceGrade ?? "N/A"}</td>
+                                        <td>{item.grade?.labGrade ?? "N/A"}</td>
+                                        <td>{item.grade?.practicalGrade ?? "N/A"}</td>
+                                        <td>{item.grade?.bonusGrade ?? "N/A"}</td>
+                                        <td>{item.grade?.finalGrade ?? "N/A"}</td>
+                                        <td>{item.grade?.totalGrade ?? "N/A"}</td>
                                     </tr>
                                 ))
                             ) : (

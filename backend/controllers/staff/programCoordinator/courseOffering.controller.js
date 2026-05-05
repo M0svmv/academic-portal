@@ -124,7 +124,7 @@ exports.updateCourseOfferingStatus = async (req, res) => {
 
       const courseOffering = await CourseOffering.findById(courseOfferingId);
 
-      console.log('Course Offering-----------------------------------------------------------------------------:', courseOffering);
+
 
       // 3️⃣ احذف من SemesterWork
       await SemesterWork.deleteMany({
