@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Save, Search, TrendingUp, Award, AlertCircle,
-    Calendar, CheckSquare, Square, X, Filter, Users, Trash2, Check, Minus
+    Calendar, CheckSquare, Square, X, Filter, Users, Trash2, Check, Minus, FileSpreadsheet, ExternalLink
 } from 'lucide-react';
 import { FaArrowLeft } from "react-icons/fa";
 import api from "../../services/api";
@@ -169,8 +169,8 @@ const CourseGrading = () => {
             try {
                 await api.delete(`/lecturers/me/courses/${id}/lecture-dates`, { data: { lecDate: date } });
                 swalService.success("Deleted", "Lecture records removed.");
-                loadAttendanceMatrix(); // إعادة تحميل الماتريكس
-                fetchAttendanceOnly();   // تحديث الحالة العامة
+                loadAttendanceMatrix();
+                fetchAttendanceOnly();
             } catch (err) {
                 swalService.error("Error", "Failed to delete lecture.");
             }
@@ -190,6 +190,37 @@ const CourseGrading = () => {
         }
     };
 
+    const exportToCSV = () => {
+        if (localGrades.length === 0) return;
+
+        const headers = ["Student ID", "Student Name", "Midterm", "Lab", "Attendance", "Practical", "Bonus", "Total"];
+        const rows = filteredStudents.map(s => {
+            const total = (s.grade.midTermGrade || 0) + (s.grade.labGrade || 0) + (s.grade.attendanceGrade || 0) + (s.grade.practicalGrade || 0);
+            return [
+                s.studentId._id,
+                s.studentId.studentName,
+                s.grade.midTermGrade || 0,
+                s.grade.labGrade || 0,
+                s.grade.attendanceGrade || 0,
+                s.grade.practicalGrade || 0,
+                s.grade.bonusGrade || 0,
+                total
+            ];
+        });
+
+        let csvContent = "\uFEFF" + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        const courseCode = course?.courseId?.courseCode || courseId || "Course";
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Semester_Work_${courseCode}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     const filteredStudents = useMemo(() => {
         return localGrades.filter(s => {
@@ -238,6 +269,10 @@ const CourseGrading = () => {
                         {isTodayAttendanceTaken && <span style={{ fontSize: '10px', color: '#ef4444', fontWeight: 'bold' }}>TAKEN</span>}
                     </div>
 
+                    <button className="btn-2" onClick={exportToCSV} >
+                        <FileSpreadsheet size={18} /> Export CSV
+                    </button>
+
                     <button
                         className={`btn-1 ${(!hasUnsavedChanges && !hasAttendanceToSave) ? 'btn-disabled' : ''}`}
                         onClick={saveEverything}
@@ -245,15 +280,12 @@ const CourseGrading = () => {
                     >
                         <Save size={18} /> {(hasUnsavedChanges || hasAttendanceToSave) ? "Save Everything" : "Up to date"}
                     </button>
-                    {/* <button className="btn-1" onClick={loadAttendanceMatrix} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Users size={18} /> Manage Attendance
-                    </button> */}
                     <button
                         className="btn-1"
                         onClick={() => navigate(`/staff/${role}/grading/${id}/attendance`)}
                         style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                     >
-                        <Users size={18} /> Manage Attendance
+                        <ExternalLink size={18} /> Manage Attendance
                     </button>
                 </div>
             </header>
@@ -358,11 +390,8 @@ const CourseGrading = () => {
                                             style={{ cursor: 'pointer' }}
                                         >
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                {/* <div style={{ width: '35px', height: '35px', borderRadius: '8px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' }}>
-                                                    {s.studentId.studentName.charAt(0)}
-                                                </div> */}
                                                 <div>
-                                                    <div style={{ fontWeight: '600', color: 'var( --primary-blue-color)' }}>{s.studentId.studentName}</div>
+                                                    <div style={{ fontWeight: '600' }}>{s.studentId.studentName}</div>
                                                     <div style={{ fontSize: '11px', color: '#64748b' }}>ID: {s.studentId._id}</div>
                                                 </div>
                                             </div>
@@ -371,7 +400,7 @@ const CourseGrading = () => {
                                         {[
                                             { key: 'midTermGrade', max: course.gradingSchema.midTerm },
                                             { key: 'labGrade', max: course.gradingSchema.lab },
-                                            { key: 'attendanceGrade', max: course.gradingSchema.attendance }, // ده اللي هيقفل
+                                            { key: 'attendanceGrade', max: course.gradingSchema.attendance },
                                             { key: 'practicalGrade', max: course.gradingSchema.practical },
                                             { key: 'bonusGrade', max: course.gradingSchema.bonus },
                                         ].map(field => {
@@ -382,16 +411,15 @@ const CourseGrading = () => {
                                                 <td key={field.key} style={{ textAlign: 'center' }}>
                                                     <input
                                                         type="number"
-                                                        min="0" // حماية إضافية على مستوى HTML
+                                                        min="0"
                                                         value={s.grade[field.key]}
-                                                        readOnly={isAttendance} // القفل هنا
+                                                        readOnly={isAttendance}
                                                         onChange={(e) => handleGradeChange(s.studentId._id, field.key, e.target.value)}
                                                         style={{
                                                             width: '45px',
                                                             padding: '4px',
                                                             borderRadius: '4px',
                                                             textAlign: 'center',
-                                                            // ستايل مختلف لو هو حقل غياب عشان اليوزر يعرف إنه ممنوع
                                                             border: isAttendance ? '1px solid #cbd5e1' : (isChanged ? '1px solid #f59e0b' : '1px solid #e2e8f0'),
                                                             backgroundColor: isAttendance ? '#f1f5f9' : (isChanged ? '#fffbeb' : 'white'),
                                                             color: isAttendance ? '#64748b' : 'var( --primary-blue-color)',
@@ -455,7 +483,7 @@ const CourseGrading = () => {
                 </div>
             )}
 
-            {/* 🔥 Enhanced Attendance Modal */}
+            {/* Attendance Modal */}
             {showAttendanceModal && (
                 <div className="modal-overlay">
                     <div className="modal-card" style={{ width: '95%', maxWidth: '1200px', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

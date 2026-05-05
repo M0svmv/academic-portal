@@ -173,7 +173,7 @@ const AttendanceManagement = () => {
                 <table className="management-table">
                     <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
                         <tr>
-                            <th className="sticky-col" >
+                            <th className="sticky-col-att" >
                                 Student Information
                             </th>
                             {lecDates.map((d, i) => (
@@ -201,7 +201,7 @@ const AttendanceManagement = () => {
 
                             return (
                                 <tr key={student.studentId}>
-                                    <td className="sticky-col" style={{ left: 0 }}>
+                                    <td className="sticky-col-att" style={{ left: 0 }}>
                                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                                             <span style={{ fontWeight: '600', color: 'var( --primary-blue-color)' }}>{student.studentName}</span>
                                             <span style={{ fontSize: '11px', color: '#94a3b8' }}>
@@ -239,7 +239,7 @@ const AttendanceManagement = () => {
                     max-height: 70vh;
                     overflow: auto;
                 }
-.sticky-col {
+.sticky-col-att {
         position: sticky;
         left: 0;
         z-index: 20;
