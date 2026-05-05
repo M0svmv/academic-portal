@@ -214,7 +214,6 @@ const StudentCourseOfferingsPage = () => {
 
     return (
         <div className="management-container student-offerings-container">
-            {/* التعديل الجديد للـ Alert: شكل Dark/Glassmorphism */}
             <div className="registration-status-bar">
                 {semesterData?.settings?.allowEnrollment && timeLeft !== "No Time" ? (
                     /* الحالة الأولى: التسجيل مفتوح والوقت لسه مخلصش */

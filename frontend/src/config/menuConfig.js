@@ -69,6 +69,11 @@ export const menuConfig = {
             icon: <LayoutDashboard size={iconSize} />
         },
         {
+            name: "Semesters History",
+            path: "/staff/coordinator/semester-Manage",
+            icon: <History size={iconSize} />
+        },
+        {
             name: "Pre-Registration",
             path: "/staff/coordinator/registration",
             icon: <ClipboardCheck size={iconSize} />
@@ -108,11 +113,7 @@ export const menuConfig = {
             path: "/staff/coordinator/coo-Requests",
             icon: <FileText size={iconSize} />
         },
-        {
-            name: "Semesters History",
-            path: "/staff/coordinator/semester-history",
-            icon: <History size={iconSize} />
-        },
+      
 
     ],
 
@@ -219,15 +220,15 @@ export const menuConfig = {
             path: "/staff/control-member/results",
             icon: <ClipboardCheck size={iconSize} />
         },
-        {
-            name: "Grades Audit",
-            path: "/staff/control/audit",
-            icon: <FileText size={iconSize} />
-        },
-        {
-            name: "Results History",
-            path: "/staff/control/history",
-            icon: <History size={iconSize} />
-        }
+        // {
+        //     name: "Grades Audit",
+        //     path: "/staff/control/audit",
+        //     icon: <FileText size={iconSize} />
+        // },
+        // {
+        //     name: "Results History",
+        //     path: "/staff/control/history",
+        //     icon: <History size={iconSize} />
+        // }
     ]
 };

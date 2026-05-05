@@ -48,38 +48,6 @@
 }
 
 
-.courses-table-wrapper {
-  max-height: 400px;
-  overflow-y: auto;
-  /* background: white; */
-  border-radius: 10px;
-  border: solid, 1px, #eee;
-  /* padding: 20px; */
-  /* box-shadow: 0 2px 8px rgba(0,0,0,0.08); */
-}
-
-.courses-table{
-  width: 100%;
-  border-collapse: collapse;
-  border-radius: 20px !important;
-}
-
-.courses-table th,
-.courses-table td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-}
-
-.courses-table td{
-  background-color: #fff;
-}
-
-.courses-table th {
-  background: var( --primary-blue-color);
-  color: #fff;
-  font-weight: 600;
-}
 
 
 .publish-section{

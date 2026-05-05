@@ -10,6 +10,7 @@ import StudentMeetings from "./pages/StudentMeetings";
 import StudentSchedule from "./pages/student pages/StudentSchedule";
 import StudentRequestsManagement from "./pages/student pages/StudentRequestsManagement"
 
+import SemesterManagementPage from "./pages/coordinator pages/SemesterManagementPage"
 import PreRegistrationManagement from "./pages/coordinator pages/PreRegistrationManagementPage";
 import EnrollmentStatsPage from "./pages/coordinator pages/EnrollmentStatsPage";
 import Students from "./pages/coordinator pages/Students";
@@ -99,6 +100,8 @@ function App() {
         >
           <Route path="profile" element={<Profile />} />
           <Route path=":role/dashboard" element={<StaffDashboard />} />
+          <Route path=":role/semester-Manage" element={<SemesterManagementPage />} />
+
           <Route path=":role/students" element={<Students />} />
           <Route path=":role/registration" element={<PreRegistrationManagement />} />
           <Route path=":role/enrollment-stats/:semesterId" element={<EnrollmentStatsPage />} />
