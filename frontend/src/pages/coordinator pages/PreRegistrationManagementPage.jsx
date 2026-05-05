@@ -251,12 +251,13 @@ const PreRegistrationManagementPage = () => {
                     <h2>Pre-Registration Management</h2>
                     {currentSemester ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <p className="semester-label">Active Semester: <strong>{currentSemester.name}</strong></p>
+                            <p className="semester-label">Semester: <strong>{currentSemester.name}</strong></p>
                             <span className={`status-badge ${isPublished ? 'live' : 'draft'}`}>
-                                {isPublished ? "● Published" : "● Draft Mode"}
+                                {isPublished ? "● Courses: Published" : "● Courses: Draft"}
                             </span>
-                            {allowEnrollment && <span className="status-badge enrollment-on">● Portal: OPEN</span>}
+                            {allowEnrollment && <span className="status-badge enrollment-on">● Student Portal: OPEN</span>}
                         </div>
+
                     ) : (
                         <p className="semester-label error">No Active Semester Found</p>
                     )}
@@ -375,33 +376,33 @@ const PreRegistrationManagementPage = () => {
                 <div className="publish-section">
                     {!isPublished ? (
                         <div className="action-card">
-                            <p>Finalize the list below to enable student registration.</p>
-                            <button className="publish-btn" onClick={publishCourses} disabled={!currentSemester}>
+                            <p>To set statuses in the table above and generate the official list click publish.</p>
+                            <button className="publish-btn" onClick={publishCourses}>
                                 Publish Courses List
                             </button>
                         </div>
                     ) : (
                         <div className="action-card success">
                             <div className="enrollment-management-box">
+                                <p>Open or pause students' enrollment</p>
                                 <div className="enrollment-buttons" style={{ display: 'flex', gap: '10px' }}>
                                     {!allowEnrollment ? (
                                         <button
                                             className="btn-1"
                                             onClick={handleStartRegistration}
-                                            disabled={!isWithinPreRegPeriod || !currentSemester}
-                                            title={!isWithinPreRegPeriod ? "Outside timeline dates" : ""}
+                                            disabled={!isWithinPreRegPeriod}
+                                            title={!isWithinPreRegPeriod ? "Registration period has ended" : ""}
                                         >
                                             <Play size={18} /> Start Enrollment
                                         </button>
                                     ) : (
-                                        <button className="btn-1" onClick={handleStopRegistration} disabled={!currentSemester}>
+                                        <button className="btn-1" onClick={handleStopRegistration}>
                                             <Square size={18} /> Pause Enrollment
                                         </button>
                                     )}
 
                                     <button
                                         className="btn-2"
-                                        disabled={!currentSemester}
                                         onClick={() => navigate(`/staff/${role}/enrollment-stats/${currentSemester._id}`)}
                                     >
                                         <BarChart3 size={18} /> Enrollment Details
