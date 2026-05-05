@@ -76,7 +76,7 @@ const SemesterManagementPage = () => {
             {currentSemester && (
                 <div className="current-semester-card" >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3>Current Active Semester: <span style={{ color: '#2563eb' }}>{currentSemester.name}</span></h3>
+                        <h3>Current Active Semester: <span style={{ color: '#365ca0' }}>{currentSemester.name}</span></h3>
                         <button className="close-semester-btn" onClick={handleForceStop}>
                             <AlertTriangle size={16} /> Force Stop Semester
                         </button>
