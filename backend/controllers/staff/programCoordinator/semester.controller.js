@@ -355,7 +355,11 @@ exports.forceStopCurrentSemester = async (req, res) => {
         $set: {
           isCurrent: false,
           forceEnd: true,
-          
+          status: "completed",
+          "settings.allowEnrollment": false,   // منع التسجيل
+          "settings.allowWithdrawal": false,   // منع الانسحاب
+          "settings.announceSchedule": false,
+          endDate: new Date()
         }
       }
     );
