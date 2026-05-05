@@ -30,7 +30,7 @@ const StaffManagement = () => {
     const [isCSVModalOpen, setIsCSVModalOpen] = useState(false);
     const [filterRole, setFilterRole] = useState('');
 
-    // حالات الـ View الخاصة بالكاردس (الثيم الجديد)
+    // حالات الـ View الخاصة بالكاردس (مربوطة الآن بالفلترة الفعلية)
     const [roleView, setRoleView] = useState('all');
     const [teachingView, setTeachingView] = useState('all');
     const [showIncompleteOnly, setShowIncompleteOnly] = useState(false);
@@ -46,6 +46,61 @@ const StaffManagement = () => {
     };
 
     useEffect(() => { fetchStaff(); }, []);
+
+    // ربط اختيار قائمة كارد الإداريين بفلتر الجدول الرئيسي
+    const handleRoleViewChange = (val) => {
+        setRoleView(val);
+        // إلغاء تفعيل الفلاتر الأخرى لتجنب التضارب
+        setShowIncompleteOnly(false);
+        setShowMultiRoleOnly(false);
+        setTeachingView('all');
+
+        if (val === 'all') {
+            setFilterRole('');
+        } else if (val === 'admin') {
+            setFilterRole('admin');
+        } else if (val === 'coordinator') {
+            setFilterRole('coordinator');
+        } else if (val === 'advisor') {
+            setFilterRole('academic-advisor');
+        }
+    };
+
+    // ربط اختيار قائمة كارد التعليميين بفلتر الجدول الرئيسي
+    const handleTeachingViewChange = (val) => {
+        setTeachingView(val);
+        // إلغاء تفعيل الفلاتر الأخرى لتجنب التضارب
+        setShowIncompleteOnly(false);
+        setShowMultiRoleOnly(false);
+        setRoleView('all');
+
+        if (val === 'all') {
+            setFilterRole('teaching-all'); // قيمة مخصصة تعني (lecturer OR ta) في منطق الفلترة
+        } else if (val === 'lecturer') {
+            setFilterRole('lecturer');
+        } else if (val === 'ta') {
+            setFilterRole('ta');
+        }
+    };
+
+    // مزامنة الفلتر المنسدل الرئيسي مع الكروت عند تغييره يدويًا من الأسفل
+    const handleMainRoleFilterChange = (val) => {
+        setFilterRole(val);
+        // إعادة تهيئة الكروت لتتوافق مع الفلتر الرئيسي الجديد
+        if (val === '') {
+            setRoleView('all');
+            setTeachingView('all');
+        } else if (['admin', 'coordinator', 'academic-advisor'].includes(val)) {
+            setTeachingView('all');
+            if (val === 'admin') setRoleView('admin');
+            if (val === 'coordinator') setRoleView('coordinator');
+            if (val === 'academic-advisor') setRoleView('advisor');
+        } else if (['lecturer', 'ta'].includes(val)) {
+            setRoleView('all');
+            if (val === 'lecturer') setTeachingView('lecturer');
+            if (val === 'ta') setTeachingView('ta');
+        }
+    };
 
     // 1. حساب قيم الكارد الأول (Staff Roles)
     const getRoleCardValue = () => {
@@ -125,21 +180,38 @@ const StaffManagement = () => {
         }
     };
 
-    // منطق الفلترة الشامل
+    // منطق الفلترة الشامل والمترابط مع الكروت والمدخلات
     const filteredStaff = staff.filter(s => {
         const matchesSearch = (
             s.staffName?.toLowerCase().includes(search.toLowerCase()) ||
             s._id?.toLowerCase().includes(search.toLowerCase()) ||
             s.email?.toLowerCase().includes(search.toLowerCase())
         );
-        const matchesRole = filterRole ? s.roles.includes(filterRole) : true;
+
+        // فلترة الأدوار مع دعم الفلترة المخصصة للكادر التعليمي بالكامل
+        let matchesRole = true;
+        if (filterRole === 'teaching-all') {
+            matchesRole = s.roles.includes('lecturer') || s.roles.includes('ta');
+        } else if (filterRole) {
+            matchesRole = s.roles.includes(filterRole);
+        }
+
         const matchesIncomplete = showIncompleteOnly ? (!s.email || !s.phone) : true;
         const matchesMultiRole = showMultiRoleOnly ? s.roles.length > 1 : true;
 
         return matchesSearch && matchesRole && matchesIncomplete && matchesMultiRole;
     });
 
-    // فانكشن تصدير التقرير
+    // دالة لتصفير جميع الفلاتر والعودة للوضع الافتراضي
+    const handleResetAllFilters = () => {
+        setSearch('');
+        setFilterRole('');
+        setRoleView('all');
+        setTeachingView('all');
+        setShowIncompleteOnly(false);
+        setShowMultiRoleOnly(false);
+    };
+
     const handleExportReport = () => {
         if (filteredStaff.length === 0) {
             swalService.error("No Data", "There is no data to export with the current filters.");
@@ -188,7 +260,6 @@ const StaffManagement = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    {/* زرار الاكسبورت الجديد - ظاهر ومستقل */}
                     <button
                         className="btn-2"
                         onClick={handleExportReport}
@@ -218,14 +289,27 @@ const StaffManagement = () => {
             </header>
 
             <div className="insights-grid">
-                {/* كارد توزيع الأدوار الإدارية */}
-                <div className="insight-card">
+                <div
+                    className={`insight-card ${filterRole && ['admin', 'coordinator', 'academic-advisor'].includes(filterRole) ? 'active-filter' : ''}`}
+                    style={{
+                        cursor: 'pointer',
+                        border: filterRole && ['admin', 'coordinator', 'academic-advisor'].includes(filterRole) ? '2px solid #0284c7' : 'none',
+                        transition: 'all 0.2s ease'
+                    }}
+                    onClick={() => {
+                        if (roleView === 'all') {
+                            handleRoleViewChange('admin');
+                        } else {
+                            handleRoleViewChange(roleView);
+                        }
+                    }}
+                >
                     <div className="insight-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span className="insight-icon icon-blue"><Users size={18} /></span>
-                        <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
                             <select
                                 value={roleView}
-                                onChange={(e) => setRoleView(e.target.value)}
+                                onChange={(e) => handleRoleViewChange(e.target.value)}
                                 style={inlineSelectStyle}
                             >
                                 <option value="all">Total Staff</option>
@@ -244,14 +328,23 @@ const StaffManagement = () => {
                     </div>
                 </div>
 
-                {/* كارد الكادر التعليمي */}
-                <div className="insight-card">
+                <div
+                    className={`insight-card ${filterRole === 'teaching-all' || ['lecturer', 'ta'].includes(filterRole) ? 'active-filter' : ''}`}
+                    style={{
+                        cursor: 'pointer',
+                        border: filterRole === 'teaching-all' || ['lecturer', 'ta'].includes(filterRole) ? '2px solid #22c55e' : 'none',
+                        transition: 'all 0.2s ease'
+                    }}
+                    onClick={() => {
+                        handleTeachingViewChange(teachingView);
+                    }}
+                >
                     <div className="insight-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span className="insight-icon icon-green"><BookOpen size={18} /></span>
-                        <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
                             <select
                                 value={teachingView}
-                                onChange={(e) => setTeachingView(e.target.value)}
+                                onChange={(e) => handleTeachingViewChange(e.target.value)}
                                 style={inlineSelectStyle}
                             >
                                 <option value="all">Teaching Staff</option>
@@ -269,14 +362,14 @@ const StaffManagement = () => {
                     </div>
                 </div>
 
-                {/* كارد الـ Contactability (التفاعلي) */}
                 <div
                     className={`insight-card ${showIncompleteOnly ? 'active-filter' : ''}`}
                     onClick={() => {
                         setShowIncompleteOnly(!showIncompleteOnly);
-                        setShowMultiRoleOnly(false); // إلغاء الفلتر التاني لمنع التداخل
+                        setShowMultiRoleOnly(false);
+                        setFilterRole('');
                     }}
-                    style={{ cursor: 'pointer', border: showIncompleteOnly ? '2px solid #ef4444' : 'none' }}
+                    style={{ cursor: 'pointer', border: showIncompleteOnly ? '2px solid #ef4444' : 'none', transition: 'all 0.2s ease' }}
                 >
                     <div className="insight-header">
                         <span className="insight-icon icon-orange"><Mail size={18} /></span>
@@ -290,12 +383,12 @@ const StaffManagement = () => {
                     </div>
                 </div>
 
-                {/* كارد الـ Workload Alert (التفاعلي الجديد) */}
                 <div
                     className={`insight-card ${showMultiRoleOnly ? 'active-filter' : ''}`}
                     onClick={() => {
                         setShowMultiRoleOnly(!showMultiRoleOnly);
-                        setShowIncompleteOnly(false); // إلغاء الفلتر التاني لمنع التداخل
+                        setShowIncompleteOnly(false);
+                        setFilterRole('');
                     }}
                     style={{
                         cursor: 'pointer',
@@ -316,29 +409,6 @@ const StaffManagement = () => {
                 </div>
             </div>
 
-            {/* بار تنبيه الفلاتر النشطة */}
-            {(showIncompleteOnly || showMultiRoleOnly) && (
-                <div className="filter-active-bar" style={{
-                    background: showIncompleteOnly ? '#fef2f2' : '#faf5ff',
-                    border: `1px solid ${showIncompleteOnly ? '#fee2e2' : '#f3e8ff'}`,
-                    padding: '10px', borderRadius: '8px', marginBottom: '15px',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                }}>
-                    <span style={{ color: showIncompleteOnly ? '#991b1b' : '#7e22ce', fontSize: '14px', fontWeight: '500' }}>
-                        {showIncompleteOnly ? "Showing staff with missing contact details only." : "Showing staff with high workload (multiple roles)."}
-                    </span>
-                    <button
-                        onClick={() => { setShowIncompleteOnly(false); setShowMultiRoleOnly(false); }}
-                        style={{
-                            background: showIncompleteOnly ? '#ef4444' : '#a855f7',
-                            color: 'white', border: 'none', padding: '4px 12px',
-                            borderRadius: '4px', cursor: 'pointer', fontSize: '12px'
-                        }}
-                    >
-                        Reset View
-                    </button>
-                </div>
-            )}
 
             <div className="filters-wrapper">
                 <Search size={22} color="#9ca3af" />
@@ -350,11 +420,39 @@ const StaffManagement = () => {
                     onChange={(e) => setSearch(e.target.value)}
                 />
 
-                <select value={filterRole} onChange={e => setFilterRole(e.target.value)}>
+                <select
+                    value={filterRole === 'teaching-all' ? '' : filterRole}
+                    onChange={e => handleMainRoleFilterChange(e.target.value)}
+                >
                     <option value="">All Roles</option>
                     {VALID_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
             </div>
+            {(showIncompleteOnly || showMultiRoleOnly || filterRole || search) && (
+                <div className="filter-active-bar" style={{
+                    background: showIncompleteOnly ? '#fef2f2' : (showMultiRoleOnly ? '#faf5ff' : '#f0fdf4'),
+                    border: `1px solid ${showIncompleteOnly ? '#fee2e2' : (showMultiRoleOnly ? '#f3e8ff' : '#dcfce7')}`,
+                    padding: '10px', borderRadius: '8px', marginBottom: '15px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                }}>
+                    <span style={{ color: showIncompleteOnly ? '#991b1b' : (showMultiRoleOnly ? '#7e22ce' : '#166534'), fontSize: '14px', fontWeight: '500' }}>
+                        {showIncompleteOnly && "Showing staff with missing contact details only."}
+                        {showMultiRoleOnly && "Showing staff with high workload (multiple roles)."}
+                        {(!showIncompleteOnly && !showMultiRoleOnly && filterRole) && `Showing staff with role: "${filterRole === 'teaching-all' ? 'Lecturers & TAs' : filterRole}".`}
+                        {(!showIncompleteOnly && !showMultiRoleOnly && !filterRole && search) && `Showing results matching search: "${search}".`}
+                    </span>
+                    <button
+                        onClick={handleResetAllFilters}
+                        style={{
+                            background: showIncompleteOnly ? '#ef4444' : (showMultiRoleOnly ? '#a855f7' : '#22c55e'),
+                            color: 'white', border: 'none', padding: '4px 12px',
+                            borderRadius: '4px', cursor: 'pointer', fontSize: '12px'
+                        }}
+                    >
+                        Reset View
+                    </button>
+                </div>
+            )}
 
             <div className="table-wrapper">
                 <table className="management-table">

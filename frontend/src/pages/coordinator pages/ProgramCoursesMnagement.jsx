@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import swalService from "../../services/swal";
-import { Plus, ChevronDown, FileUp, Trash2, Edit, Search, BookOpen, GitBranch, LayoutGrid, GraduationCap, Download } from 'lucide-react';
+import { Plus, ChevronDown, FileUp, Trash2, Edit, Search, BookOpen, GitBranch, LayoutGrid, GraduationCap, Download, X, RotateCcw } from 'lucide-react';
 import CourseModal from '../../components/CourseModal';
 import CSVImportModal from '../../components/CSVImportModal';
 import DependencyMap from '../../components/DependencyMap'; // استيراد الكومبوننت الجديد
@@ -60,11 +60,34 @@ const ProgramCoursesManagement = () => {
 
     useEffect(() => { fetchCourses(); }, []);
 
+    // تصفية الكورسات بناءً على البحث والفلاتر النشطة
+    const filteredCourses = courses.filter(c =>
+        (c.courseName.toLowerCase().includes(search.toLowerCase()) ||
+            c._id.toLowerCase().includes(search.toLowerCase())) &&
+        (filterLevel ? c.courseLevel === filterLevel : true) &&
+        (filterType ? c.courseType === filterType : true) &&
+        (filterCredits ? c.courseCredits === Number(filterCredits) : true) &&
+        (filterRegulation ? c.courseRegulation === filterRegulation : true)
+    );
+
+    // ربط الإحصائيات بالجدول المصفى (filteredCourses) بدلاً من كامل الكورسات (courses)
     const stats = {
-        total: courses.length,
-        prereqCount: courses.filter(c => c.prerequisiteCourses && c.prerequisiteCourses.length > 0).length,
-        levelCount: courses.filter(c => c.courseLevel === insightLevel).length,
-        typeCount: courses.filter(c => c.courseType === insightType).length
+        total: filteredCourses.length,
+        prereqCount: filteredCourses.filter(c => c.prerequisiteCourses && c.prerequisiteCourses.length > 0).length,
+        levelCount: filteredCourses.filter(c => c.courseLevel === insightLevel).length,
+        typeCount: filteredCourses.filter(c => c.courseType === insightType).length
+    };
+
+    // التحقق من وجود فلاتر نشطة لعرض شريط التحكم بها
+    const hasActiveFilters = search || filterLevel || filterType || filterCredits || filterRegulation;
+
+    // دالة لإعادة تعيين جميع الفلاتر
+    const handleResetFilters = () => {
+        setSearch('');
+        setFilterLevel('');
+        setFilterType('');
+        setFilterCredits('');
+        setFilterRegulation('');
     };
 
     const openModal = (type, course = null) => {
@@ -163,15 +186,6 @@ const ProgramCoursesManagement = () => {
         document.body.removeChild(link);
     };
 
-    const filteredCourses = courses.filter(c =>
-        (c.courseName.toLowerCase().includes(search.toLowerCase()) ||
-            c._id.toLowerCase().includes(search.toLowerCase())) &&
-        (filterLevel ? c.courseLevel === filterLevel : true) &&
-        (filterType ? c.courseType === filterType : true) &&
-        (filterCredits ? c.courseCredits === Number(filterCredits) : true) &&
-        (filterRegulation ? c.courseRegulation === filterRegulation : true) // إضافة هذا السطر
-    );
-
     return (
         <div className="management-container">
             <header className="management-header">
@@ -208,39 +222,65 @@ const ProgramCoursesManagement = () => {
 
             {/* Dynamic Insights Grid */}
             <div className="insights-grid">
-                <div className="insight-card">
+                <div
+                    className="insight-card clickable-card"
+                    onClick={handleResetFilters}
+                    style={{ cursor: 'pointer' }}
+                >
                     <div className="insight-header">
                         <span className="insight-icon icon-blue"><BookOpen size={18} /></span>
                         <span className="insight-label">Total Courses</span>
                     </div>
                     <div className="insight-value">{stats.total}</div>
-                    <div className="insight-footer">Total courses in database</div>
+                    <div className="insight-footer">Click to reset all filters</div>
                 </div>
 
-                <div className="insight-card">
+                <div
+                    className="insight-card clickable-card"
+                    onClick={() => setFilterLevel(insightLevel)}
+                    style={{ cursor: 'pointer' }}
+                >
                     <div className="insight-header">
                         <span className="insight-icon icon-orange"><GraduationCap size={18} /></span>
-                        <select className="insight-select" value={insightLevel} onChange={(e) => setInsightLevel(e.target.value)}>
+                        <select
+                            className="insight-select"
+                            value={insightLevel}
+                            onChange={(e) => {
+                                e.stopPropagation(); // منع حدوث فلترة عند تغيير قيمة الدروب داون فقط دون الضغط على الكارت
+                                setInsightLevel(e.target.value);
+                            }}
+                        >
                             {VALID_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                         </select>
                     </div>
                     <div className="insight-value">{stats.levelCount}</div>
-                    <div className="insight-footer">Courses in this level</div>
+                    <div className="insight-footer">Click to filter table by level</div>
                 </div>
 
-                <div className="insight-card">
+                <div
+                    className="insight-card clickable-card"
+                    onClick={() => setFilterType(insightType)}
+                    style={{ cursor: 'pointer' }}
+                >
                     <div className="insight-header">
                         <span className="insight-icon icon-green"><LayoutGrid size={18} /></span>
-                        <select className="insight-select" value={insightType} onChange={(e) => setInsightType(e.target.value)}>
+                        <select
+                            className="insight-select"
+                            value={insightType}
+                            onChange={(e) => {
+                                e.stopPropagation(); // منع حدوث فلترة عند تغيير قيمة الدروب داون فقط دون الضغط على الكارت
+                                setInsightType(e.target.value);
+                            }}
+                        >
                             {VALID_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                         </select>
                     </div>
                     <div className="insight-value">{stats.typeCount}</div>
-                    <div className="insight-footer">Courses of this category</div>
+                    <div className="insight-footer">Click to filter table by type</div>
                 </div>
 
                 {/* كارد الدبندنسي ماب */}
-                <div className="insight-card clickable-card" onClick={() => setShowDependencyMap(true)}>
+                <div className="insight-card clickable-card" onClick={() => setShowDependencyMap(true)} style={{ cursor: 'pointer' }}>
                     <div className="insight-header">
                         <span className="insight-icon icon-purple"><GitBranch size={18} /></span>
                         <span className="insight-label">Chained Courses</span>
@@ -273,7 +313,6 @@ const ProgramCoursesManagement = () => {
                     {VALID_Regulations.map(r => <option key={r} value={r}>{r} Regulation</option>)}
                 </select>
 
-
                 <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)}>
                     <option value="">All Levels</option>
                     {VALID_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
@@ -291,6 +330,76 @@ const ProgramCoursesManagement = () => {
                     onChange={e => setFilterCredits(e.target.value)}
                 />
             </div>
+
+            {hasActiveFilters && (
+                <div className="active-filters-bar" style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: '8px',
+                    margin: '-8px 0 16px 0',
+                    padding: '8px 12px',
+                    backgroundColor: '#f8fafc',
+                    borderRadius: '8px',
+                    border: '1px solid #e2e8f0'
+                }}>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Active Filters:</span>
+
+                    {search && (
+                        <span className="filter-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#334155' }}>
+                            Search: {search}
+                            <X size={14} style={{ cursor: 'pointer' }} onClick={() => setSearch('')} />
+                        </span>
+                    )}
+
+                    {filterRegulation && (
+                        <span className="filter-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#334155' }}>
+                            Regulation: {filterRegulation}
+                            <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterRegulation('')} />
+                        </span>
+                    )}
+
+                    {filterLevel && (
+                        <span className="filter-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#334155' }}>
+                            Level: {filterLevel}
+                            <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterLevel('')} />
+                        </span>
+                    )}
+
+                    {filterType && (
+                        <span className="filter-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#334155' }}>
+                            Type: {filterType}
+                            <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterType('')} />
+                        </span>
+                    )}
+
+                    {filterCredits && (
+                        <span className="filter-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#334155' }}>
+                            Credits: {filterCredits}
+                            <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterCredits('')} />
+                        </span>
+                    )}
+
+                    <button
+                        onClick={handleResetFilters}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#ef4444',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            marginLeft: 'auto',
+                            padding: '2px 6px'
+                        }}
+                    >
+                        <RotateCcw size={14} /> Reset Filters
+                    </button>
+                </div>
+            )}
 
             <div className="table-wrapper">
                 <table className="management-table">

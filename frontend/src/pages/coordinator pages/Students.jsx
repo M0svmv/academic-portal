@@ -5,7 +5,7 @@ import api from '../../services/api';
 import swalService from "../../services/swal";
 import {
     Plus, ChevronDown, FileUp, Trash2, Edit, Search,
-    Users, AlertTriangle, Star, Eye, Scale, FileSpreadsheet
+    Users, AlertTriangle, Star, Eye, Scale, FileSpreadsheet, RotateCcw
 } from 'lucide-react';
 
 import StudentAddModal from '../../components/StudentAddModal';
@@ -195,6 +195,23 @@ const Students = () => {
         document.body.removeChild(link);
     };
 
+
+    const handleLevelCardClick = () => {
+        if (cardLevelView === 'all') {
+            setFilterLevel('');
+        } else {
+            setFilterLevel(cardLevelView);
+        }
+    };
+
+    const handleRegCardClick = () => {
+        if (cardRegView === 'all') {
+            setFilterReg('');
+        } else {
+            setFilterReg(cardRegView);
+        }
+    };
+
     return (
         <div className="management-container">
             <header className="management-header">
@@ -249,14 +266,22 @@ const Students = () => {
             )}
 
             <div className="insights-grid">
-                <div className="insight-card university-stats">
+                <div
+                    className="insight-card university-stats"
+                    onClick={handleLevelCardClick}
+                    style={{ cursor: 'pointer' }}
+                >
                     <div className="insight-header">
                         <span className="insight-icon icon-blue"><Users size={18} /></span>
-                        <div className="card-select-wrapper">
+                        <div className="card-select-wrapper" onClick={(e) => e.stopPropagation()}>
                             <select
                                 className="inline-card-select"
                                 value={cardLevelView}
-                                onChange={(e) => setCardLevelView(e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setCardLevelView(val);
+                                    setFilterLevel(val === 'all' ? '' : val);
+                                }}
                             >
                                 <option value="all">Total Students</option>
                                 <option value="freshman">Freshman</option>
@@ -273,8 +298,11 @@ const Students = () => {
                     <div className="insight-value-large">{getCardValue()}</div>
                     <div className="insight-footer">Enrollment Status</div>
                 </div>
-
-                <div className="insight-card">
+                <div
+                    className="insight-card"
+                    onClick={() => setFilterStatus('atRisk')}
+                    style={{ cursor: 'pointer' }}
+                >
                     <div className="insight-header">
                         <span className="insight-icon icon-orange"><AlertTriangle size={18} /></span>
                         <span className="insight-label">At Risk</span>
@@ -283,14 +311,22 @@ const Students = () => {
                     <div className="insight-footer">Requires attention</div>
                 </div>
 
-                <div className="insight-card">
+                <div
+                    className="insight-card"
+                    onClick={handleRegCardClick}
+                    style={{ cursor: 'pointer' }}
+                >
                     <div className="insight-header">
                         <span className="insight-icon icon-green"><Scale size={18} /></span>
-                        <div className="card-select-wrapper">
+                        <div className="card-select-wrapper" onClick={(e) => e.stopPropagation()}>
                             <select
                                 className="inline-card-select"
                                 value={cardRegView}
-                                onChange={(e) => setCardRegView(e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setCardRegView(val);
+                                    setFilterReg(val === 'all' ? '' : val);
+                                }}
                             >
                                 <option value="all">All Regulations</option>
                                 <option value="New">New Regulation</option>
@@ -360,14 +396,30 @@ const Students = () => {
                         {filterLevel && <span className="filter-chip">Level: {filterLevel}</span>}
                         {filterStatus && <span className="filter-chip">Status: {filterStatus}</span>}
                     </div>
-                    <button className="reset-filters-link" onClick={() => {
+                    <button onClick={() => {
                         setSearch('');
                         setFilterReg('');
                         setFilterLevel('');
                         setFilterStatus('');
-                    }}>
-                        Reset
+                    }}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#f99c08',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            marginLeft: 'auto',
+                            padding: '2px 6px'
+                        }}
+                    >
+                        <RotateCcw size={14} /> Reset
                     </button>
+
+
                 </div>
             )}
 
