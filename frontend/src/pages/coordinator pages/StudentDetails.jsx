@@ -428,9 +428,22 @@ const StudentDetails = () => {
                             <tbody>
                                 {semesterWorks?.length > 0 ? (
                                     semesterWorks.map((work) => {
-                                        // استخراج الدرجات للسهولة
+
                                         const g = typeof work.grade === 'object' ? work.grade : {};
-                                        const total = g.totalGrade ?? work.grade ?? 0;
+
+                                        const semesterTotal =
+                                            (g.midTermGrade ?? 0) +
+                                            (g.labGrade ?? 0) +
+                                            (g.practicalGrade ?? 0) +
+                                            (g.attendanceGrade ?? 0) +
+                                            (g.bonusGrade ?? 0);
+
+                                        let gradeStatusClass = '';
+                                        if (semesterTotal < 30) {
+                                            gradeStatusClass = 'low-grade';
+                                        } else if (semesterTotal >= 40) {
+                                            gradeStatusClass = 'high-grade';
+                                        }
 
                                         return (
                                             <tr key={work._id}>
@@ -445,11 +458,10 @@ const StudentDetails = () => {
                                                 <td>{g.bonusGrade ?? 0}</td>
 
                                                 <td>
-                                                    <span className={`grade-pill ${total < 30 ? 'low-grade' : ''}`}>
-                                                        {total}/50
+                                                    <span className={`grade-pill ${gradeStatusClass}`}>
+                                                        {semesterTotal}/50
                                                     </span>
                                                 </td>
-
                                             </tr>
                                         );
                                     })

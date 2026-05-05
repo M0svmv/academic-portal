@@ -146,7 +146,7 @@ const CREDIT_MAP = {
 
 const AdvisedStudentDetails = () => {
     const navigate = useNavigate();
-    const { id, role } = useParams(); // id هو الـ studentId
+    const { id, role } = useParams();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -155,12 +155,12 @@ const AdvisedStudentDetails = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [creditType, setCreditType] = useState("total");
     const [isMapModalOpen, setIsMapModalOpen] = useState(false);
-    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false); // الحالة الجديدة للمودال
+    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
     const [allCourses, setAllCourses] = useState([]);
 
     const fetchAllCourses = async () => {
         try {
-            const res = await api.get("/courses");
+            const res = await api.get("/me/department-courses");
             setAllCourses(res.data);
         } catch (err) {
             console.error("Failed to fetch courses", err);
@@ -172,6 +172,7 @@ const AdvisedStudentDetails = () => {
             setLoading(true);
             const res = await api.get(`/academic-advisors/me/students/${id}`);
             setData(res.data);
+            console.log(res.data)
             setLoading(false);
         } catch (err) {
             setError("Failed to load student data.");
@@ -315,9 +316,22 @@ const AdvisedStudentDetails = () => {
                             <tbody>
                                 {semesterWorks?.length > 0 ? (
                                     semesterWorks.map((work) => {
-                                        // استخراج الدرجات للسهولة
+
                                         const g = typeof work.grade === 'object' ? work.grade : {};
-                                        const total = g.totalGrade ?? work.grade ?? 0;
+
+                                        const semesterTotal =
+                                            (g.midTermGrade ?? 0) +
+                                            (g.labGrade ?? 0) +
+                                            (g.practicalGrade ?? 0) +
+                                            (g.attendanceGrade ?? 0) +
+                                            (g.bonusGrade ?? 0);
+
+                                        let gradeStatusClass = '';
+                                        if (semesterTotal < 30) {
+                                            gradeStatusClass = 'low-grade';
+                                        } else if (semesterTotal >= 40) {
+                                            gradeStatusClass = 'high-grade';
+                                        }
 
                                         return (
                                             <tr key={work._id}>
@@ -332,11 +346,10 @@ const AdvisedStudentDetails = () => {
                                                 <td>{g.bonusGrade ?? 0}</td>
 
                                                 <td>
-                                                    <span className={`grade-pill ${total < 30 ? 'low-grade' : ''}`}>
-                                                        {total}/50
+                                                    <span className={`grade-pill ${gradeStatusClass}`}>
+                                                        {semesterTotal}/50
                                                     </span>
                                                 </td>
-
                                             </tr>
                                         );
                                     })

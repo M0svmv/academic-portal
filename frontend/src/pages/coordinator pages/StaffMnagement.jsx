@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import swalService from "../../services/swal";
 import {
-    Plus, ChevronDown, FileUp, Trash2, Edit, Search, BookOpen,
+    Plus, ChevronDown, FileUp, Trash2, Edit, Search, BookOpen, RotateCcw,
     UserCheck, Users, ShieldCheck, Phone, Mail, AlertTriangle, Scale, FileSpreadsheet
 } from 'lucide-react';
 import StaffAddModal from '../../components/StaffAddModal';
@@ -30,11 +30,10 @@ const StaffManagement = () => {
     const [isCSVModalOpen, setIsCSVModalOpen] = useState(false);
     const [filterRole, setFilterRole] = useState('');
 
-    // حالات الـ View الخاصة بالكاردس (مربوطة الآن بالفلترة الفعلية)
     const [roleView, setRoleView] = useState('all');
     const [teachingView, setTeachingView] = useState('all');
     const [showIncompleteOnly, setShowIncompleteOnly] = useState(false);
-    const [showMultiRoleOnly, setShowMultiRoleOnly] = useState(false); // فلتر الـ Workload الجديد
+    const [showMultiRoleOnly, setShowMultiRoleOnly] = useState(false);
 
     const fetchStaff = async () => {
         try {
@@ -75,7 +74,7 @@ const StaffManagement = () => {
         setRoleView('all');
 
         if (val === 'all') {
-            setFilterRole('teaching-all'); // قيمة مخصصة تعني (lecturer OR ta) في منطق الفلترة
+            setFilterRole('teaching-all');
         } else if (val === 'lecturer') {
             setFilterRole('lecturer');
         } else if (val === 'ta') {
@@ -83,10 +82,9 @@ const StaffManagement = () => {
         }
     };
 
-    // مزامنة الفلتر المنسدل الرئيسي مع الكروت عند تغييره يدويًا من الأسفل
+
     const handleMainRoleFilterChange = (val) => {
         setFilterRole(val);
-        // إعادة تهيئة الكروت لتتوافق مع الفلتر الرئيسي الجديد
         if (val === '') {
             setRoleView('all');
             setTeachingView('all');
@@ -102,7 +100,6 @@ const StaffManagement = () => {
         }
     };
 
-    // 1. حساب قيم الكارد الأول (Staff Roles)
     const getRoleCardValue = () => {
         if (roleView === 'all') return staff.length;
         if (roleView === 'admin') return staff.filter(s => s.roles.includes('admin')).length;
@@ -111,7 +108,6 @@ const StaffManagement = () => {
         return 0;
     };
 
-    // 2. حساب قيم الكارد الثاني (Teaching Staff)
     const getTeachingCardValue = () => {
         const teachingTotal = staff.filter(s => s.roles.includes('lecturer') || s.roles.includes('ta'));
         if (teachingView === 'all') return teachingTotal.length;
@@ -120,7 +116,7 @@ const StaffManagement = () => {
         return 0;
     };
 
-    // 3. حساب Contactability
+
     const incompleteStaffList = staff.filter(s => !s.email || !s.phone);
     const contactabilityRate = staff.length > 0
         ? Math.round(((staff.length - incompleteStaffList.length) / staff.length) * 100)
@@ -180,7 +176,6 @@ const StaffManagement = () => {
         }
     };
 
-    // منطق الفلترة الشامل والمترابط مع الكروت والمدخلات
     const filteredStaff = staff.filter(s => {
         const matchesSearch = (
             s.staffName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -188,7 +183,6 @@ const StaffManagement = () => {
             s.email?.toLowerCase().includes(search.toLowerCase())
         );
 
-        // فلترة الأدوار مع دعم الفلترة المخصصة للكادر التعليمي بالكامل
         let matchesRole = true;
         if (filterRole === 'teaching-all') {
             matchesRole = s.roles.includes('lecturer') || s.roles.includes('ta');
@@ -202,7 +196,6 @@ const StaffManagement = () => {
         return matchesSearch && matchesRole && matchesIncomplete && matchesMultiRole;
     });
 
-    // دالة لتصفير جميع الفلاتر والعودة للوضع الافتراضي
     const handleResetAllFilters = () => {
         setSearch('');
         setFilterRole('');
@@ -218,7 +211,6 @@ const StaffManagement = () => {
             return;
         }
 
-        // تحضير البيانات
         const csvRows = [];
         const headers = ["Staff ID", "Name", "Email", "Phone", "Username", "Roles"];
         csvRows.push(headers.join(","));
@@ -441,15 +433,24 @@ const StaffManagement = () => {
                         {(!showIncompleteOnly && !showMultiRoleOnly && filterRole) && `Showing staff with role: "${filterRole === 'teaching-all' ? 'Lecturers & TAs' : filterRole}".`}
                         {(!showIncompleteOnly && !showMultiRoleOnly && !filterRole && search) && `Showing results matching search: "${search}".`}
                     </span>
+
                     <button
                         onClick={handleResetAllFilters}
                         style={{
-                            background: showIncompleteOnly ? '#ef4444' : (showMultiRoleOnly ? '#a855f7' : '#22c55e'),
-                            color: 'white', border: 'none', padding: '4px 12px',
-                            borderRadius: '4px', cursor: 'pointer', fontSize: '12px'
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: showIncompleteOnly ? '#ef4444' : (showMultiRoleOnly ? '#a855f7' : '#22c55e'),
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            marginLeft: 'auto',
+                            padding: '2px 6px'
                         }}
                     >
-                        Reset View
+                        <RotateCcw size={14} /> Reset View
                     </button>
                 </div>
             )}

@@ -85,7 +85,7 @@ const StudentProgressMapModal = ({ isOpen, onClose, allCourses = [], studentData
                 status = canTake ? 'available' : 'locked';
             }
 
-            const style = STATUS_STYLES[status]; // ✅ هنا الصح
+            const style = STATUS_STYLES[status]; 
 
             nodes.push({
                 id: course._id,

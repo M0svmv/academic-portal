@@ -416,7 +416,7 @@ const Students = () => {
                             padding: '2px 6px'
                         }}
                     >
-                        <RotateCcw size={14} /> Reset
+                        <RotateCcw size={14} /> Reset Filters
                     </button>
 
 

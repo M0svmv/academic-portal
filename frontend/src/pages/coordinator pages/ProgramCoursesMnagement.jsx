@@ -332,53 +332,46 @@ const ProgramCoursesManagement = () => {
             </div>
 
             {hasActiveFilters && (
-                <div className="active-filters-bar" style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    gap: '8px',
-                    margin: '-8px 0 16px 0',
-                    padding: '8px 12px',
-                    backgroundColor: '#f8fafc',
-                    borderRadius: '8px',
-                    border: '1px solid #e2e8f0'
-                }}>
-                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Active Filters:</span>
+                <div className="active-filters-bar" >
+                    <div className="filters-info">
+                        <span>Showing results for: </span>
 
-                    {search && (
-                        <span className="filter-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#334155' }}>
-                            Search: {search}
-                            <X size={14} style={{ cursor: 'pointer' }} onClick={() => setSearch('')} />
-                        </span>
-                    )}
 
-                    {filterRegulation && (
-                        <span className="filter-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#334155' }}>
-                            Regulation: {filterRegulation}
-                            <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterRegulation('')} />
-                        </span>
-                    )}
+                        {search && (
+                            <span className="filter-chip" >
+                                Search: {search}
+                                <X size={14} style={{ cursor: 'pointer' }} onClick={() => setSearch('')} />
+                            </span>
+                        )}
 
-                    {filterLevel && (
-                        <span className="filter-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#334155' }}>
-                            Level: {filterLevel}
-                            <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterLevel('')} />
-                        </span>
-                    )}
+                        {filterRegulation && (
+                            <span className="filter-chip">
+                                Regulation: {filterRegulation}
+                                <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterRegulation('')} />
+                            </span>
+                        )}
 
-                    {filterType && (
-                        <span className="filter-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#334155' }}>
-                            Type: {filterType}
-                            <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterType('')} />
-                        </span>
-                    )}
+                        {filterLevel && (
+                            <span className="filter-chip" >
+                                Level: {filterLevel}
+                                <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterLevel('')} />
+                            </span>
+                        )}
 
-                    {filterCredits && (
-                        <span className="filter-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', color: '#334155' }}>
-                            Credits: {filterCredits}
-                            <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterCredits('')} />
-                        </span>
-                    )}
+                        {filterType && (
+                            <span className="filter-chip">
+                                Type: {filterType}
+                                <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterType('')} />
+                            </span>
+                        )}
+
+                        {filterCredits && (
+                            <span className="filter-chip">
+                                Credits: {filterCredits}
+                                <X size={14} style={{ cursor: 'pointer' }} onClick={() => setFilterCredits('')} />
+                            </span>
+                        )}
+                    </div>
 
                     <button
                         onClick={handleResetFilters}
@@ -388,7 +381,7 @@ const ProgramCoursesManagement = () => {
                             gap: '4px',
                             background: 'transparent',
                             border: 'none',
-                            color: '#ef4444',
+                            color: '#f99c08',
                             fontSize: '13px',
                             fontWeight: '600',
                             cursor: 'pointer',
