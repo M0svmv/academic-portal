@@ -295,3 +295,18 @@ exports.showStudentSchedule = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+exports.hideSchedule = async (req, res) => {
+  try {
+    const currentSemester = await Semester.findOne({ isCurrent: true });
+    if (!currentSemester) {
+      return res.status(404).json({ message: "Current semester not found" });
+    }
+    currentSemester.settings.announceSchedule = false;
+    await currentSemester.save();
+    res.status(200).json({ message: "Schedule hidden successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

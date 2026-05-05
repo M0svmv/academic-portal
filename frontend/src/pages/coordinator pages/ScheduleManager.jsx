@@ -4,7 +4,7 @@ import api from "../../services/api";
 import swalService from "../../services/swal";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
-    Trash2, Settings, X, RefreshCw, Layers, User, Hash, Menu, Download, Megaphone, Search, Eye, Save, Clock, Users, UserPlus, Briefcase, MoreVertical
+    Trash2, Settings, X, RefreshCw, Layers, User, Hash, Menu, Download, Megaphone,EyeOff, Search, Eye, Save, Clock, Users, UserPlus, Briefcase, MoreVertical
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -249,6 +249,24 @@ const ScheduleManager = () => {
         }
     };
 
+    const handleHideSchedule = async () => {
+        const result = await swalService.confirm(
+            "Hide Schedule?",
+            "This will hide the schedule from students and instructors.",
+            "Yes, Hide!"
+        );
+
+        if (result.isConfirmed) {
+            swalService.showLoading("Hiding...");
+            try {
+                await api.post('/schedule/hideSchedule');
+                swalService.success("Hidden!", "The schedule has been hidden successfully.");
+            } catch (err) {
+                swalService.error("Failed", err.response?.data?.message || "Failed to hide schedule");
+            }
+        }
+    };
+
     const exportToPDF = async () => {
         const tableElement = document.querySelector('.sc-table-wrapper');
         if (!tableElement) return;
@@ -456,9 +474,13 @@ const ScheduleManager = () => {
                             <h2>Academic Schedule</h2>
                         </div>
                         <div className="header-actions">
+                            <button className="btn-2" onClick={handleHideSchedule}>
+                                <EyeOff size={18} /> Hide
+                            </button>
                             <button className="btn-2" onClick={handleAnnounceSchedule}>
                                 <Megaphone size={18} /> Announce
                             </button>
+                            
                             <button className="btn-2" onClick={exportToPDF}>
                                 <Download size={18} /> Export PDF
                             </button>

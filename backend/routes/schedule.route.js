@@ -13,6 +13,9 @@ router.get('/',authMiddleware, roleCheckMiddleware('coordinator', 'admin', 'ta',
 // announce course schedules
 router.post('/announce',authMiddleware, roleCheckMiddleware('coordinator', 'admin'), scheduleController.announceCourseSchedules);
 
+// hide course schedules
+router.post('/hideSchedule',authMiddleware, roleCheckMiddleware('coordinator', 'admin'), scheduleController.hideSchedule);
+
 // set schedule time schema
 router.post('/set/time',authMiddleware, roleCheckMiddleware('coordinator', 'admin'), scheduleController.setScheduleTimeSchema);
 
