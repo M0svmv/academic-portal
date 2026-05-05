@@ -21,6 +21,8 @@ const CoursesWStudents = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [expandedCourseId, setExpandedCourseId] = useState(null);
     const [statsCourseFilter, setStatsCourseFilter] = useState("all");
+    // State جديد لفلتر كارد الخريجين
+    const [statsGradsFilter, setStatsGradsFilter] = useState("all");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -54,10 +56,19 @@ const CoursesWStudents = () => {
         return target ? (target.enrolledCount || 0) : 0;
     };
 
+    // دالة حساب قيمة الخريجين بناءً على الفلتر المختار
+    const getGraduatesValue = () => {
+        if (statsGradsFilter === "all") {
+            return courses.reduce((acc, curr) => acc + (curr.graduatesEnrolledCount || 0), 0);
+        }
+        const target = courses.find(c => c._id === statsGradsFilter);
+        return target ? (target.graduatesEnrolledCount || 0) : 0;
+    };
+
     const stats = {
         active: courses.length,
         enrollment: getEnrollmentValue(),
-        totalGraduates: courses.reduce((acc, curr) => acc + (curr.graduatesEnrolledCount || 0), 0)
+        totalGraduates: getGraduatesValue()
     };
 
     return (
@@ -100,8 +111,20 @@ const CoursesWStudents = () => {
 
                 <div className="insight-card">
                     <div className="insight-header">
-                        <span className="insight-icon icon-purple"><GraduationCap size={18} /></span>
-                        <span className="insight-label">Graduates</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span className="insight-icon icon-purple"><GraduationCap size={18} /></span>
+                            <span className="insight-label">Graduates</span>
+                        </div>
+                        <select
+                            className="insight-select"
+                            value={statsGradsFilter}
+                            onChange={(e) => setStatsGradsFilter(e.target.value)}
+                        >
+                            <option value="all">All Courses</option>
+                            {courses.map(c => (
+                                <option key={c._id} value={c._id}>{c.courseId?._id}</option>
+                            ))}
+                        </select>
                     </div>
                     <div className="insight-value">{stats.totalGraduates}</div>
                 </div>

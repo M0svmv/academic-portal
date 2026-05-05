@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Save, Search, TrendingUp, Award, AlertCircle,
-    Calendar, CheckSquare, Square, X, Filter, Users, Trash2, Check, Minus, Edit3, Lock, Unlock
+    Calendar, CheckSquare, Square, X, Filter, Users, Trash2, Check, Minus, Edit3, Lock, Unlock, Download
 } from 'lucide-react';
 import { FaArrowLeft } from "react-icons/fa";
 import api from "../../services/api";
@@ -123,6 +123,47 @@ const ResultsManagement = () => {
         }
     };
 
+    const handleExportCSV = () => {
+        if (localGrades.length === 0) return;
+
+        const headers = ["Student ID", "Student Name", "Midterm", "Lab/Practical", "Attendance", "Bonus", "Final", "Total"];
+
+        const rows = filteredStudents.map(s => {
+            const total = (s.grade.midTermGrade || 0) +
+                (s.grade.labGrade || 0) +
+                (s.grade.attendanceGrade || 0) +
+                (s.grade.practicalGrade || 0) +
+                (s.grade.bonusGrade || 0) +
+                (s.grade.finalGrade || 0);
+
+            return [
+                s.studentId._id,
+                s.studentId.studentName,
+                s.grade.midTermGrade || 0,
+                (s.grade.labGrade || 0) + (s.grade.practicalGrade || 0),
+                s.grade.attendanceGrade || 0,
+                s.grade.bonusGrade || 0,
+                s.grade.finalGrade || 0,
+                total
+            ];
+        });
+
+        const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+
+        const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+
+        const fileName = `${course?.courseId || 'Course'}_Results.csv`;
+        link.setAttribute("download", fileName);
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const filteredStudents = useMemo(() => {
         return localGrades.filter(s => {
             const matchesSearch = s.studentId.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -158,6 +199,11 @@ const ResultsManagement = () => {
                 </div>
 
                 <div className="split-button-container" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+
+                    {/* زر التصدير */}
+                    <button className="btn-2" onClick={handleExportCSV}>
+                        <Download size={18} /> Export CSV
+                    </button>
 
                     {/* زر الحفظ يظهر فقط إذا كان هناك تغييرات وفي وضع مسموح به */}
                     <button
