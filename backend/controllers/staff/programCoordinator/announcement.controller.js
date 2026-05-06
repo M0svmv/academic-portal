@@ -13,16 +13,18 @@ exports.createAnnouncement = async (req, res) => {
     const { title, content,type, target="all", advisingListId = "",expiresAt,targetIds=[] } = req.body;
     const staffId = req.user._id;
     const announcement = new Announcement({
-      staffId,
+      staffId: req.user._id,
+      semesterId: currentSemester._id,
       title,
       content,
-      target,
+      target: target,
       targetIds,
       advisingListId,
-      semesterId: currentSemester._id,
       type,
       expiresAt,
     });
+
+    
     await announcement.save();
     res.status(201).json(announcement);
   } catch (error) {
