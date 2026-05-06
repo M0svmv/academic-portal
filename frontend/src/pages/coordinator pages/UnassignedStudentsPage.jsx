@@ -140,13 +140,13 @@ const UnassignedStudentsPage = () => {
                     <div className="insight-value">{filteredStudents.length}</div>
                 </div>
 
-                <div className="insight-card">
+                {/* <div className="insight-card">
                     <div className="insight-header">
                         <div className="insight-icon blue"><Target size={18} /></div>
                         <span className="insight-label">System Status</span>
                     </div>
                     <div className="insight-value" style={{ fontSize: '18px', color: '#059669' }}>Active</div>
-                </div>
+                </div> */}
             </div>
 
             {/* SEARCH & FILTERS BAR */}

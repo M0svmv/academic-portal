@@ -26,6 +26,8 @@ const AdvisingManagementPage = () => {
         return localStorage.getItem("activeAdvisingTab") || "current-advisors";
     });
 
+    const [isAdvisorsModalOpen, setIsAdvisorsModalOpen] = useState(false);
+
     const [searchTerm, setSearchTerm] = useState("");
     const [studentSearch, setStudentSearch] = useState("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -198,7 +200,10 @@ const AdvisingManagementPage = () => {
 
             {/* --- INSIGHTS CARDS SECTION --- */}
             <div className="insights-grid">
-                <div className="insight-card clickable" onClick={() => setActiveTab("current-advisors")}>
+                <div
+                    className="insight-card clickable"
+                    onClick={() => setIsAdvisorsModalOpen(true)}
+                >
                     <div className="insight-header">
                         <div className="insight-icon blue"><UserCheck size={18} /></div>
                         <span className="insight-label">Total Advisors</span>
@@ -239,9 +244,6 @@ const AdvisingManagementPage = () => {
 
             <div className="upperTable">
                 <div className="advising-tabs">
-                    <button className={activeTab === "current-advisors" ? "active" : ""} onClick={() => setActiveTab("current-advisors")}>
-                        <UserCheck size={18} /> Advisors List
-                    </button>
                     <button className={activeTab === "manage-lists" ? "active" : ""} onClick={() => setActiveTab("manage-lists")}>
                         <ListPlus size={18} /> Manage Lists
                     </button>
@@ -264,7 +266,7 @@ const AdvisingManagementPage = () => {
             </div>
 
             <div className="advising-content">
-                {activeTab === "current-advisors" && (
+                {/* {activeTab === "current-advisors" && (
                     <div className="table-wrapper">
                         <table className="advising-table">
                             <thead>
@@ -293,7 +295,7 @@ const AdvisingManagementPage = () => {
                             </tbody>
                         </table>
                     </div>
-                )}
+                )} */}
 
                 {activeTab === "manage-lists" && (
                     <div className="manageLists">
@@ -324,6 +326,9 @@ const AdvisingManagementPage = () => {
                                             <td style={{ fontWeight: '600', color: 'var( --primary-blue-color)' }}>{list.advisor?.staffName || <span className="text-muted">Unassigned</span>}</td>
                                             <td><span className="badge">{list.studentsCount} Students</span></td>
                                             <td>
+                                                <button onClick={() => handleViewStudents(list.advisor?._id)} title="View Students" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                                                    <Eye size={18} color="#3a86ff" />
+                                                </button>
                                                 <button className="btn-edit" onClick={() => fetchListForEdit(list)}>
                                                     <Edit size={18} />
                                                 </button>
@@ -622,6 +627,67 @@ const AdvisingManagementPage = () => {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isAdvisorsModalOpen && (
+                <div className="modal-overlay">
+                    <div className="modal-content modal-large" style={{ minWidth: '1000px' }}>
+                        <div className="modal-header">
+                            <h3>All Advisors</h3>
+                            <button className="close-btn" onClick={() => setIsAdvisorsModalOpen(false)}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="modal-body-ad">
+                            <div className="table-wrapper">
+                                <table className="advising-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Advisor Name</th>
+                                            <th>Email</th>
+                                            <th>Contact</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredAdvisors.length > 0 ? filteredAdvisors.map(adv => (
+                                            <tr key={adv._id}>
+                                                <td className="course-id-cell">{adv._id}</td>
+                                                <td style={{ fontWeight: '600', color: 'var(--primary-blue-color)' }}>
+                                                    {adv.staffName}
+                                                </td>
+                                                <td>{adv.email}</td>
+                                                <td>{adv.phone}</td>
+                                                <td>
+                                                    <button
+                                                        onClick={() => handleViewStudents(adv._id)}
+                                                        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                                                    >
+                                                        <Eye size={18} color="#3a86ff" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                            <tr>
+                                                <td colSpan="5" className="text-center">
+                                                    No advisors found.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div className="modal-footer">
+                            <button className="btn-2" onClick={() => setIsAdvisorsModalOpen(false)}>
+                                Close
+                            </button>
                         </div>
                     </div>
                 </div>

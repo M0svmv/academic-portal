@@ -27,7 +27,7 @@ const AdvisingDetails = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedLevel, setSelectedLevel] = useState("all");
     const [selectedRegulation, setSelectedRegulation] = useState("all");
-    const [atRiskFilter, setAtRiskFilter] = useState("all"); // الفلتر الجديد للحالات الحرجة
+    const [atRiskFilter, setAtRiskFilter] = useState("all");
     const [actionLoading, setActionLoading] = useState(false);
 
     const fetchDetails = async () => {
@@ -106,98 +106,132 @@ const AdvisingDetails = () => {
 
     const atRiskCount = students?.filter(s => s.student?.transcript?.atRisk).length || 0;
 
+    // ---------------- CAPACITY LOGIC ----------------
+    const getCapacityDetails = (count) => {
+        const total = count || 0;
+        if (total < 10) {
+            return { text: "Low", color: "#3b82f6" }; // Blue
+        } else if (total <= 25) {
+            return { text: "Normal", color: "#10b981" }; // Green
+        } else {
+            return { text: "High", color: "#f97316" }; // Orange/Red
+        }
+    };
+
+    const capacity = getCapacityDetails(studentsCount);
+
     // Inline Styles for Filters
     const filterSelectStyle = {
-        padding: '8px 12px',
-        borderRadius: '8px',
+        padding: '10px 14px',
+        borderRadius: '10px',
         border: '1px solid #e2e8f0',
         backgroundColor: '#fff',
         fontSize: '14px',
+        fontWeight: '500',
+        color: '#475569',
         outline: 'none',
         cursor: 'pointer',
-        minWidth: '130px'
+        minWidth: '140px',
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        transition: 'all 0.2s'
     };
 
     return (
-        <div className="management-container">
+        <div className="management-container" style={{ padding: '30px', backgroundColor: '#fdfdfd' }}>
 
             {/* HEADER */}
-            <header className="advising-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <button className="back-btn-round" onClick={() => navigate(-1)}>
+            <header className="advising-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <button
+                        className="back-btn-round"
+                        onClick={() => navigate(-1)}
+
+                    >
                         <FaArrowLeft />
                     </button>
                     <div>
-                        <h2>{advisor?.staffName}</h2>
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                            <span className="badge-info">ID: {advisor?._id}</span>
-                            <span className="badge-secondary">Academic Advisor</span>
+                        <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#0f172a', margin: 0 }}>{advisor?.staffName}</h2>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '6px', alignItems: 'center' }}>
+                            <span className="badge-info" style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '600' }}>ID: {advisor?._id}</span>
+                            <span className="badge-secondary" style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '500' }}>Academic Advisor</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="academic-profile-card" style={{ padding: '10px 20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div className="insight-icon blue" style={{ width: '35px', height: '35px' }}><UserCheck size={18} /></div>
+                <div className="academic-profile-card" style={{ padding: '12px 24px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div className="insight-icon blue" style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
+                            <UserCheck size={20} />
+                        </div>
                         <div>
-                            <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>Contact Email</p>
-                            <p style={{ fontSize: '14px', fontWeight: '600', margin: 0 }}>{advisor?.email}</p>
+                            <p style={{ fontSize: '11px', fontWeight: '500', color: '#64748b', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Contact Email</p>
+                            <p style={{ fontSize: '14px', fontWeight: '600', color: '#0f172a', margin: '2px 0 0 0' }}>{advisor?.email}</p>
                         </div>
                     </div>
                 </div>
             </header>
 
-            {/* INSIGHT CARDS (Read Only Now) */}
-            <div className="insights-grid" style={{ marginBottom: '25px' }}>
-                <div className="insight-card">
-                    <div className="insight-header">
-                        <div className="insight-icon orange"><GraduationCap size={18} /></div>
-                        <span className="insight-label">Total Students</span>
+            {/* INSIGHT CARDS */}
+            <div className="insights-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+                <div className="insight-card" style={{ backgroundColor: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                    <div className="insight-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                        <div className="insight-icon orange" style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ea580c' }}><GraduationCap size={18} /></div>
+                        <span className="insight-label" style={{ color: '#64748b', fontSize: '14px', fontWeight: '500' }}>Total Students</span>
                     </div>
-                    <div className="insight-value">{studentsCount || 0}</div>
+                    <div className="insight-value" >{studentsCount || 0}</div>
                 </div>
 
-                <div className="insight-card">
-                    <div className="insight-header">
-                        <div className="insight-icon green"><BookOpen size={18} /></div>
-                        <span className="insight-label">Active Filters</span>
+                <div className="insight-card" style={{ backgroundColor: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                    <div className="insight-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                        <div className="insight-icon green" style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16a34a' }}><BookOpen size={18} /></div>
+                        <span className="insight-label" style={{ color: '#64748b', fontSize: '14px', fontWeight: '500' }}>Active Filters</span>
                     </div>
-                    <div className="insight-value">{filteredStudents?.length}</div>
+                    <div className="insight-value" >{filteredStudents?.length}</div>
                 </div>
 
-                <div className="insight-card">
-                    <div className="insight-header">
-                        <div className="insight-icon blue"><Target size={18} /></div>
-                        <span className="insight-label">Advisor Capacity</span>
+                <div className="insight-card" style={{ backgroundColor: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                    <div className="insight-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                        <div className="insight-icon blue" style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: '#f0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0284c7' }}><Target size={18} /></div>
+                        <span className="insight-label" style={{ color: '#64748b', fontSize: '14px', fontWeight: '500' }}>Advisor Capacity</span>
                     </div>
-                    <div className="insight-value">Normal</div>
+                    <div className="insight-value" style={{ color: capacity.color }}>{capacity.text}</div>
                 </div>
 
-                <div className="insight-card">
-                    <div className="insight-header">
-                        <div className="insight-icon red"><AlertTriangle size={18} /></div>
-                        <span className="insight-label">Total At Risk</span>
+                <div className="insight-card" style={{ backgroundColor: '#fff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                    <div className="insight-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                        <div className="insight-icon red" style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#dc2626' }}><AlertTriangle size={18} /></div>
+                        <span className="insight-label" style={{ color: '#64748b', fontSize: '14px', fontWeight: '500' }}>Total At Risk</span>
                     </div>
-                    <div className="insight-value" style={{ color: atRiskCount > 0 ? '#ef4444' : 'inherit' }}>
+                    <div className="insight-value" style={{ color: atRiskCount > 0 ? '#ef4444' : '#0f172a' }}>
                         {atRiskCount}
                     </div>
                 </div>
             </div>
 
             {/* SEARCH & FILTERS BAR */}
-            <div className="upperTable" style={{ gap: '50px' }}>
-                <div className="search-box" style={{ flex: 2, Width: '60%', }}>
-                    <FaSearch size={16} />
+            <div className="upperTable" style={{ display: 'flex', gap: '20px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
+                <div className="search-box" style={{
+                    flex: 1,
+                    minWidth: '300px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    border: '1px solid #e2e8f0',
+                    padding: '10px 16px',
+                    borderRadius: '10px',
+                    backgroundColor: '#fff',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                }}>
+                    <FaSearch size={16} color="#94a3b8" />
                     <input
                         placeholder="Search by student name or ID..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ border: 'none', outline: 'none', width: '100%', fontSize: '14px', color: '#0f172a' }}
                     />
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    {/* <Filter size={18} color="#64748b" /> */}
-
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                     <select
                         style={filterSelectStyle}
                         value={selectedLevel}
@@ -219,8 +253,10 @@ const AdvisingDetails = () => {
                     <select
                         style={{
                             ...filterSelectStyle,
-                            color: atRiskFilter === 'risk' ? '#ef4444' : 'inherit',
-                            fontWeight: atRiskFilter === 'risk' ? '600' : '400'
+                            color: atRiskFilter === 'risk' ? '#ef4444' : '#475569',
+                            fontWeight: atRiskFilter === 'risk' ? '600' : '500',
+                            borderColor: atRiskFilter === 'risk' ? '#fecaca' : '#e2e8f0',
+                            backgroundColor: atRiskFilter === 'risk' ? '#fef2f2' : '#fff'
                         }}
                         value={atRiskFilter}
                         onChange={(e) => setAtRiskFilter(e.target.value)}
@@ -234,54 +270,54 @@ const AdvisingDetails = () => {
 
             {/* TABLE */}
             <div className="advising-content">
-                <div className="table-wrapper">
-                    <table className="advising-table">
+                <div className="table-wrapper" style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02)' }}>
+                    <table className="advising-table" style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#fff' }}>
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Full Name</th>
-                                <th>Academic Progress</th>
-                                <th>Level & Reg.</th>
-                                <th>Credits</th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                            <tr style={{ backgroundColor: '#1e293b', color: '#fff', textAlign: 'left' }}>
+                                <th style={{ padding: '16px 20px', fontWeight: '600', fontSize: '14px' }}>ID</th>
+                                <th style={{ padding: '16px 20px', fontWeight: '600', fontSize: '14px' }}>Full Name</th>
+                                <th style={{ padding: '16px 20px', fontWeight: '600', fontSize: '14px' }}>Academic Progress</th>
+                                <th style={{ padding: '16px 20px', fontWeight: '600', fontSize: '14px' }}>Level & Reg.</th>
+                                <th style={{ padding: '16px 20px', fontWeight: '600', fontSize: '14px' }}>Credits</th>
+                                <th style={{ padding: '16px 20px', fontWeight: '600', fontSize: '14px', textAlign: 'right' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredStudents?.length > 0 ? (
                                 filteredStudents.map(item => (
-                                    <tr key={item.student?._id}>
-                                        <td className="course-id-cell">#{item.student?._id}</td>
-                                        <td>
-                                            <div style={{ fontWeight: '600' }}>{item.student?.studentName}</div>
-                                            <div style={{ fontSize: '12px', color: '#64748b' }}>{item.student?.studentEmail}</div>
+                                    <tr key={item.student?._id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s' }} className="table-row-hover">
+                                        <td className="course-id-cell" style={{ padding: '16px 20px', fontSize: '14px', color: '#64748b', fontWeight: '500' }}>#{item.student?._id}</td>
+                                        <td style={{ padding: '16px 20px' }}>
+                                            <div style={{ fontWeight: '600', color: '#0f172a', fontSize: '15px' }}>{item.student?.studentName}</div>
+                                            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>{item.student?.studentEmail}</div>
                                         </td>
-                                        <td>
+                                        <td style={{ padding: '16px 20px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <span className="badge-info" style={{ background: '#f0f9ff', color: '#0369a1' }}>
+                                                <span className="badge-info" style={{ background: '#f0f9ff', color: '#0369a1', padding: '4px 8px', borderRadius: '6px', fontSize: '13px' }}>
                                                     GPA: <strong>{item.student?.transcript?.GPA}</strong>
                                                 </span>
                                                 {item.student?.transcript?.atRisk && (
-                                                    <span className="badge-red" style={{ fontSize: '10px', padding: '2px 6px', color: '#ef4444' }}>At Risk</span>
+                                                    <span className="badge-red" style={{ fontSize: '11px', padding: '4px 8px', color: '#ef4444', backgroundColor: '#fef2f2', borderRadius: '6px', fontWeight: '600' }}>At Risk</span>
                                                 )}
                                             </div>
                                         </td>
-                                        <td>
-                                            <span className="badge-secondary" style={{ marginRight: '5px' }}>{item.student?.transcript?.level}</span>
-                                            <span className="badge-info" style={{ fontSize: '11px' }}>{item.student?.transcript?.regulation}</span>
+                                        <td style={{ padding: '16px 20px' }}>
+                                            <span className="badge-secondary" style={{ marginRight: '5px', backgroundColor: '#f1f5f9', color: '#475569', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '500', textTransform: 'capitalize' }}>{item.student?.transcript?.level}</span>
+                                            <span className="badge-info" style={{ fontSize: '12px', backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '4px 8px', borderRadius: '6px', fontWeight: '500' }}>{item.student?.transcript?.regulation}</span>
                                         </td>
-                                        <td style={{ fontSize: '14px' }}>{item.student?.transcript?.completedCredits} hrs</td>
-                                        <td style={{ textAlign: 'right' }}>
+                                        <td style={{ padding: '16px 20px', fontSize: '14px', color: '#334155', fontWeight: '500' }}>{item.student?.transcript?.completedCredits} hrs</td>
+                                        <td style={{ padding: '16px 20px', textAlign: 'right' }}>
                                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                                                 <button
-                                                    className="view-btn-transparent"
+                                                    className="btn-view"
                                                     title="View Profile"
-                                                    onClick={() => navigate(`/staff/${role}/students/${item.student?._id}`)}
+
                                                 >
                                                     <Eye size={18} color="#3b82f6" />
                                                 </button>
                                                 <button
-                                                    className="btn-icon-action"
-                                                    style={{ color: '#ef4444', borderColor: '#fee2e2' }}
+                                                    className="btn-delete"
+
                                                     title="Remove from List"
                                                     disabled={actionLoading}
                                                     onClick={() => handleRemoveStudent(item.student?._id)}
@@ -296,7 +332,7 @@ const AdvisingDetails = () => {
                                 <tr>
                                     <td colSpan="6" style={{ textAlign: "center", padding: "3rem", color: '#64748b' }}>
                                         <div className="no-results">
-                                            <p>No students match the current filters or list is empty.</p>
+                                            <p style={{ margin: 0, fontSize: '15px', fontWeight: '500' }}>No students match the current filters or list is empty.</p>
                                         </div>
                                     </td>
                                 </tr>
