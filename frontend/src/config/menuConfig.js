@@ -69,7 +69,7 @@ export const menuConfig = {
             icon: <LayoutDashboard size={iconSize} />
         },
         {
-            name: "Semesters History",
+            name: "Semesters Management",
             path: "/staff/coordinator/semester-Manage",
             icon: <History size={iconSize} />
         },
@@ -113,7 +113,7 @@ export const menuConfig = {
             path: "/staff/coordinator/coo-Requests",
             icon: <FileText size={iconSize} />
         },
-      
+
 
     ],
 

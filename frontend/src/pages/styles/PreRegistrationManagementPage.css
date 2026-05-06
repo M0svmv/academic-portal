@@ -25,14 +25,14 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background:#e74c3c;
+  background:#d7352a;
   font-weight:600;
-  border: solid, 1px, #b91c1c;
+  /* border: solid, 1px, #b91c1c; */
 }
 
 .close-semester-btn:hover{
   
-  background:#b91c1c;
+  background:#c73227;
 }
 
 

@@ -369,7 +369,9 @@
 }
 
 .advisor-info-row {
+    width: 100%;
     display: flex;
+    justify-content: space-between;
     align-items: center;
     gap: 12px;
     /* margin-bottom: 12px; */
@@ -503,7 +505,9 @@
 }
 
 .advisor-contact-minimal span {
+    width: 100%;
     display: flex;
+    justify-content: space-between;
     align-items: center;
     gap: 6px;
 }

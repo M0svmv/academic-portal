@@ -10,7 +10,7 @@ import {
 import { FaArrowLeft } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-// تأكدي أن المسار لملف الـ CSS صحيح
+
 import "../styles/EnrollmentStatusPage.css";
 
 const EnrollmentStatsPage = () => {
@@ -27,7 +27,7 @@ const EnrollmentStatsPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [typeFilter, setTypeFilter] = useState("All");
 
-    // تم تعديل الدالة لتمرير Instructor ID و TA ID
+
     const handleViewStudents = (courseId, offeringId, courseName, instructorId, taId) => {
         navigate(`/staff/${role}/semester/${semesterId}/course/${courseId}/${offeringId}/students`, {
             state: {
@@ -290,7 +290,6 @@ const EnrollmentStatsPage = () => {
                                     <div className="c-name">{off.courseId?.courseName || "Unknown Course"}</div>
                                     <div className="c-id">{off.courseId?._id || off.courseId}</div>
                                 </td>
-                                {/* خلية المدرس والمعيد المضافة */}
                                 <td style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
                                     <div style={{ color: '#3b82f6', fontWeight: '500' }}>I: {off.instructorId || '-'}</div>
                                     <div style={{ color: '#6b7280' }}>T: {off.taId || '-'}</div>
