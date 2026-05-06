@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import "../styles/AdvisingManagement.css";
 import { useNavigate, useParams } from "react-router-dom";
-
+const VALID_TABS = ["manage-lists", "promote"];
 const AdvisingManagementPage = () => {
     const navigate = useNavigate();
     const [advisors, setAdvisors] = useState([]);
@@ -18,12 +18,14 @@ const AdvisingManagementPage = () => {
     const [loading, setLoading] = useState(false);
     const { role } = useParams();
 
-    // States للتحكم في المودالات الجديدة
     const [isUnassignedModalOpen, setIsUnassignedModalOpen] = useState(false);
     const [isEmptyListsModalOpen, setIsEmptyListsModalOpen] = useState(false);
 
+
+
     const [activeTab, setActiveTab] = useState(() => {
-        return localStorage.getItem("activeAdvisingTab") || "current-advisors";
+        const saved = localStorage.getItem("activeAdvisingTab");
+        return VALID_TABS.includes(saved) ? saved : "manage-lists";
     });
 
     const [isAdvisorsModalOpen, setIsAdvisorsModalOpen] = useState(false);

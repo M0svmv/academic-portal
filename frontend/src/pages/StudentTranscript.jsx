@@ -15,6 +15,14 @@ import TranscriptProgressMapModal from "../components/TranscriptProgressMapModal
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+const VALID_TYPES = [
+    "Core", "Program Elective",
+    "General Elective 1", "General Elective 2", "General Elective 3",
+    "Engineering Economy Elective", "Project Management Elective",
+    "Engineering Physics Elective", "Engineering Mathematics Elective",
+    "graduation-project",
+    "training",
+];
 
 const CREDIT_MAP = {
     total: { label: "Total Completed", key: "completedCredits" },
@@ -36,10 +44,12 @@ const StudentTranscript = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [filterType, setFilterType] = useState("all");
+    const [typeFilter, setTypeFilter] = useState("all");
+
+    const [statusFilter, setStatusFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
     const [creditType, setCreditType] = useState("total");
-    const [statusFilter, setStatusFilter] = useState("all");
+
     const [isMapModalOpen, setIsMapModalOpen] = useState(false);
     const [allCourses, setAllCourses] = useState([]);
 
@@ -94,26 +104,6 @@ const StudentTranscript = () => {
         return transcript[apiKey] || 0;
     };
 
-    const filteredCourses = transcript.completedCourses?.filter(c => {
-        const matchesStatus =
-            statusFilter === "all" || c.status?.toLowerCase() === statusFilter;
-
-        const courseName =
-            typeof c.courseId === "object"
-                ? c.courseId.courseName
-                : "";
-
-        const courseId =
-            typeof c.courseId === "object"
-                ? c.courseId._id
-                : c.courseId;
-
-        const matchesSearch =
-            courseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            courseId?.toLowerCase().includes(searchTerm.toLowerCase());
-
-        return matchesStatus && matchesSearch;
-    });
     const getGradeInfo = (grade) => {
         if (grade >= 90) return { letter: "A", class: "safe", status: "Passed" };
         if (grade >= 80) return { letter: "B", class: "safe", status: "Passed" };
@@ -256,7 +246,39 @@ const StudentTranscript = () => {
         );
     };
 
-    const failedCount = transcript.completedCourses?.filter(c => c.status === "failed").length || 0;
+    const filteredCourses = transcript.completedCourses?.filter(c => {
+        const normalize = (str) =>
+            str?.toLowerCase().replace(/[\s-]/g, "");
+        const matchesType =
+            typeFilter === "all" ||
+            normalize(c.courseId?.courseType) === normalize(typeFilter);
+
+        const matchesStatus =
+            statusFilter === "all" ||
+            (statusFilter === "passed" && c.grade >= 60) ||
+            (statusFilter === "failed" && c.grade < 60);
+
+        const matchesSearch =
+            c.courseId?.courseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.courseId?._id?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        return matchesType && matchesStatus && matchesSearch;
+    });
+
+    const failedCount = transcript.completedCourses?.filter(c => c.grade < 60).length || 0;
+
+    const groupedCourses = filteredCourses?.reduce((acc, course) => {
+        const sem = course.semesterId || "Unknown";
+
+        if (!acc[sem]) {
+            acc[sem] = [];
+        }
+
+        acc[sem].push(course);
+        return acc;
+    }, {});
+
+    const sortedSemesters = Object.keys(groupedCourses).sort();
 
     return (
         <div className="management-container student-details-wrapper">
@@ -368,7 +390,7 @@ const StudentTranscript = () => {
                 {/* Failing Courses Card */}
                 <div
                     className={`dash-card alert-card ${failedCount > 0 ? 'border-danger' : ''}`}
-                    onClick={() => setFilterType("failed")}
+                    onClick={() => setStatusFilter("failed")}
                     style={{
                         background: failedCount > 0 ? '#fffcfc' : '#fff',
                         border: failedCount > 0 ? '1px solid #fee2e2' : '1px solid #f1f5f9',
@@ -572,108 +594,107 @@ const StudentTranscript = () => {
                     </div>
                 </div>
 
-                <div className="data-section">
-                    <div className="section-title-bar sec-2">
-                        <h3>Transcript History</h3>
-                    </div>
-                    <div className="filter-search-row">
-                        <div className="search-box">
-                            <FaSearch />
-                            <input
-                                type="text"
-                                placeholder="Search by name or code..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                        <select
-                            className="filter-dropdown"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                        >
-                            <option value="all">All Courses</option>
-                            <option value="passed">Passed Only</option>
-                            <option value="failed">Failed Only</option>
-                        </select>
-                        <button
-                            className="btn-1"
-                            onClick={() => setIsMapModalOpen(true)}
-                        >
-                            <GitBranch size={18} /> Progress Map
+                <div className="data-section" style={{ marginTop: '2rem' }}>
+                    <div className="section-title-bar">
+                        <h3>Academic Transcript</h3>
+                        <button className="btn-1" onClick={() => setIsMapModalOpen(true)}>
+                            <GitBranch size={18} /> View Progress Map
                         </button>
                     </div>
-                    <div className="table-wrapper">
-                        <table className="modern-table dynamic-table">
-                            <thead>
-                                <tr>
-                                    <th>Course Info</th>
-                                    <th>Academic Level</th>
-                                    <th>Type & Credits</th>
-                                    <th>Status & Grade</th>
-                                    <th>Regulation</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredCourses && filteredCourses.length > 0 ? (
-                                    filteredCourses.map((course, index) => {
-                                        const info = getGradeInfo(course.grade);
 
-                                        const courseData =
-                                            typeof course.courseId === "object"
-                                                ? course.courseId
-                                                : allCourses.find(c => c._id === course.courseId) || {};
 
-                                        return (
-                                            <tr key={index}>
-                                                <td className="course-main-td">
-                                                    <div className="course-id-cell">
-                                                        {courseData._id || course.courseId}
-                                                    </div>
-                                                    <div className="course-name-sub">
-                                                        {courseData.courseName || "N/A"}
-                                                    </div>
-                                                </td>
+                    <div className="filter-search-row" style={{ marginBottom: '15px' }}>
+                        <div className="search-box">
+                            <FaSearch />
+                            <input type="text" placeholder="Search course..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                        </div>
+                        <select value={statusFilter} className="filter-dropdown" onChange={(e) => setStatusFilter(e.target.value)}>
+                            <option value="all">All Status</option>
+                            <option value="passed">Passed</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                        <select
+                            className="filter-dropdown"
+                            value={typeFilter}
+                            onChange={(e) => setTypeFilter(e.target.value)}
+                        >
+                            <option value="all">All Types</option>
 
-                                                <td>
-                                                    <span className={`level-pill ${courseData.courseLevel}`}>
-                                                        {courseData.courseLevel || "N/A"}
-                                                    </span>
-                                                </td>
-
-                                                <td>
-                                                    <div className="type-tag">
-                                                        {courseData.courseType || "N/A"}
-                                                    </div>
-                                                    <div className="credits-sub">
-                                                        {courseData.courseCredits || 0} Credits
-                                                    </div>
-                                                </td>
-
-                                                <td>
-                                                    <span className={`status-pill ${info.class}`}>
-                                                        {info.status}
-                                                    </span>
-                                                    <div className="grade-display">
-                                                        {course.grade} ({info.letter})
-                                                    </div>
-                                                </td>
-
-                                                <td>
-                                                    <span className="reg-badge">
-                                                        {courseData.courseRegulation || "N/A"}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                ) : (
-                                    <tr>
-                                        <td colSpan="6" className="empty-msg">No courses found</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                            {VALID_TYPES.map((type) => (
+                                <option key={type} value={type}>
+                                    {type}
+                                </option>
+                            ))}
+                        </select>
                     </div>
+
+                    {Object.entries(groupedCourses).map(([semester, courses]) => (
+                        <div key={semester} style={{ marginBottom: "25px" }}>
+
+                            {/* عنوان السيمستر */}
+                            <div style={{
+                                background: "#f1f5f9",
+                                padding: "10px 15px",
+                                borderRadius: "8px",
+                                marginBottom: "10px",
+                                fontWeight: "600",
+                                color: "#1e293b"
+                            }}>
+                                Semester: {semester}
+                            </div>
+                            <div className="table-wrapper">
+                                <table className="modern-table dynamic-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Course Info</th>
+                                            <th>Academic Level</th>
+                                            <th>Type & Credits</th>
+                                            <th>Status & Grade</th>
+                                            <th>Regulation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {courses.map((course, index) => {
+                                            const info = getGradeInfo(course.grade);
+                                            const courseDetails = course.courseId || {};
+
+                                            return (
+                                                <tr key={index}>
+                                                    <td className="course-main-td">
+                                                        <div className="course-id-cell">{courseDetails._id}</div>
+                                                        <div className="course-name-sub">{courseDetails.courseName}</div>
+                                                    </td>
+                                                    <td>
+                                                        <span className={`level-pill ${courseDetails.courseLevel}`}>
+                                                            {courseDetails.courseLevel || "N/A"}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div className="type-tag">{courseDetails.courseType || "N/A"}</div>
+                                                        <div className="credits-sub">{courseDetails.courseCredits || 0} Credits</div>
+                                                    </td>
+                                                    <td>
+                                                        <span className={`status-pill ${info.class}`}>
+                                                            {info.status}
+                                                        </span>
+                                                        <div className="grade-display" style={{ marginTop: '5px' }}>
+                                                            {course.grade} <span className="letter-grade">({info.letter})</span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span className="reg-badge">
+                                                            {courseDetails.courseRegulation || "N/A"}
+                                                        </span>
+                                                    </td>
+
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
             <TranscriptProgressMapModal
