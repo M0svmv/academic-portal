@@ -22,7 +22,8 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
             const fetchSchedule = async () => {
                 setLoading(true);
                 try {
-                    const res = await api.get(`/academic-advisors/me/students/${studentId}/schedule`);
+                    const res = await api.get(`/schedule/student/${studentId}`);
+                    console.log(res.data)
                     setScheduleData(res.data);
                 } catch (err) {
                     console.error("Failed to fetch schedule", err);
@@ -35,8 +36,6 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
     }, [isOpen, studentId]);
 
     if (!isOpen) return null;
-
-
 
     return (
         <div className="modal-overlay" style={{
@@ -75,14 +74,14 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
                                     <th style={{ backgroundColor: 'var( --primary-blue-color)', color: 'f8fafc', padding: '15px', borderRadius: '8px', minWidth: '100px' }}>Days</th>
                                     {[...Array(6)].map((_, i) => {
                                         const pIdx = i * 2;
-                                        const periods = scheduleData.schedule.periodsTime;
+                                        const periods = scheduleData.schedule?.periodsTime || [];
                                         const pStart = periods[pIdx];
                                         const pEnd = periods[pIdx + 1] || pStart;
                                         return (
                                             <th key={i} style={{ backgroundColor: 'var( --primary-blue-color)', padding: '10px', borderRadius: '8px' }}>
                                                 <div style={{ fontSize: '0.9rem', color: '#fff' }}>Session {i + 1}</div>
                                                 <div style={{ fontSize: '0.75rem', color: '#f8fafc', marginTop: '4px' }}>
-                                                    {pStart?.startTime} - {pEnd?.endTime}
+                                                    {pStart?.startTime || "-"} - {pEnd?.endTime || "-"}
                                                 </div>
                                             </th>
                                         );
@@ -96,10 +95,12 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
                                             {day}
                                         </td>
                                         {[...Array(6)].map((_, i) => {
-                                            const currentLecPeriod = i + 1; // تعديل ليتناسب مع منطق الجدول
+                                            const currentSessionNumber = i + 1; // الجلسة الحالية من 1 إلى 6
+
+                                            // نقوم بفلترة المحاضرات التي تقع ضمن نطاق هذه الجلسة
                                             const courses = scheduleData.offerings?.filter(o =>
                                                 o.schedule?.days?.includes(day) &&
-                                                Number(o.schedule.lecPeriod) === currentLecPeriod
+                                                Math.ceil(Number(o.schedule.lecPeriod) / 2) === currentSessionNumber
                                             ) || [];
 
                                             return (
@@ -131,6 +132,7 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
         </div>
     );
 };
+
 
 const VALID_TYPES = [
     "Core", "Program Elective",
