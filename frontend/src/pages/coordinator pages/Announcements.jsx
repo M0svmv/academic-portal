@@ -641,20 +641,18 @@ const Announcements = () => {
                                         <span className="badge-all">Sent to All Students</span>
                                     ) : (
                                         <div className="specific-students-list">
-                                            <p className="sub-label">Selected Students ({viewingAnn.targetIds?.length}):</p>
+                                            <p className="sub-label">Selected Students ({viewingAnn.targetIds?.length || 0}):</p>
                                             <div className="students-chips-container">
-                                                {viewingAnn.targetIds?.map(stdId => {
-                                                    const student = Students.find(s => s.studentId?._id === stdId);
-                                                    return (
-                                                        <div key={stdId} className="student-detail-chip">
-                                                            <User size={12} />
-                                                            <div className="std-info">
-                                                                <span className="std-name">{student?.studentName || "Student"}</span>
-                                                                <span className="std-id">{stdId}</span>
-                                                            </div>
+                                                {/* التعديل هنا: الوصول للبيانات مباشرة من الكائن داخل المصفوفة */}
+                                                {viewingAnn.targetIds?.map((studentObj) => (
+                                                    <div key={studentObj.id || studentObj._id} className="student-detail-chip">
+                                                        <User size={12} />
+                                                        <div className="std-info">
+                                                            <span className="std-name">{studentObj.studentName || "Student"}</span>
+                                                            <span className="std-id">{studentObj.id || studentObj._id}</span>
                                                         </div>
-                                                    );
-                                                })}
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                     )}
