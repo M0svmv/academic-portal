@@ -30,13 +30,12 @@ const Announcements = () => {
     const [Students, setStudents] = useState([]);
     const [studentSearch, setStudentSearch] = useState("");
 
-    // تم دمج الـ State هنا ومنع التكرار لضمان عمل الفورم بشكل صحيح
     const [formData, setFormData] = useState({
         title: "",
         content: "",
         type: "general",
         expiresAt: "",
-        studentsIds: []
+        targetIds: []
     });
 
     const types = ["general", "urgent", "event", "deadline", "warning"];
@@ -80,17 +79,37 @@ const Announcements = () => {
         try {
             setLoading(true);
             let res;
+
             if (activeTab === "department") {
                 res = await api.get("/announcements/");
+                console.log(res.data)
+
+                // ✅ فلترة: بس department (all + specificStudents)
+                const filtered = res.data.filter(
+                    ann => ann.target === "all" || ann.target === "specificStudents"
+                );
+
+                setAnnouncements(filtered);
+
             } else {
                 if (!selectedAdvId) {
                     setAnnouncements([]);
                     setLoading(false);
                     return;
                 }
-                res = await api.get(`/announcements/advising-list/${selectedAdvId}`);
+
+                res = await api.get("/announcements/");
+
+                // ✅ فلترة: بس advising list
+                const filtered = res.data.filter(
+                    ann =>
+                        ann.target === "advisingList" &&
+                        ann.advisingListId === selectedAdvId
+                );
+
+                setAnnouncements(filtered);
             }
-            setAnnouncements(res.data);
+
         } catch (err) {
             console.error("Error fetching data:", err);
             setAnnouncements([]);
@@ -128,9 +147,9 @@ const Announcements = () => {
     const toggleStudentSelection = (id) => {
         setFormData(prev => ({
             ...prev,
-            studentsIds: prev.studentsIds.includes(id)
-                ? prev.studentsIds.filter(sid => sid !== id)
-                : [...prev.studentsIds, id]
+            targetIds: prev.targetIds.includes(id)
+                ? prev.targetIds.filter(sid => sid !== id)
+                : [...prev.targetIds, id]
         }));
     };
 
@@ -141,7 +160,7 @@ const Announcements = () => {
             content: ann.content,
             type: ann.type || "general",
             expiresAt: ann.expiresAt ? new Date(ann.expiresAt).toISOString().split('T')[0] : "",
-            studentsIds: ann.targetIds || []
+            targetIds: ann.targetIds || []
         });
         setIsModalOpen(true);
     };
@@ -172,7 +191,13 @@ const Announcements = () => {
             setSubmitting(true);
             const payload = {
                 ...formData,
-                target: activeTab === "department" ? "all" : (formData.studentsIds.length > 0 ? "specificStudents" : "advising")
+                target:
+                    formData.targetIds.length > 0
+                        ? "specificStudents"
+                        : activeTab === "department"
+                            ? "all"
+                            : "advisingList",
+                advisingListId: activeTab === "advising" ? selectedAdvId : undefined
             };
 
             if (editingAnn) {
@@ -185,7 +210,7 @@ const Announcements = () => {
 
             setIsModalOpen(false);
             setEditingAnn(null);
-            setFormData({ title: "", content: "", type: "general", expiresAt: "", studentsIds: [] });
+            setFormData({ title: "", content: "", type: "general", expiresAt: "", targetIds: [] });
             fetchAnnouncements();
         } catch (err) {
             swalService.error("Save Error", err.response?.data?.message || "Something went wrong while saving.");
@@ -213,7 +238,7 @@ const Announcements = () => {
                 </div>
                 <button className="btn-1" onClick={() => {
                     setEditingAnn(null);
-                    setFormData({ title: "", content: "", type: "general", expiresAt: "", studentsIds: [] });
+                    setFormData({ title: "", content: "", type: "general", expiresAt: "", targetIds: [] });
                     setIsModalOpen(true);
                 }}>
                     <Plus size={18} /> Create New
@@ -383,7 +408,54 @@ const Announcements = () => {
                     </div>
                 )
             ) : (
-                <div className="no-data">No announcements found.</div>
+                layout === "table" ? (
+                    <div className="table-wrapper">
+                        <table className="advising-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Content Preview</th>
+                                    <th>Expiry Date</th>
+                                    <th>Target Recipient</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colSpan="6" style={{ textAlign: 'center', padding: '4rem 2rem', color: '#64748b' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                            <p style={{ margin: 0, fontSize: '16px', fontWeight: '500' }}>No announcements found.</p>
+                                            <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>Try adjusting your filters or create a new announcement.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className="announcements-grid" style={{ display: 'grid', gridTemplateColumns: '1fr' }}>
+                        <div style={{
+                            gridColumn: '1 / -1',
+                            textAlign: 'center',
+                            padding: '5rem 2rem',
+                            color: '#64748b',
+                            backgroundColor: '#fff',
+                            border: '1px dashed #e2e8f0',
+                            borderRadius: '12px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            width: '100%',
+                            boxSizing: 'border-box'
+                        }}>
+                            <p style={{ margin: 0, fontSize: '16px', fontWeight: '500' }}>No announcements found.</p>
+                            <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>Try adjusting your filters or create a new announcement.</p>
+                        </div>
+                    </div>
+                )
             )}
 
             {/* Form Modal */}
@@ -398,15 +470,15 @@ const Announcements = () => {
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="form-main-layout">
-                                {!editingAnn && (
+                                {!editingAnn && activeTab === "department" && (
                                     <div className="form-right student-selection-area">
                                         <label><UserCheck size={16} /> Target Recipient</label>
                                         <div className="custom-multiselect-container">
                                             <div className={`dropdown-trigger ${isDropdownOpen ? 'open' : ''}`} onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
                                                 <span>
-                                                    {formData.studentsIds.length === 0
+                                                    {formData.targetIds.length === 0
                                                         ? "All Students (Default)"
-                                                        : `${formData.studentsIds.length} Student(s) Selected`}
+                                                        : `${formData.targetIds.length} Student(s) Selected`}
                                                 </span>
                                                 <ChevronDown size={18} />
                                             </div>
@@ -439,14 +511,14 @@ const Announcements = () => {
                                                                 return (
                                                                     <div
                                                                         key={sId}
-                                                                        className={`option-item ${formData.studentsIds.includes(sId) ? 'selected' : ''}`}
+                                                                        className={`option-item ${formData.targetIds.includes(sId) ? 'selected' : ''}`}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             toggleStudentSelection(sId);
                                                                         }}
                                                                     >
                                                                         <div className="check-box">
-                                                                            {formData.studentsIds.includes(sId) && <Check size={12} />}
+                                                                            {formData.targetIds.includes(sId) && <Check size={12} />}
                                                                         </div>
                                                                         <div className="option-info">
                                                                             <p>{sName}</p>
@@ -463,7 +535,7 @@ const Announcements = () => {
                                                             className="btn-clear"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                setFormData({ ...formData, studentsIds: [] });
+                                                                setFormData({ ...formData, targetIds: [] });
                                                             }}
                                                         >
                                                             Clear All
@@ -482,7 +554,7 @@ const Announcements = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        <p className="selection-hint">Leave empty to send to your entire advising list.</p>
+                                        <p className="selection-hint">Leave empty to send to your entire department.</p>
                                     </div>
                                 )}
                                 <div className="form-left">
@@ -572,7 +644,7 @@ const Announcements = () => {
                                             <p className="sub-label">Selected Students ({viewingAnn.targetIds?.length}):</p>
                                             <div className="students-chips-container">
                                                 {viewingAnn.targetIds?.map(stdId => {
-                                                    const student = Students.find(s => s.id === stdId);
+                                                    const student = Students.find(s => s.studentId?._id === stdId);
                                                     return (
                                                         <div key={stdId} className="student-detail-chip">
                                                             <User size={12} />
