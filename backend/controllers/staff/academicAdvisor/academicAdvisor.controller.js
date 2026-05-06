@@ -75,7 +75,7 @@ exports.showStudentDetails = async (req, res) => {
         }
 
 
-        const transcript = await Transcript.findOne({ studentId: req.params.id }).populate('studentId', 'studentName studentId studentEmail studentPhone');
+        const transcript = await Transcript.findOne({ studentId: req.params.id }).populate('studentId', 'studentName studentId studentEmail studentPhone').populate('completedCourses.courseId');
 
         const semesterWorks = await SemesterWork.find({
             studentId: req.params.id,
