@@ -122,7 +122,7 @@ exports.getAllAnnouncements = async (req, res) => {
         const currentSemester = await Semester.findOne({ isCurrent: true });
         let announcements = [];
         if (currentSemester) {
-            announcements = await Announcement.find({ target:"all",semesterId: currentSemester._id }).populate("staffId", "staffName");
+            announcements = await Announcement.find({ staffId: req.user._id, target:{ $in: ["all", "advisingList", "specificStudents"]}, semesterId: currentSemester._id }).populate("staffId", "staffName");
         }
         res.status(200).json(announcements.sort((a, b) => b.createdAt - a.createdAt));
     }catch (error) {
