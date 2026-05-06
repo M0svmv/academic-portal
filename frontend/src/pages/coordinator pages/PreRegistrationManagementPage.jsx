@@ -37,7 +37,7 @@ const PreRegistrationManagementPage = () => {
         }
     }, [currentSemester]);
 
-    // منطق حساب الوقت المتبقي وتحديثه
+
     useEffect(() => {
         const calculateTime = () => {
             if (!currentSemester?.timeLine?.preRegistration?.end) {
@@ -74,7 +74,6 @@ const PreRegistrationManagementPage = () => {
                     try {
                         await api.put(`/semesters/${currentSemester._id}/stopPreRegistration`);
                         setAllowEnrollment(false);
-                        // تحديث الكائن لضمان تحديث البار تلقائياً
                         setCurrentSemester(prev => ({
                             ...prev,
                             settings: { ...prev.settings, allowEnrollment: false }

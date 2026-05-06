@@ -10,6 +10,8 @@ const SemesterManagementPage = () => {
     const [currentSemester, setCurrentSemester] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [timeLeft, setTimeLeft] = useState("");
+    const semesterData = currentSemester;
 
     useEffect(() => {
         fetchAllSemesters();
@@ -20,7 +22,6 @@ const SemesterManagementPage = () => {
             setLoading(true);
             const res = await api.get("/semesters");
 
-            // ترتيب الفصول: الحالي أولاً، ثم ترتيب الباقي من الأحدث للأقدم بناءً على تاريخ البدء
             const sortedSemesters = [...res.data].sort((a, b) => {
                 if (a.isCurrent) return -1;
                 if (b.isCurrent) return 1;
@@ -42,6 +43,33 @@ const SemesterManagementPage = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const calculateTime = () => {
+            if (!currentSemester?.timeLine?.preRegistration?.end) {
+                setTimeLeft("No Time");
+                return;
+            }
+
+            const end = new Date(currentSemester.timeLine.preRegistration.end);
+            const now = new Date();
+            const diff = end - now;
+
+            if (diff <= 0) {
+                setTimeLeft("No Time");
+            } else {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((diff / 1000 / 60) % 60);
+                setTimeLeft(`${days}d ${hours}h ${minutes}m`);
+            }
+        };
+
+        calculateTime();
+        const timer = setInterval(calculateTime, 60000);
+        return () => clearInterval(timer);
+    }, [currentSemester]);
+
 
     const handleForceStop = async () => {
         const result = await swalService.confirm(
@@ -67,7 +95,7 @@ const SemesterManagementPage = () => {
             <div className="prereg-header">
                 <h2>Semesters Management</h2>
                 {!currentSemester && (
-                    <button className="start-semester-btn" onClick={() => setShowModal(true)}>
+                    <button className="btn-1" onClick={() => setShowModal(true)}>
                         <Plus size={18} /> Initialize New Semester
                     </button>
                 )}
@@ -115,11 +143,10 @@ const SemesterManagementPage = () => {
                                 <td>{new Date(sem.startDate).toLocaleDateString()}</td>
                                 <td>{new Date(sem.endDate).toLocaleDateString()}</td>
                                 <td>
-                                    {/* نستخدم الحالة من currentSemester إذا كان هو الصف الحالي لضمان التحديث اللحظي */}
-                                    {sem.isCurrent
-                                        ? (currentSemester?.settings?.allowEnrollment ? "Open" : "Closed")
-                                        : (sem.settings?.allowEnrollment ? "Open" : "Closed")
-                                    }
+
+                                    {semesterData?.settings?.allowEnrollment && timeLeft !== "No Time" ? "Open" : "Closed"}
+
+
                                 </td>
                             </tr>
                         ))}
