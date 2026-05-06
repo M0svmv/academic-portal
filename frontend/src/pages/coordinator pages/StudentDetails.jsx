@@ -507,7 +507,7 @@ const StudentDetails = () => {
                                         <th>Type & Credits</th>
                                         <th>Status & Grade</th>
                                         <th>Regulation</th>
-                                        {/* <th>Actions</th> */}
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -552,7 +552,7 @@ const StudentDetails = () => {
                                                     </td>
 
                                                     {/* عمود الأزرار */}
-                                                    {/* <td className="action-cell">
+                                                    <td className="action-cell">
                                                         <div className="action-flex">
                                                             <button
                                                                 className="btn-edit"
@@ -572,7 +572,7 @@ const StudentDetails = () => {
                                                                 <Trash2 size={16} />
                                                             </button>
                                                         </div>
-                                                    </td> */}
+                                                    </td>
                                                 </tr>
                                             );
                                         })
