@@ -58,7 +58,7 @@ const StudentCourseOfferingsPage = () => {
         }
     }, [draftEnrolled, loading]);
 
-    // كاونت داون لوقت انتهاء التسجيل
+
     useEffect(() => {
         const preRegEnd = semesterData?.timeLine?.preRegistration?.end;
 

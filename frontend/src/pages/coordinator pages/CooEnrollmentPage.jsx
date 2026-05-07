@@ -7,9 +7,10 @@ import {
     FaExclamationTriangle,
     FaCheckCircle,
     FaInfoCircle,
-    FaArrowLeft
+    FaArrowLeft,
+    FaClock
 } from "react-icons/fa";
-import { Trash2, X, Loader2 } from 'lucide-react';
+import { Trash2, X, Loader2, AlertTriangle, Plus } from 'lucide-react';
 import "../styles/StudentOfferings.css";
 
 const CooEnrollmentPage = () => {
@@ -23,9 +24,22 @@ const CooEnrollmentPage = () => {
     const [activeTab, setActiveTab] = useState("Freshman");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [studentRegulation, setStudentRegulation] = useState("last");
+    const [semesterData, setSemesterData] = useState(null);
+    const [timeLeft, setTimeLeft] = useState("");
+    const [regType, setRegType] = useState("");
+    const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
 
-    const levels = ["Freshman", "Sophomore", "Junior", "Senior"];
     const STORAGE_KEY = `draft_coo_${studentId}`;
+
+    const levels = useMemo(() => {
+        const allLevels = ["Freshman", "Sophomore", "Junior", "senior-1", "senior-2", "Senior"];
+        if (studentRegulation?.toLowerCase() === "new") {
+            return allLevels.filter(l => l !== "senior-1" && l !== "senior-2");
+        } else {
+            return allLevels.filter(l => l !== "Senior");
+        }
+    }, [studentRegulation]);
 
     useEffect(() => {
         fetchData();
@@ -34,18 +48,23 @@ const CooEnrollmentPage = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // 1. جلب الكورسات المتاحة
+            const scheduleRes = await api.get(`/students/${studentId}/details`);
+            console.log(scheduleRes.data);
+            const sData = scheduleRes.data;
+
+
+            setStudentRegulation(sData?.transcript?.regulation || "last");
+            setSemesterData(sData?.semester);
+
+            // 2. Fetch Available Courses
             const availableRes = await api.get(`/enrollments/${studentId}/available-courses`);
-            const available = availableRes.data.availableOfferings || [];
-            setAvailableCourses(available);
-            setAllowedCredits(availableRes.data.allowedCredits || 0);
+            setAvailableCourses(availableRes.data?.data?.availableOfferings || availableRes.data.availableOfferings || []);
+            setAllowedCredits(availableRes?.data?.allowedCredits || 0);
 
-            // 2. جلب التسجيل الحالي
+            console.log(availableRes)
+            // 3. Fetch Currently Enrolled Courses
             const enrolledRes = await api.get(`/enrollments/student/${studentId}`);
-
-            // بناءً على الـ JSON اللي بعته: enrolledRes.data.courses
             const enrolledData = enrolledRes.data?.courses || [];
-
 
             const currentIds = enrolledData.map((item) => {
                 if (item.courseOfferingId && typeof item.courseOfferingId === 'object') {
@@ -56,7 +75,6 @@ const CooEnrollmentPage = () => {
 
             setOriginalEnrolled(currentIds);
 
-            // 3. إدارة الـ LocalStorage (لو مفيش Draft متسجل ابدأ بالمواد الحالية)
             const savedDraft = localStorage.getItem(STORAGE_KEY);
             if (savedDraft) {
                 setDraftEnrolled(JSON.parse(savedDraft));
@@ -70,6 +88,55 @@ const CooEnrollmentPage = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!semesterData?.timeLine) return;
+
+        const interval = setInterval(() => {
+            const now = new Date().getTime();
+            const preReg = semesterData.timeLine.preRegistration;
+            const addDrop = semesterData.timeLine.addDrop;
+
+            const preStart = new Date(preReg?.start).getTime();
+            const preEnd = new Date(preReg?.end).getTime();
+            const adStart = new Date(addDrop?.start).getTime();
+            const adEnd = new Date(addDrop?.end).getTime();
+
+            let targetTime = 0;
+            let type = "";
+
+            if (now >= preStart && now < preEnd) {
+                targetTime = preEnd;
+                type = "Pre-Registration";
+                setIsRegistrationOpen(true);
+            } else if (now >= adStart && now < adEnd) {
+                targetTime = adEnd;
+                type = "Add & Drop";
+                setIsRegistrationOpen(true);
+            } else if (now < preStart) {
+                targetTime = preStart;
+                type = "Registration Starts In";
+                setIsRegistrationOpen(false);
+            } else {
+                setTimeLeft("No Time");
+                setRegType("Ended");
+                setIsRegistrationOpen(false);
+                clearInterval(interval);
+                return;
+            }
+
+            const distance = targetTime - now;
+            setRegType(type);
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [semesterData]);
 
     useEffect(() => {
         if (!loading) {
@@ -105,6 +172,7 @@ const CooEnrollmentPage = () => {
     }, [isDirty]);
 
     const addCourse = (id) => {
+        if (!isRegistrationOpen) return;
         const courseToAdd = availableCourses.find(c => c._id === id);
         const creditsOfCourse = courseToAdd?.courseId?.courseCredits || 0;
 
@@ -118,6 +186,7 @@ const CooEnrollmentPage = () => {
     };
 
     const removeCourse = (id) => {
+        if (!isRegistrationOpen) return;
         setDraftEnrolled(draftEnrolled.filter((c) => c !== id));
     };
 
@@ -134,44 +203,23 @@ const CooEnrollmentPage = () => {
         swalService.showLoading("Processing...");
 
         try {
-            // نرسل كل الـ IDs الموجودة في الـ Draft (اللي هي عبارة عن الحالي معدل عليه)
             const payload = {
                 courses: draftEnrolled.map((id) => ({ courseOfferingId: id }))
             };
-
             await api.post(`/enrollments/enroll/${studentId}`, payload);
-
             setOriginalEnrolled([...draftEnrolled]);
             localStorage.removeItem(STORAGE_KEY);
-
             swalService.success("Success", "Enrollment updated successfully.");
         } catch (err) {
-            swalService.error("Failed", err.response?.data?.message || "Update failed, Something went wrong!");
+            swalService.error("Failed", err.response?.data?.message || "Update failed!");
         } finally {
             setSaving(false);
         }
     };
 
-
     if (loading) return (
-        <div
-            className="management-container"
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '80vh',
-                flexDirection: 'column',
-                gap: '14px'
-            }}
-        >
-            <Loader2
-                size={42}
-                style={{
-                    animation: 'spin 1s linear infinite',
-                    color: '#2563eb'
-                }}
-            />
+        <div className="management-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh', flexDirection: 'column', gap: '14px' }}>
+            <Loader2 size={42} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
             <h3>Loading Student Data...</h3>
         </div>
     );
@@ -192,6 +240,30 @@ const CooEnrollmentPage = () => {
                         <div className="status-alert success"><FaCheckCircle /> Everything is up to date</div>
                     )}
                 </div>
+            </div>
+
+            <div className="registration-status-bar">
+                {regType !== "Ended" ? (
+                    <div className={`premium-status-alert ${isRegistrationOpen ? "open" : "closed"}`}>
+                        <div className="status-icon-container">
+                            <FaClock className="pulse-icon" />
+                        </div>
+                        <div className="status-content">
+                            <span className="label">{regType} {isRegistrationOpen ? "in Progress" : ""}</span>
+                            <span className="timer">{timeLeft} remaining</span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="premium-status-alert closed">
+                        <div className="status-icon-container">
+                            <AlertTriangle className="pulse-icon" />
+                        </div>
+                        <div className="status-content">
+                            <span className="label">Enrollment Status</span>
+                            <span className="timer">Registration Period Ended</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className={`credit-info-card ${isLimitReached ? "limit-reached" : ""}`}>
@@ -249,19 +321,25 @@ const CooEnrollmentPage = () => {
                                             </td>
                                             <td>
                                                 {isInDraft ? (
-                                                    <button className="action-btn remove-in-table" onClick={() => removeCourse(offering._id)}>
-                                                        <X size={18} />
+                                                    <button
+                                                        className="btn-delete"
+                                                        onClick={() => removeCourse(offering._id)}
+                                                        disabled={!isRegistrationOpen}
+                                                    >
+                                                        <X size={22} />
                                                     </button>
                                                 ) : (
                                                     <button
-                                                        className="action-btn add-in-table"
+                                                        className="btn-view"
                                                         onClick={() => addCourse(offering._id)}
-                                                        disabled={isDisabled}
+                                                        disabled={isDisabled || !isRegistrationOpen}
                                                     >
-                                                        <FaPlus size={18} />
+                                                        <Plus size={22} />
                                                     </button>
                                                 )}
                                             </td>
+
+
                                         </tr>
                                     );
                                 })}
@@ -301,7 +379,11 @@ const CooEnrollmentPage = () => {
                                             <td>{offering.courseId?.courseName}</td>
                                             <td>{offering.courseId?.courseCredits}</td>
                                             <td>
-                                                <button className="remove-btn" onClick={() => removeCourse(id)}>
+                                                <button
+                                                    className="remove-btn"
+                                                    onClick={() => removeCourse(id)}
+                                                    disabled={!isRegistrationOpen}
+                                                >
                                                     <Trash2 size={18} />
                                                 </button>
                                             </td>
@@ -316,9 +398,9 @@ const CooEnrollmentPage = () => {
                 <button
                     className={`save-btn ${isDirty ? "active" : ""}`}
                     onClick={saveEnrollment}
-                    disabled={!isDirty || saving}
+                    disabled={!isDirty || saving || !isRegistrationOpen}
                 >
-                    {saving ? "Processing..." : "Save Enrollment"}
+                    {saving ? "Processing..." : "Confirm & Save Enrollment"}
                 </button>
             </div>
         </div>
