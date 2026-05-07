@@ -58,10 +58,17 @@ exports.getCourseDetails = async (req, res) => {
 //grading student
 exports.gradeStudents = async (req, res) => {
   try {
+    const now = new Date();
     const { grades } = req.body;
+
+    
 
     const semester = await Semester.findOne({ isCurrent: true });
     const semesterId = semester._id;
+
+    if (now>=semester.timeLine.finalExams.start && now<=semester.endDate) {
+      return res.status(400).json({ message: "Grading is closed for this semester" });
+    }
 
     const course = await CourseOffering.findById(req.params.id);
 
