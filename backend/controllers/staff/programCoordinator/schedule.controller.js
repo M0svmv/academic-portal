@@ -96,23 +96,38 @@ exports.setCourseSchedules = async (req, res) => {
     const { courseOfferingId } = req.params;
     const { days, lecLength, lecPeriod } = req.body;
 
-    const currentSemester = await Semester.findOne({ isCurrent: true });
+    const currentSemester = await Semester.findOne({
+      isCurrent: true,
+    });
 
-    // ✅ الكورس الحالي
-    const course =
-      await CourseOffering.findById(courseOfferingId).populate("courseId");
+    // =========================================================
+    // Current Course Offering
+    // =========================================================
+    const course = await CourseOffering.findById(courseOfferingId)
+      .populate("courseId")
+      .populate("instructorId", "staffName");
+
     if (!course) {
-      return res.status(404).json({ message: "Course offering not found" });
+      return res.status(404).json({
+        message: "Course offering not found",
+      });
     }
 
-    // ✅ كل الكورسات اللي في نفس الوقت
+    // =========================================================
+    // All offerings in the same schedule
+    // =========================================================
     const courseOfferings = await CourseOffering.find({
       semesterId: currentSemester._id,
       "schedule.lecPeriod": lecPeriod,
       "schedule.days": { $in: days },
-    }).populate("courseId", "courseName");
+    })
+      .populate("courseId", "courseName")
+      .populate("instructorId", "staffName")
+      .populate("taId", "staffName");
 
-    // ✅ طلبة الكورس الحالي
+    // =========================================================
+    // Current course students
+    // =========================================================
     const courseStudents = await SemesterWork.find({
       courseId: course.courseId,
       semesterId: currentSemester._id,
@@ -120,10 +135,43 @@ exports.setCourseSchedules = async (req, res) => {
 
     let conflictCourses = [];
 
-    // 🔥 check conflicts
+    // =========================================================
+    // Check conflicts
+    // =========================================================
     for (let offering of courseOfferings) {
+      // Skip same offering
       if (offering._id.toString() === courseOfferingId) continue;
 
+      // =====================================================
+      // Doctor Conflict
+      // =====================================================
+      const hasInstructorConflict =
+        offering.instructorId?._id?.toString() ===
+        course.instructorId?._id?.toString();
+
+      if (hasInstructorConflict) {
+        conflictCourses.push({
+          type: "doctor-conflict",
+
+          courseName: offering.courseId.courseName,
+
+          instructor: offering.instructorId?.staffName,
+
+          message: `Instructor ${offering.instructorId?.staffName} is already assigned to another course during the selected schedule.`,
+
+          conflictNumber: 0,
+
+          graduatesConflictNumber: 0,
+
+          conflictStudents: [],
+        });
+
+        continue;
+      }
+
+      // =====================================================
+      // Students Conflict
+      // =====================================================
       const semesterWorks = await SemesterWork.find({
         courseId: offering.courseId._id,
         semesterId: currentSemester._id,
@@ -131,34 +179,46 @@ exports.setCourseSchedules = async (req, res) => {
         .select("studentId")
         .populate("studentId", "studentName");
 
-      let conflictStudents = semesterWorks.filter((sw) =>
+      const conflictStudents = semesterWorks.filter((sw) =>
         courseStudents.some(
           (cs) => cs.studentId.toString() === sw.studentId._id.toString(),
         ),
       );
 
       const conflictStudentsTranscript = await Transcript.find({
-        studentId: { $in: conflictStudents.map((s) => s.studentId._id) },
-        
-      }).select("level regulation studentId").populate("studentId", "studentName");
+        studentId: {
+          $in: conflictStudents.map((s) => s.studentId._id),
+        },
+      })
+        .select("level regulation studentId")
+        .populate("studentId", "studentName");
 
       const conflictGraduatesNum = conflictStudentsTranscript.filter(
-        (t) => t.level === "senior" || t.level === "senior-2"
+        (t) => t.level === "senior" || t.level === "senior-2",
       ).length;
-
-  
 
       if (conflictStudents.length > 0) {
         conflictCourses.push({
+          type: "students-conflict",
+
           courseName: offering.courseId.courseName,
+
+          instructor: offering.instructorId?.staffName || null,
+
+          message: `${conflictStudents.length} student(s) have a schedule conflict with this course.`,
+
           conflictNumber: conflictStudents.length,
+
           graduatesConflictNumber: conflictGraduatesNum,
+
           conflictStudents: conflictStudentsTranscript,
         });
       }
     }
 
-    // ❌ لو فيه conflicts
+    // =========================================================
+    // Return conflicts
+    // =========================================================
     if (conflictCourses.length > 0) {
       return res.status(400).json({
         message: "Schedule conflict detected",
@@ -166,19 +226,29 @@ exports.setCourseSchedules = async (req, res) => {
       });
     }
 
-    // ✅ update
+    // =========================================================
+    // Update Schedule
+    // =========================================================
     const updatedCourse = await CourseOffering.findByIdAndUpdate(
       courseOfferingId,
-      { schedule: { days, lecLength, lecPeriod } },
+      {
+        schedule: {
+          days,
+          lecLength,
+          lecPeriod,
+        },
+      },
       { new: true },
     );
 
     res.status(200).json({
-      message: "Course schedules set successfully",
+      message: "Course schedule updated successfully",
       data: updatedCourse,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
 
