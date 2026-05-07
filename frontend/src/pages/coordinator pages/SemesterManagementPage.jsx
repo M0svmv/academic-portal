@@ -167,7 +167,7 @@ const SemesterManagementPage = () => {
                                 <td>{new Date(sem.endDate).toLocaleDateString()}</td>
                                 <td>
 
-                                    {semesterData?.settings?.allowEnrollment && timeLeft !== "No Time" ? "Open" : "Closed"}
+                                    {sem.settings?.allowEnrollment  ? "Open" : "Closed"}
 
 
                                 </td>
