@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from "../../services/api";
-import { Calendar, Clock, AlertCircle, Download, Loader2 } from 'lucide-react';
+import { Calendar,Briefcase,User, Clock, AlertCircle, Download, Loader2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import './styles/StudentSchedule.css';
@@ -208,6 +208,15 @@ const StudentSchedule = () => {
                                                             <div>
                                                                 <div className="course-code">#{course.courseId._id}</div>
                                                                 <div className="course-name">{course.courseId.courseName}</div>
+                                                                <div className="detail-item-s" title={`Instructor: ${course.instructorId?.staffName || 'None'}`}>
+                                                                                                <User size={10} />
+                                                                                                <span className="truncate">{course.instructorId?.staffName || "No Instructor"}</span>
+                                                                                            </div>
+
+                                                                                            <div className="detail-item-s" title={`TA: ${course.taId?.staffName || 'None'}`}>
+                                                                                                <Briefcase size={10} />
+                                                                                                <span className="truncate">{course.taId?.staffName || "No TA"}</span>
+                                                                                            </div>
                                                             </div>
                                                             <div className="course-meta">
                                                                 <Clock size={10} style={{ marginRight: '4px' }} />

@@ -181,7 +181,7 @@ const LecSchedule = () => {
                                                                     {course.enrolledCount}
                                                                 </div></div> 
                                                                 <div className="course-name">{course.courseId.courseName}</div>
-                                                                <div className="detail-item-s" title={`Instructor: ${course.instructorId?.staffName || 'None'}`}>
+                                                                                            <div className="detail-item-s" title={`Instructor: ${course.instructorId?.staffName || 'None'}`}>
                                                                                                 <User size={10} />
                                                                                                 <span className="truncate">{course.instructorId?.staffName || "No Instructor"}</span>
                                                                                             </div>
