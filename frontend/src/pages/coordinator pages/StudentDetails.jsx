@@ -142,9 +142,6 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
     );
 };
 
-
-
-
 const VALID_TYPES = [
     "Core", "Program Elective",
     "General Elective 1", "General Elective 2", "General Elective 3",
@@ -181,6 +178,7 @@ const StudentDetails = () => {
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
     const [typeFilter, setTypeFilter] = useState("all");
+    const [semesterFilter, setSemesterFilter] = useState("all");
 
     const [statusFilter, setStatusFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
@@ -276,6 +274,7 @@ const StudentDetails = () => {
     const filteredCourses = transcript.completedCourses?.filter(c => {
         const normalize = (str) =>
             str?.toLowerCase().replace(/[\s-]/g, "");
+
         const matchesType =
             typeFilter === "all" ||
             normalize(c.courseId?.courseType) === normalize(typeFilter);
@@ -285,12 +284,21 @@ const StudentDetails = () => {
             (statusFilter === "passed" && c.grade >= 60) ||
             (statusFilter === "failed" && c.grade < 60);
 
+        const matchesSemester =
+            semesterFilter === "all" ||
+            c.semesterId === semesterFilter;
+
         const matchesSearch =
             c.courseId?.courseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             c.courseId?._id?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        return matchesType && matchesStatus && matchesSearch;
-    });
+        return (
+            matchesType &&
+            matchesStatus &&
+            matchesSemester &&
+            matchesSearch
+        );
+    });;
 
     const failedCount = transcript.completedCourses?.filter(c => c.grade < 60).length || 0;
 
@@ -326,6 +334,16 @@ const StudentDetails = () => {
     }, {});
 
     const sortedSemesters = Object.keys(groupedCourses).sort();
+
+    const semesterOptions = [
+        ...new Set(
+            transcript.completedCourses
+                ?.map(course => course.semesterId)
+                .filter(Boolean)
+        )
+    ].sort();
+
+
     return (
         <div className="management-container student-details-wrapper">
             <div className="details-header">
@@ -682,6 +700,19 @@ const StudentDetails = () => {
                                 <FaSearch />
                                 <input type="text" placeholder="Search course..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                             </div>
+                            <select
+                                className="filter-dropdown"
+                                value={semesterFilter}
+                                onChange={(e) => setSemesterFilter(e.target.value)}
+                            >
+                                <option value="all">All Semesters</option>
+
+                                {semesterOptions.map((semester) => (
+                                    <option key={semester} value={semester}>
+                                        {semester}
+                                    </option>
+                                ))}
+                            </select>
                             <select value={statusFilter} className="filter-dropdown" onChange={(e) => setStatusFilter(e.target.value)}>
                                 <option value="all">All Status</option>
                                 <option value="passed">Passed</option>
