@@ -363,7 +363,7 @@ exports.getAnnouncements = async (req, res) => {
   ]
 })
 .populate("staffId", "staffName")
-.populate({path:"courseId", populate: {path: "courseId", select: "courseName"}})
+.populate({path:"courseId", select:"courseId", populate: {path: "courseId", select: "courseName"}})
 .sort({ updatedAt: -1 });
 
     res.status(200).json(announcements);
