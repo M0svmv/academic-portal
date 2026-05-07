@@ -279,8 +279,8 @@ exports.requestMeeting = async (req, res) => {
 exports.getMyMeetings = async (req, res) => {
   try {
     const currentSemester = await Semester.findOne({ isCurrent: true });
-    const meetings = await Meeting.find({ studentId: req.user._id,semesterId: currentSemester._id });
-    console.log(meetings);
+    const meetings = await Meeting.find({ studentId: req.user._id,semesterId: currentSemester._id }).populate("advisorId", "staffName");
+    
     res.status(200).json(meetings);
   } catch (error) {
     res.status(500).json({ message: error.message });
