@@ -48,15 +48,14 @@ const CooEnrollmentPage = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const scheduleRes = await api.get(`/students/${studentId}/details`);
-            console.log(scheduleRes.data);
-            const sData = scheduleRes.data;
+            const detailsRes = await api.get(`/students/${studentId}/details`);
+            console.log(detailsRes.data);
+            const sData = detailsRes.data;
 
 
             setStudentRegulation(sData?.transcript?.regulation || "last");
             setSemesterData(sData?.semester);
 
-            // 2. Fetch Available Courses
             const availableRes = await api.get(`/enrollments/${studentId}/available-courses`);
             setAvailableCourses(availableRes.data?.data?.availableOfferings || availableRes.data.availableOfferings || []);
             setAllowedCredits(availableRes?.data?.allowedCredits || 0);

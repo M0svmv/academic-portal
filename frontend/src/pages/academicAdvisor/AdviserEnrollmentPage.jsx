@@ -7,9 +7,9 @@ import {
     FaExclamationTriangle,
     FaCheckCircle,
     FaInfoCircle,
-    FaArrowLeft
+    FaArrowLeft, FaClock,
 } from "react-icons/fa";
-import { Trash2, X, Loader2 } from 'lucide-react';
+import { Trash2, X, Loader2, AlertTriangle, Plus } from 'lucide-react';
 import "../styles/StudentOfferings.css";
 
 const AdviserEnrollmentPage = () => {
@@ -24,7 +24,21 @@ const AdviserEnrollmentPage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    const levels = ["Freshman", "Sophomore", "Junior", "senior - 1", "senior - 2", "senior"];
+    const [studentRegulation, setStudentRegulation] = useState("last");
+    const [semesterData, setSemesterData] = useState(null);
+    const [timeLeft, setTimeLeft] = useState("");
+    const [regType, setRegType] = useState("");
+    const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
+
+
+    const levels = useMemo(() => {
+        const allLevels = ["Freshman", "Sophomore", "Junior", "senior-1", "senior-2", "Senior"];
+        if (studentRegulation?.toLowerCase() === "new") {
+            return allLevels.filter(l => l !== "senior-1" && l !== "senior-2");
+        } else {
+            return allLevels.filter(l => l !== "Senior");
+        }
+    }, [studentRegulation]);
 
     // 1. Fetch Data on Mount
     useEffect(() => {
@@ -34,6 +48,13 @@ const AdviserEnrollmentPage = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
+
+            const detailsRes = await api.get(`/academic-advisors/me/students/${studentId}`);
+            console.log(detailsRes.data);
+            const sData = detailsRes.data;
+            setStudentRegulation(sData?.transcript?.regulation || "last");
+            setSemesterData(sData?.semester);
+
             // جلب الكورسات المتاحة
             const availableRes = await api.get(`/academic-advisors/me/students/available-courses/${studentId}`);
             setAvailableCourses(availableRes.data.availableOfferings || []);
@@ -60,6 +81,56 @@ const AdviserEnrollmentPage = () => {
         }
     };
 
+    useEffect(() => {
+        if (!semesterData?.timeLine) return;
+
+        const interval = setInterval(() => {
+            const now = new Date().getTime();
+            const preReg = semesterData.timeLine.preRegistration;
+            const addDrop = semesterData.timeLine.addDrop;
+
+            const preStart = new Date(preReg?.start).getTime();
+            const preEnd = new Date(preReg?.end).getTime();
+            const adStart = new Date(addDrop?.start).getTime();
+            const adEnd = new Date(addDrop?.end).getTime();
+
+            let targetTime = 0;
+            let type = "";
+
+            if (now >= preStart && now < preEnd) {
+                targetTime = preEnd;
+                type = "Pre-Registration";
+                setIsRegistrationOpen(true);
+            } else if (now >= adStart && now < adEnd) {
+                targetTime = adEnd;
+                type = "Add & Drop";
+                setIsRegistrationOpen(true);
+            } else if (now < preStart) {
+                targetTime = preStart;
+                type = "Registration Starts In";
+                setIsRegistrationOpen(false);
+            } else {
+                setTimeLeft("No Time");
+                setRegType("Ended");
+                setIsRegistrationOpen(false);
+                clearInterval(interval);
+                return;
+            }
+
+            const distance = targetTime - now;
+            setRegType(type);
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [semesterData]);
+
+
     // 2. Persist Draft to LocalStorage
     useEffect(() => {
         if (!loading) {
@@ -84,7 +155,7 @@ const AdviserEnrollmentPage = () => {
 
     const isLimitReached = currentTotalCredits >= allowedCredits;
 
-    // 4. Prevent accidental navigation
+
     useEffect(() => {
         const handleBeforeUnload = (e) => {
             if (isDirty) {
@@ -188,6 +259,30 @@ const AdviserEnrollmentPage = () => {
                 </div>
             </div>
 
+            <div className="registration-status-bar">
+                {regType !== "Ended" ? (
+                    <div className={`premium-status-alert ${isRegistrationOpen ? "open" : "closed"}`}>
+                        <div className="status-icon-container">
+                            <FaClock className="pulse-icon" />
+                        </div>
+                        <div className="status-content">
+                            <span className="label">{regType} {isRegistrationOpen ? "in Progress" : ""}</span>
+                            <span className="timer">{timeLeft} remaining</span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="premium-status-alert closed">
+                        <div className="status-icon-container">
+                            <AlertTriangle className="pulse-icon" />
+                        </div>
+                        <div className="status-content">
+                            <span className="label">Enrollment Status</span>
+                            <span className="timer">Registration Period Ended</span>
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* Credit Progress Card */}
             <div className={`credit-info-card ${isLimitReached ? "limit-reached" : ""}`}>
                 <div className="credit-text">
@@ -245,16 +340,20 @@ const AdviserEnrollmentPage = () => {
                                             </td>
                                             <td>
                                                 {isInDraft ? (
-                                                    <button className="action-btn remove-in-table" onClick={() => removeCourse(offering._id)}>
-                                                        <X size={18} />
+                                                    <button
+                                                        className="btn-delete"
+                                                        onClick={() => removeCourse(offering._id)}
+                                                        disabled={!isRegistrationOpen}
+                                                    >
+                                                        <X size={22} />
                                                     </button>
                                                 ) : (
                                                     <button
-                                                        className="action-btn add-in-table"
+                                                        className="btn-view"
                                                         onClick={() => addCourse(offering._id)}
-                                                        disabled={isDisabled}
+                                                        disabled={isDisabled || !isRegistrationOpen}
                                                     >
-                                                        <FaPlus size={18} />
+                                                        <Plus size={22} />
                                                     </button>
                                                 )}
                                             </td>
@@ -311,11 +410,11 @@ const AdviserEnrollmentPage = () => {
                 </div>
 
                 <button
-                    className={`btn-1 save-btn ${isDirty ? "active" : ""}`}
+                    className={`save-btn ${isDirty ? "active" : ""}`}
                     onClick={saveEnrollment}
-                    disabled={!isDirty || saving}
+                    disabled={!isDirty || saving || !isRegistrationOpen}
                 >
-                    {saving ? "Saving Changes..." : "Confirm & Save Enrollment"}
+                    {saving ? "Processing..." : "Confirm & Save Enrollment"}
                 </button>
             </div>
         </div >
