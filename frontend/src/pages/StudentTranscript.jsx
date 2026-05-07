@@ -4,7 +4,8 @@ import "./styles/StudentDetails.css";
 import "./styles/Transcript.css";
 import swalService from "../services/swal";
 import {
-    FaUserTie, FaExclamationTriangle, FaInfoCircle,
+    FaUserTie, FaExclamationTriangle, FaInfoCircle,FaPhoneAlt,
+    FaArrowLeft, FaTimes, FaClock, FaCalendarAlt,
     FaEnvelope, FaSearch, FaFileDownload
 } from "react-icons/fa";
 
@@ -357,11 +358,20 @@ const StudentTranscript = () => {
                         <div>
                             <p className="label">Academic Advisor</p>
                             <p className="name">{advisor?.staffName || "Not Assigned"}</p>
+                            
                         </div>
+
+                        
+                        
                     </div>
-                    {advisor?.staffEmail && (
-                        <div className="advisor-contact-minimal" onClick={() => contactAdvisor(advisor.staffEmail)} style={{ cursor: 'pointer' }}>
-                            <span><FaEnvelope /> {advisor.staffEmail}</span>
+                    {advisor?.email && (
+                        <div className="advisor-contact-minimal" onClick={() => contactAdvisor(advisor.email)} style={{ cursor: 'pointer' }}>
+                            <span><FaEnvelope /> {advisor.email}</span>
+                        </div>
+                    )}
+                    {advisor?.phone && (
+                        <div className="advisor-contact-minimal" onClick={() => contactAdvisor(advisor.phone)} style={{ cursor: 'pointer' }}>
+                            <span><FaPhoneAlt /> {advisor.phone}</span>
                         </div>
                     )}
                 </div>
