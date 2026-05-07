@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Download } from 'lucide-react';
+import { X, Upload, Download, Loader2 } from 'lucide-react';
 import api from '../services/api';
 
 const StudentCSVModal = ({ isOpen, onClose, onUploadSuccess }) => {

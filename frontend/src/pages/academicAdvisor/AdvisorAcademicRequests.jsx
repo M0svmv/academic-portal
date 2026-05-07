@@ -25,6 +25,7 @@ import {
     Zap,
     X,
     FileText // أضفت أيقونة للتقرير
+    , Loader2
 } from 'lucide-react';
 import api from '../../services/api';
 import swalService from "../../services/swal";

@@ -89,7 +89,6 @@ const TASchedule = () => {
         );
     }
 
-    // ملاحظة: الـ API الخاص بالـ TA يرسل "courses"
     const { schedule, courses } = scheduleData;
     const periods = schedule[0].periodsTime;
 

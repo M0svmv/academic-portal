@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Lock, User, Mail, Phone, ShieldCheck } from 'lucide-react';
+import { X, Lock, User, Mail, Phone, ShieldCheck, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import swalService from "../services/swal";
 

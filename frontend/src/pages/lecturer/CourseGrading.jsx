@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     Save, Search, TrendingUp, Award, AlertCircle,
     Calendar, CheckSquare, Square, X, Filter, Users, Trash2, Check, Minus, FileSpreadsheet, ExternalLink
+    , Loader2
 } from 'lucide-react';
 import { FaArrowLeft } from "react-icons/fa";
 import api from "../../services/api";
@@ -236,7 +237,24 @@ const CourseGrading = () => {
         : 0;
 
     if (loading) return (
-        <div className="management-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
             <h3>Syncing Gradebook...</h3>
         </div>
     );

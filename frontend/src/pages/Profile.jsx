@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Cookies from "js-cookie";
-import { User, Mail, Phone, Lock, Save, ShieldCheck, RefreshCw, Edit2, X } from 'lucide-react';
+import { User, Mail, Phone, Lock, Save, ShieldCheck, RefreshCw, Edit2, X, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import swalService from "../services/swal";
 import '../pages/styles/ProgramCourses.css';
@@ -141,7 +141,28 @@ const Profile = () => {
         setIsEditMode(false);
     };
 
-    if (loading) return <div className="loader-container">Loading Profile...</div>;
+    if (loading) return (
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
+            <h3>Loading Profile...</h3>
+        </div>
+    );
 
     return (
         <div className="management-container profile-page">

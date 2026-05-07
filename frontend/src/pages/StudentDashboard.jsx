@@ -4,7 +4,7 @@ import {
     ArrowRight, Clock, Bell, CalendarCheck,
     ChevronDown, Filter
 } from "lucide-react";
-import { CalendarDays, CalendarPlus, } from 'lucide-react';
+import { CalendarDays, CalendarPlus, Loader2 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./styles/StudentDashboard.css";

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertCircle } from 'lucide-react';
+import { X, AlertCircle, Loader2 } from 'lucide-react';
 import '../pages/styles/ProgramCourses.css';
 
 const ROLES = ['coordinator', 'lecturer', 'ta', 'admin', 'academic-advisor', 'control - member'];

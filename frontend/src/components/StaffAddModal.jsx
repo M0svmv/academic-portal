@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import '../pages/styles/ProgramCourses.css';
 
 const ROLES = ['coordinator', 'lecturer', 'ta', 'admin', 'academic-advisor', 'control-member'];

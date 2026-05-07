@@ -7,7 +7,8 @@ import {
 } from "react-icons/fa";
 import {
     Trash2, UserCheck, Eye, GraduationCap,
-    BookOpen, Target, AlertTriangle, Loader2, Filter
+    BookOpen, Target, AlertTriangle, Filter
+    , Loader2
 } from 'lucide-react';
 import "../styles/AdvisingManagement.css";
 
@@ -77,10 +78,28 @@ const AdvisingDetails = () => {
         }
     };
 
+
+
     if (loading) return (
-        <div className="loading-state" style={{ height: '80vh' }}>
-            <Loader2 className="animate-spin" size={40} />
-            <p>Loading Advisor Details...</p>
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
+            <h3>Loading Advisor Details...</h3>
         </div>
     );
 

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 import swalService from "../../services/swal";
 import "../styles/PreRegistrationManagementPage.css";
-import { Search, Play, Square, BarChart3, Clock, AlertTriangle } from 'lucide-react';
+import { Search, Play, Square, BarChart3, Clock, AlertTriangle, Loader2 } from 'lucide-react';
 
 const PreRegistrationManagementPage = () => {
     const navigate = useNavigate();
@@ -240,7 +240,30 @@ const PreRegistrationManagementPage = () => {
         });
     }, [courses, searchTerm, filterLevel, filterStatus]);
 
-    if (loading) return <div className="loading">Loading Registration System...</div>;
+
+    if (loading) return (
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
+            <h3>Loading Registration System...</h3>
+        </div>
+    );
+
 
     return (
         <div className="management-container prereg-container">

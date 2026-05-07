@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Lock, Mail, Phone, User, BookOpen } from 'lucide-react';
+import { X, Lock, Mail, Phone, User, BookOpen, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import swalService from "../services/swal";
 import '../pages/styles/ProgramCourses.css';
@@ -17,10 +17,10 @@ const StudentEditModal = ({ isOpen, onClose, studentId, studentRegulation, trans
     });
     const [errors, setErrors] = useState({});
     const [changePassword, setChangePassword] = useState(false);
-    const [changeRegulation, setChangeRegulation] = useState(false); 
+    const [changeRegulation, setChangeRegulation] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [fetching, setFetching] = useState(false); 
-    const [selectedRegulation, setSelectedRegulation] = useState(''); 
+    const [fetching, setFetching] = useState(false);
+    const [selectedRegulation, setSelectedRegulation] = useState('');
 
     // جلب بيانات الطالب عند فتح المودال وتوفر الـ ID
     useEffect(() => {

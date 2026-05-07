@@ -3,7 +3,7 @@ import api from "../../services/api";
 import swalService from "../../services/swal";
 import SemesterModal from "../../components/SemesterModal";
 import SemesterTimeline from "../../components/SemesterTimeline";
-import { AlertTriangle, Plus, CheckCircle2, History } from 'lucide-react';
+import { AlertTriangle, Plus, CheckCircle2, History, Loader2 } from 'lucide-react';
 
 const SemesterManagementPage = () => {
     const [semesters, setSemesters] = useState([]);
@@ -88,7 +88,30 @@ const SemesterManagementPage = () => {
         }
     };
 
-    if (loading) return <div>Loading Semesters...</div>;
+
+
+    if (loading) return (
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
+            <h3>Loading Semesters...</h3>
+        </div>
+    );
 
     return (
         <div className="management-container">

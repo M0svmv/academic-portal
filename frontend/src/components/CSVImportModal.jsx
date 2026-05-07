@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Download, AlertCircle } from 'lucide-react';
+import { X, Upload, Download, AlertCircle, Loader2 } from 'lucide-react';
 import '../pages/styles/ProgramCourses.css';
 import api from '../services/api'
 import swalService from "../services/swal";

@@ -7,7 +7,7 @@ import {
     FaArrowLeft, FaUserTie,
     FaExclamationTriangle, FaInfoCircle, FaEnvelope, FaPhoneAlt, FaSearch, FaCalendarAlt, FaTimes, FaClock
 } from "react-icons/fa";
-import { GitBranch, CalendarDays, AlertTriangle, Info } from 'lucide-react';
+import { GitBranch, CalendarDays, AlertTriangle, Info, Loader2 } from 'lucide-react';
 
 import StudentProgressMapModal from "../../components/StudentProgressMap";
 
@@ -205,7 +205,29 @@ const AdvisedStudentDetails = () => {
         fetchAllCourses();
     }, [id]);
 
-    if (loading) return <div className="loading-container"><div className="loader"></div></div>;
+
+    if (loading) return (
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
+            <h3>Loading Student details...</h3>
+        </div>
+    );
     if (error) return <div className="error-container"><FaExclamationTriangle size={30} /> {error}</div>;
     if (!data || !data.transcript) return null;
 

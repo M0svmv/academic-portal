@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { ReactFlow, Background, Controls, MarkerType, ConnectionLineType } from '@xyflow/react';
 import dagre from 'dagre';
 import '@xyflow/react/dist/style.css';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import swalService from "../services/swal";
 
 const LEVEL_STYLES = {

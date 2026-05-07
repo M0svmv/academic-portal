@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Loader2 } from 'lucide-react';
 import swalService from "../services/swal";
 
 const EditGradeModal = ({ isOpen, onClose, onSave, courseData }) => {

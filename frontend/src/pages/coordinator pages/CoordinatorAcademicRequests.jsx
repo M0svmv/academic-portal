@@ -15,6 +15,7 @@ import {
     XCircle,
     FileText,
     LayoutDashboard, X, MessageSquare
+    , Loader2
 } from 'lucide-react';
 import api from '../../services/api';
 import swalService from "../../services/swal";

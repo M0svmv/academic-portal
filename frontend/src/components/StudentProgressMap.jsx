@@ -15,6 +15,7 @@ import {
     AlertCircle,
     Clock,
     Lock
+    , Loader2
 } from 'lucide-react';
 
 const STATUS_STYLES = {
@@ -85,7 +86,7 @@ const StudentProgressMapModal = ({ isOpen, onClose, allCourses = [], studentData
                 status = canTake ? 'available' : 'locked';
             }
 
-            const style = STATUS_STYLES[status]; 
+            const style = STATUS_STYLES[status];
 
             nodes.push({
                 id: course._id,

@@ -9,7 +9,7 @@ import {
     FaInfoCircle,
     FaArrowLeft
 } from "react-icons/fa";
-import { Trash2, X } from 'lucide-react';
+import { Trash2, X, Loader2 } from 'lucide-react';
 import "../styles/StudentOfferings.css";
 
 const AdviserEnrollmentPage = () => {
@@ -144,7 +144,29 @@ const AdviserEnrollmentPage = () => {
         }
     };
 
-    if (loading) return <div className="loading-container">Loading Student Data...</div>;
+
+    if (loading) return (
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
+            <h3>Loading Student Data...</h3>
+        </div>
+    );
 
     return (
         <div className="management-container student-offerings-container">

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, PlusCircle } from 'lucide-react';
+import { X, PlusCircle, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import swalService from "../services/swal";
 // import '../styles/Modals.css';
 
 const AddCompletedCourseModal = ({ isOpen, onClose, onSave, transcriptId }) => {
-    const [allCourses, setAllCourses] = useState([]); 
+    const [allCourses, setAllCourses] = useState([]);
     const [selectedCourse, setSelectedCourse] = useState('');
     const [grade, setGrade] = useState('');
     const [loading, setLoading] = useState(false);
@@ -15,7 +15,7 @@ const AddCompletedCourseModal = ({ isOpen, onClose, onSave, transcriptId }) => {
         if (isOpen) {
             const fetchAllCourses = async () => {
                 try {
-                    const res = await api.get('/courses'); 
+                    const res = await api.get('/courses');
                     setAllCourses(res.data?.data || res.data || []);
                 } catch (err) {
                     console.error("Error fetching courses:", err);
@@ -46,8 +46,8 @@ const AddCompletedCourseModal = ({ isOpen, onClose, onSave, transcriptId }) => {
 
             await swalService.success("Success!", "Course added to transcript successfully");
 
-            onSave(); 
-            onClose(); 
+            onSave();
+            onClose();
 
             setSelectedCourse('');
             setGrade('');

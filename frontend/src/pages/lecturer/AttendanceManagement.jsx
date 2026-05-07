@@ -4,6 +4,7 @@ import {
     Users, Trash2, Check, Minus, ArrowLeft,
     Calendar, UsersRound, AlertTriangle, Download,
     Search, Filter, Save
+    , Loader2
 } from 'lucide-react';
 import api from "../../services/api";
 import swalService from "../../services/swal";
@@ -104,7 +105,24 @@ const AttendanceManagement = () => {
     );
 
     if (loading) return (
-        <div className="management-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
             <div className="loader-box">
                 <h3>Building Attendance Matrix...</h3>
             </div>

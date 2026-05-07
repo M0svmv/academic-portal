@@ -19,6 +19,7 @@ import {
     Eye,
     User,
     Calendar, ArrowUpCircle, ArrowDownCircle, XCircle
+    , Loader2
 } from 'lucide-react';
 import '../styles/ProgramCourses.css';
 import './styles/StuReq.css'

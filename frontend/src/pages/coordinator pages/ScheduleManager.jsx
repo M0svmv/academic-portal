@@ -4,7 +4,7 @@ import api from "../../services/api";
 import swalService from "../../services/swal";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
-    Trash2, Settings, X, RefreshCw, Layers, User, Hash, Menu, Download, Megaphone,EyeOff, Search, Eye, Save, Clock, Users, UserPlus, Briefcase, MoreVertical
+    Trash2, Settings, X, RefreshCw, Layers, User, Hash, Menu, Download, Megaphone, EyeOff, Search, Eye, Save, Clock, Users, UserPlus, Briefcase, MoreVertical, Loader2
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -311,6 +311,9 @@ const ScheduleManager = () => {
     const renderCourseCard = (offering, isInsideGrid = false) => {
         const isMenuOpen = activeMenu === offering._id;
 
+
+
+
         return (
             <div
                 className={`uniform-card-s ${isInsideGrid ? 'grid-version' : 'sidebar-version'}`}
@@ -462,7 +465,33 @@ const ScheduleManager = () => {
             o.courseId?._id?.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
-    if (loading) return <div className="management-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>Initializing Schedule Portal...</div>;
+
+    if (loading) return (
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
+
+            <h3>Initializing Schedule Portal...</h3>
+        </div>
+    );
+    const hasStudentConflicts = conflictData.some(
+        course => (course.conflictStudents || []).length > 0
+    );
 
     return (
         <div className="management-container schedule-container ">
@@ -480,7 +509,7 @@ const ScheduleManager = () => {
                             <button className="btn-2" onClick={handleAnnounceSchedule}>
                                 <Megaphone size={18} /> Announce
                             </button>
-                            
+
                             <button className="btn-2" onClick={exportToPDF}>
                                 <Download size={18} /> Export PDF
                             </button>
@@ -767,63 +796,193 @@ const ScheduleManager = () => {
                             </p>
 
                             {/* Filters Section */}
-                            <div className="filters-row" style={{
-                                display: 'flex',
-                                justifyContent: 'space-around',
-
-                            }}>
-                                <div className="filter-part" style={{
-                                    display: 'flex',
-                                    gap: '10px',
-                                    alignItems: 'center'
-                                }}>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>Student Level:</label>
-                                    <select
-                                        className="filter-select"
-                                        value={levelFilter}
-                                        onChange={(e) => setLevelFilter(e.target.value)}
-                                        style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ccc', minWidth: '150px' }}
+                            {hasStudentConflicts && (
+                                <div
+                                    className="filters-row"
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-around',
+                                    }}
+                                >
+                                    <div
+                                        className="filter-part"
+                                        style={{
+                                            display: 'flex',
+                                            gap: '10px',
+                                            alignItems: 'center'
+                                        }}
                                     >
-                                        <option value="All">All Levels</option>
-                                        {STUDENTS_LEVELS.map(lvl => (
-                                            <option key={lvl} value={lvl}>{lvl.toUpperCase()}</option>
-                                        ))}
-                                    </select>
-                                </div>
+                                        <label
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '5px',
+                                                fontWeight: 'bold',
+                                                fontSize: '14px'
+                                            }}
+                                        >
+                                            Student Level:
+                                        </label>
 
-                                <div className="filter-part" style={{
-                                    display: 'flex',
-                                    gap: '10px',
-                                    alignItems: 'center'
-                                }}>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>Regulation:</label>
-                                    <select
-                                        className="filter-select"
-                                        value={regulationFilter}
-                                        onChange={(e) => setRegulationFilter(e.target.value)}
-                                        style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ccc', minWidth: '150px' }}
+                                        <select
+                                            className="filter-select"
+                                            value={levelFilter}
+                                            onChange={(e) => setLevelFilter(e.target.value)}
+                                            style={{
+                                                padding: '8px',
+                                                borderRadius: '5px',
+                                                border: '1px solid #ccc',
+                                                minWidth: '150px'
+                                            }}
+                                        >
+                                            <option value="All">All Levels</option>
+
+                                            {STUDENTS_LEVELS.map(lvl => (
+                                                <option key={lvl} value={lvl}>
+                                                    {lvl.toUpperCase()}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div
+                                        className="filter-part"
+                                        style={{
+                                            display: 'flex',
+                                            gap: '10px',
+                                            alignItems: 'center'
+                                        }}
                                     >
-                                        <option value="All">All Regulations</option>
-                                        {STUDENTS_REGULATION.map(reg => (
-                                            <option key={reg} value={reg}>{reg}</option>
-                                        ))}
-                                    </select>
+                                        <label
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '5px',
+                                                fontWeight: 'bold',
+                                                fontSize: '14px'
+                                            }}
+                                        >
+                                            Regulation:
+                                        </label>
+
+                                        <select
+                                            className="filter-select"
+                                            value={regulationFilter}
+                                            onChange={(e) => setRegulationFilter(e.target.value)}
+                                            style={{
+                                                padding: '8px',
+                                                borderRadius: '5px',
+                                                border: '1px solid #ccc',
+                                                minWidth: '150px'
+                                            }}
+                                        >
+                                            <option value="All">All Regulations</option>
+
+                                            {STUDENTS_REGULATION.map(reg => (
+                                                <option key={reg} value={reg}>
+                                                    {reg}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {conflictData.map((course, cIdx) => {
-                                // Filtering logic for students within each course
-                                const filteredStudents = course.conflictStudents.filter(student => {
-                                    const matchesLevel = levelFilter === "All" || student.level === levelFilter;
-                                    const matchesReg = regulationFilter === "All" || student.regulation === regulationFilter;
+
+                                // ==============================
+                                // Doctor Conflict Card
+                                // ==============================
+                                if (course.type === "doctor-conflict") {
+                                    return (
+                                        <div
+                                            key={cIdx}
+                                            className="conflict-course-section"
+                                            style={{ marginBottom: '25px' }}
+                                        >
+                                            <div
+                                                className="conflict-course-header"
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    background: '#fff4e5',
+                                                    padding: '14px 16px',
+                                                    borderRadius: '10px',
+                                                    borderLeft: '5px solid #ff9800'
+                                                }}
+                                            >
+                                                <div>
+                                                    <h4 style={{ margin: 0, color: '#e65100' }}>
+                                                        Instructor Conflict
+                                                    </h4>
+
+                                                    <p style={{
+                                                        margin: '6px 0 0',
+                                                        color: '#555',
+                                                        fontSize: '14px'
+                                                    }}>
+                                                        {course.message}
+                                                    </p>
+                                                </div>
+
+                                                <div
+                                                    style={{
+                                                        background: '#ff9800',
+                                                        color: '#fff',
+                                                        padding: '5px 12px',
+                                                        borderRadius: '20px',
+                                                        fontSize: '13px',
+                                                        fontWeight: '600'
+                                                    }}
+                                                >
+                                                    Doctor Busy
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                style={{
+                                                    marginTop: '10px',
+                                                    padding: '14px',
+                                                    background: '#fff',
+                                                    border: '1px solid #eee',
+                                                    borderRadius: '10px'
+                                                }}
+                                            >
+                                                <div style={{
+                                                    display: 'flex',
+                                                    gap: '20px',
+                                                    flexWrap: 'wrap'
+                                                }}>
+                                                    <div>
+                                                        <strong>Course:</strong> {course.courseName}
+                                                    </div>
+
+                                                    <div>
+                                                        <strong>Instructor:</strong> {course.instructor}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                // ==============================
+                                // Students Conflict Card
+                                // ==============================
+                                const filteredStudents = (course.conflictStudents || []).filter(student => {
+                                    const matchesLevel =
+                                        levelFilter === "All" || student.level === levelFilter;
+
+                                    const matchesReg =
+                                        regulationFilter === "All" || student.regulation === regulationFilter;
+
                                     return matchesLevel && matchesReg;
                                 });
 
-                                // Skip rendering the course if no students match the filters
                                 if (filteredStudents.length === 0) return null;
 
                                 return (
                                     <div key={cIdx} className="conflict-course-section" style={{ marginBottom: '30px' }}>
+
                                         <div className="conflict-course-header" style={{
                                             display: 'flex',
                                             justifyContent: 'space-between',
@@ -832,19 +991,28 @@ const ScheduleManager = () => {
                                             borderRadius: '8px',
                                             borderLeft: '4px solid #f94545'
                                         }}>
-                                            <h4 style={{ margin: 0, color: '#d90429' }}>{course.courseName}</h4>
-                                            <span className="conflict-count-badge" style={{
-                                                background: '#f94545',
-                                                color: 'white',
-                                                padding: '2px 10px',
-                                                borderRadius: '12px',
-                                                fontSize: '0.85em'
-                                            }}>
+                                            <h4 style={{ margin: 0, color: '#d90429' }}>
+                                                {course.courseName}
+                                            </h4>
+
+                                            <span
+                                                className="conflict-count-badge"
+                                                style={{
+                                                    background: '#f94545',
+                                                    color: 'white',
+                                                    padding: '2px 10px',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.85em'
+                                                }}
+                                            >
                                                 {filteredStudents.length} Students Affected
                                             </span>
                                         </div>
 
-                                        <div className="table-wrapper" style={{ marginTop: '10px', overflowX: 'auto' }}>
+                                        <div
+                                            className="table-wrapper"
+                                            style={{ marginTop: '10px', overflowX: 'auto' }}
+                                        >
                                             <table className="management-table compact">
                                                 <thead>
                                                     <tr>
@@ -855,19 +1023,31 @@ const ScheduleManager = () => {
                                                         <th style={{ textAlign: 'center' }}>Actions</th>
                                                     </tr>
                                                 </thead>
+
                                                 <tbody>
                                                     {filteredStudents.map((student, sIdx) => (
                                                         <tr key={sIdx}>
-                                                            <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
+                                                            <td style={{
+                                                                fontFamily: 'monospace',
+                                                                fontWeight: 'bold'
+                                                            }}>
                                                                 {student.studentId.id}
                                                             </td>
+
                                                             <td>{student.studentId.studentName}</td>
-                                                            <td style={{ textTransform: 'capitalize' }}>{student.level}</td>
+
+                                                            <td style={{ textTransform: 'capitalize' }}>
+                                                                {student.level}
+                                                            </td>
+
                                                             <td>{student.regulation}</td>
+
                                                             <td style={{ textAlign: 'center' }}>
                                                                 <button
                                                                     className="btn-view"
-                                                                    onClick={() => navigate(`/staff/${role}/students/${student.studentId._id}`)}
+                                                                    onClick={() =>
+                                                                        navigate(`/staff/${role}/students/${student.studentId._id}`)
+                                                                    }
                                                                     title="View Profile"
                                                                 >
                                                                     <Eye size={18} />

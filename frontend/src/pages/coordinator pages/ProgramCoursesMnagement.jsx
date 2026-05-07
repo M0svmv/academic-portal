@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import swalService from "../../services/swal";
-import { Plus, ChevronDown, FileUp, Trash2, Edit, Search, BookOpen, GitBranch, LayoutGrid, GraduationCap, Download, X, RotateCcw } from 'lucide-react';
+import { Plus, ChevronDown, FileUp, Trash2, Edit, Search, BookOpen, GitBranch, LayoutGrid, GraduationCap, Download, X, RotateCcw, Loader2 } from 'lucide-react';
 import CourseModal from '../../components/CourseModal';
 import CSVImportModal from '../../components/CSVImportModal';
 import DependencyMap from '../../components/DependencyMap'; // استيراد الكومبوننت الجديد

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
     Users, Search, Eye, PlusCircle,
-    X, Trash2, BarChart3, AlertTriangle, BookOpen
+    X, Trash2, BarChart3, AlertTriangle, BookOpen, Loader2
 } from "lucide-react";
 import api from "../../services/api";
 import "./styles/AdviseStudents.css";
@@ -125,7 +125,28 @@ const AdviseStudents = () => {
         return matchesSearch && matchesLevel && matchesReg && matchesStatus;
     });
 
-    if (loading) return <div className="adv-page">Loading Students...</div>;
+    if (loading) return (
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
+            <h3>Loading Students...</h3>
+        </div>
+    );
 
     return (
         <div className="management-container adv-page">

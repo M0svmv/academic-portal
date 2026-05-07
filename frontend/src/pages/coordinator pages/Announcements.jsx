@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
     Megaphone, Users, Plus, Search, Edit3, Trash2,
     Calendar, Globe, ArrowUpRight, TrendingUp, X, User,
-    LayoutGrid, List, UserCheck, ChevronDown, Check
+    LayoutGrid, List, UserCheck, ChevronDown, Check, Loader2
 } from "lucide-react";
 import { AreaChart, Area, Tooltip, ResponsiveContainer } from 'recharts';
 import swalService from "../../services/swal";
@@ -84,7 +84,6 @@ const Announcements = () => {
                 res = await api.get("/announcements/");
                 console.log(res.data)
 
-                // ✅ فلترة: بس department (all + specificStudents)
                 const filtered = res.data.filter(
                     ann => ann.target === "all" || ann.target === "specificStudents"
                 );
@@ -100,7 +99,7 @@ const Announcements = () => {
 
                 res = await api.get("/announcements/");
 
-                // ✅ فلترة: بس advising list
+
                 const filtered = res.data.filter(
                     ann =>
                         ann.target === "advisingList" &&
@@ -330,7 +329,29 @@ const Announcements = () => {
 
             {/* Content Area */}
             {loading ? (
-                <div className="loading-state">Loading...</div>
+
+                <div
+                    className="management-container"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '80vh',
+                        flexDirection: 'column',
+                        gap: '14px'
+                    }}
+                >
+                    <Loader2
+                        size={42}
+                        style={{
+                            animation: 'spin 1s linear infinite',
+                            color: '#2563eb'
+                        }}
+                    />
+                    <h3>Loading Student Data...</h3>
+                </div>
+
+
             ) : filteredData.length > 0 ? (
                 layout === "table" ? (
                     <div className="table-wrapper">

@@ -57,7 +57,7 @@ const CourseStudentsPage = () => {
         fetchData();
     }, [courseId]);
 
-    
+
 
     // منطق التصفية الموحد
     const filteredStudents = useMemo(() => {
@@ -67,11 +67,11 @@ const CourseStudentsPage = () => {
                 item.studentId?._id?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesLevel = selectedLevel === "All" || item.studentId?.transcript?.level === selectedLevel;
             const matchesReg = selectedRegulation === "All" || item.studentId?.transcript?.regulation === selectedRegulation;
-            
-            
-            
 
-            return matchesSearch && matchesLevel && matchesReg ;
+
+
+
+            return matchesSearch && matchesLevel && matchesReg;
         });
     }, [students, searchTerm, selectedLevel, selectedRegulation]);
 
@@ -148,7 +148,29 @@ const CourseStudentsPage = () => {
         doc.save(`${courseName}_Students.pdf`);
     };
 
-    if (loading) return <div className="loading">Fetching Students List...</div>;
+
+    if (loading) return (
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
+            <h3>Fetching Students List...</h3>
+        </div>
+    );
 
     return (
         <div className="management-container student-details-wrapper">
@@ -310,16 +332,16 @@ const CourseStudentsPage = () => {
                                 <th>Bonus</th>
                                 <th>Final</th>
                                 <th>Total</th>
-                                
+
                             </tr>
                         </thead>
                         <tbody>
                             {filteredStudents.length > 0 ? (
                                 filteredStudents.map((item) => (
                                     <tr
-                                    onClick={() => navigate(`/staff/${role}/students/${item.studentId?._id}`)}
-                                    style={{ cursor: "pointer" }}
-                                     key={item.studentId?._id}>
+                                        onClick={() => navigate(`/staff/${role}/students/${item.studentId?._id}`)}
+                                        style={{ cursor: "pointer" }}
+                                        key={item.studentId?._id}>
                                         <td className="bold">#{item.studentId?._id}</td>
                                         <td>{item.studentId?.studentName}</td>
                                         <td>

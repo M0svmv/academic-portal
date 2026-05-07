@@ -13,6 +13,7 @@ import {
     ChevronUp,
     Info,
     Layout
+    , Loader2
 } from 'lucide-react';
 import api from "../../services/api";
 import '../styles/ProgramCourses.css';

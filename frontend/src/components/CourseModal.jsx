@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import swalService from "../services/swal";
 import '../pages/styles/ProgramCourses.css';

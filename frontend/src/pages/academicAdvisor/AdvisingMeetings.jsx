@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import api from "../../services/api";
 import swalService from "../../services/swal";
 import {
-    Calendar, Clock, Loader2, Info,
+    Calendar, Clock, Info,
     CheckCircle, CalendarClock, User,
     Check, X, MessageSquare, ListTodo, History,
     ChevronLeft, ChevronRight
+    , Loader2
 } from 'lucide-react';
 import "../styles/AdvisingManagement.css";
 import "../styles/Meetings.css";

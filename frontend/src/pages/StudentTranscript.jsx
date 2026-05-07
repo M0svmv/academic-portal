@@ -10,6 +10,7 @@ import {
 
 import {
     Trash2, GitBranch, AlertTriangle, Info
+    , Loader2
 } from 'lucide-react';
 import TranscriptProgressMapModal from "../components/TranscriptProgressMapModal";
 
@@ -93,7 +94,28 @@ const StudentTranscript = () => {
         fetchAllCourses();
     }, []);
 
-    if (loading) return <div className="loading-container"><div className="loader"></div></div>;
+    if (loading) return (
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
+            <h3>Loading Transcript...</h3>
+        </div>
+    );
     if (error) return <div className="error-container"><FaExclamationTriangle size={30} /> {error}</div>;
     if (!data) return null;
 

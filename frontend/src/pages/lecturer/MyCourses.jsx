@@ -14,6 +14,7 @@ import {
     Info,
     Layout,
     AlertCircle
+    , Loader2
 } from 'lucide-react';
 import api from "../../services/api";
 import '../styles/ProgramCourses.css';
