@@ -267,6 +267,69 @@
     color: #1e293b;
 }
 
+
+/* تنسيق البادج الخاص بالـ Type */
+.sd-type-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.sd-badge-urgent { background: #fef2f2; color: #dc2626; }
+.sd-badge-deadline { background: #fffbeb; color: #d97706; }
+.sd-badge-warning { background: #fff7ed; color: #ea580c; }
+.sd-badge-event { background: #faf5ff; color: #9333ea; }
+.sd-badge-info { background: #eff6ff; color: #2563eb; }
+
+/* تنسيق اسم المادة */
+.sd-course-context {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #eef2ff;
+    color: #4338ca;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 10px 0;
+}
+
+/* تنسيق التواريخ في سطر واحد */
+.sd-footer-dates {
+    display: flex;
+    flex-wrap: wrap; /* للسماح بالنزول في الشاشات الصغيرة جداً */
+    gap: 20px; /* مسافة كافية بين التاريخين */
+    align-items: center;
+}
+
+.sd-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #64748b;
+    white-space: nowrap; /* يمنع التاريخ من الانقسام على سطرين */
+}
+
+.sd-icon-published { color: #3b82f6; }
+.sd-icon-expires { color: #f59e0b; }
+
+/* تنسيق الفوتر العام */
+.sd-ann-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+}
+
 /* Responsive adjustment for small screens */
 @media (max-width: 640px) {
     .sd-section-header {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
     Megaphone, Calendar, User, Video,
     ArrowRight, Clock, Bell, CalendarCheck,
-    ChevronDown, Filter
+    ChevronDown, Filter, AlertCircle, Bookmark, Info, AlertTriangle, BookOpen
 } from "lucide-react";
 import { CalendarDays, CalendarPlus, Loader2 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
@@ -48,29 +48,23 @@ const StudentDashboard = () => {
         setActiveTab(tabType);
         setLoading(true);
         try {
-            // "all" تعيد كافة الإعلانات التي تم جلبها في البداية
             if (tabType === "all") {
                 setFilteredAnnouncements(announcements);
                 setLoading(false);
                 return;
             }
 
-            // تصفية بناءً على الـ target المذكور في الـ Schema
             let filtered;
             if (tabType === "advisingList") {
-                // جلب إعلانات قائمة الإرشاد من السيرفر مباشرة لضمان الدقة
                 const res = await api.get("/student/me/advising-list-announcements");
                 setFilteredAnnouncements(res.data);
                 setLoading(false);
                 return;
             } else if (tabType === "specificStudents") {
-                // الإعلانات الموجهة للطالب بشكل خاص (Private)
                 filtered = announcements.filter(a => a.target === "specificStudents");
             } else if (tabType === "all-public") {
-                // الإعلانات العامة للجميع
                 filtered = announcements.filter(a => a.target === "all");
             } else if (tabType === "academic") {
-                // الإعلانات المتعلقة بالمستويات أو الكورسات
                 filtered = announcements.filter(a => a.target === "course" || a.target === "level");
             }
 
@@ -111,6 +105,43 @@ const StudentDashboard = () => {
             case "level": return "Level";
             default: return target;
         }
+    };
+
+    const getTypeBadgeStyle = (type) => {
+        const base = {
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "4px",
+            padding: "4px 8px",
+            borderRadius: "6px",
+            fontSize: "10px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            marginLeft: "8px"
+        };
+        switch (type) {
+            case "urgent": return { ...base, backgroundColor: "#fee2e2", color: "#dc2626" };
+            case "deadline": return { ...base, backgroundColor: "#fef3c7", color: "#d97706" };
+            case "warning": return { ...base, backgroundColor: "#ffedd5", color: "#ea580c" };
+            case "event": return { ...base, backgroundColor: "#f3e8ff", color: "#9333ea" };
+            default: return { ...base, backgroundColor: "#e0f2fe", color: "#0284c7" };
+        }
+    };
+
+    const getTypeIcon = (type) => {
+        switch (type) {
+            case "urgent": return <AlertCircle size={12} />;
+            case "deadline": return <Clock size={12} />;
+            case "warning": return <AlertTriangle size={12} />;
+            case "event": return <Calendar size={12} />;
+            default: return <Info size={12} />;
+        }
+    };
+
+    const getStaffRole = (ann) => {
+        if (ann.target === "course") return "Course Instructor";
+        if (ann.target === "advisingList") return "Academic Advisor";
+        return "Department Admin";
     };
 
     const formatDate = (dateString) => {
@@ -157,32 +188,29 @@ const StudentDashboard = () => {
                 </div>
             </div>
 
-            <div className=" sd-content-layout">
+            <div className="sd-content-layout">
                 {/* Main Content: Announcements */}
                 <main className="sd-announcements-area">
-                    <div className="sd-glass-card">
-                        <div className="sd-section-header flex justify-between items-center mb-6">
-                            <div className="sd-section-title-box flex items-center gap-2">
-                                <Megaphone className="sd-primary-icon" size={24} />
-                                <h2 className="text-xl font-bold">Recent Announcements</h2>
+                    <div className="sd-glass-card" style={{ padding: '20px' }}>
+                        <div className="sd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
+                            <div className="sd-section-title-box" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <Megaphone className="sd-primary-icon" size={24} color="#3b82f6" />
+                                <h2 className="sd-section-heading" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold' }}>Recent Announcements</h2>
                             </div>
 
-                            {/* Dropdown Filter */}
-                            <div className="sd-filter-dropdown-container relative">
-                                <div className="relative group">
+                            <div className="sd-filter-dropdown-container">
+                                <div className="sd-select-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                     <select
-                                        className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 py-2 pl-10 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer transition-all text-sm font-medium"
+                                        className="sd-custom-select"
+                                        style={{ padding: '8px 35px 8px 15px', borderRadius: '8px', border: '1px solid #ddd', appearance: 'none', backgroundColor: '#fff', fontSize: '14px' }}
                                         value={activeTab}
                                         onChange={(e) => handleTabChange(e.target.value)}
                                     >
                                         {filterOptions.map((opt) => (
-                                            <option key={opt.id} value={opt.id}>
-                                                {opt.label}
-                                            </option>
+                                            <option key={opt.id} value={opt.id}>{opt.label}</option>
                                         ))}
                                     </select>
-
-
+                                    <Filter style={{ position: 'absolute', right: '10px', pointerEvents: 'none', color: '#666' }} size={16} />
                                 </div>
                             </div>
                         </div>
@@ -197,42 +225,74 @@ const StudentDashboard = () => {
                                 <p>No announcements found in this category.</p>
                             </div>
                         ) : (
-                            <div className="sd-cards-stack">
-                                {filteredAnnouncements.map((ann) => (
-                                    <div key={ann._id} className="sd-ann-item">
-                                        <div className="sd-ann-header">
-                                            <span className={`sd-pill-tag ${getTagClass(ann.target)}`}>
-                                                {getTargetLabel(ann.target)}
-                                            </span>
-                                            <span className="sd-semester-text">{ann.semesterId?.name || ann.semesterId}</span>
-                                        </div>
-                                        <h3 className="sd-ann-title">{ann.title}</h3>
-                                        <p className="sd-ann-content">{ann.content}</p>
-                                        <div className="sd-ann-footer flex flex-wrap items-center gap-4 mt-4 pt-3 border-t border-gray-100 text-slate-500">
-
-                                            {/* تاريخ النشر */}
-                                            <div className="sd-meta-item flex items-center gap-1.5 text-xs font-medium">
-                                                <CalendarPlus size={14} className="text-blue-500" />
-                                                <span>Published: {formatDate(ann.createdAt)}</span>
-                                            </div>
-
-                                            {/* تاريخ الانتهاء */}
-                                            <div className="sd-meta-item flex items-center gap-1.5 text-xs font-medium">
-                                                <Clock size={14} className="text-amber-500" />
-                                                <span>Expires: {formatDate(ann.expiresAt)}</span>
-                                            </div>
-
-                                            {/* الناشر */}
-                                            <div className="sd-meta-item flex items-center gap-1.5 text-xs font-medium ml-auto">
-                                                <User size={14} className="text-slate-400" />
-                                                <span className="bg-slate-100 px-2 py-0.5 rounded-full">
-                                                    {ann.staffId?.staffName || "Admin"}
+                            <div className="sd-cards-stack" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                {filteredAnnouncements.map((ann) => {
+                                    return (
+                                        <div key={ann._id} className={`sd-ann-item ${ann.isPinned ? 'sd-pinned' : ''}`} style={{
+                                            backgroundColor: '#fff',
+                                            borderRadius: '12px',
+                                            padding: '20px',
+                                            border: '1px solid #eef2f6',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+                                            position: 'relative'
+                                        }}>
+                                            <div className="sd-ann-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                                <div className="sd-header-badges" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                                    <span className={`sd-pill-tag ${getTagClass(ann.target)}`} style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', backgroundColor: '#e0e7ff', color: '#4338ca' }}>
+                                                        {getTargetLabel(ann.target)}
+                                                    </span>
+                                                    <span style={getTypeBadgeStyle(ann.type)}>
+                                                        {getTypeIcon(ann.type)}
+                                                        {ann.type}
+                                                    </span>
+                                                </div>
+                                                <span className="sd-semester-text" style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>
+                                                    {ann.semesterId?.name || ann.semesterId}
                                                 </span>
                                             </div>
 
+                                            {ann.courseId && (
+                                                <div className="sd-course-context" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#f0f9ff', color: '#0369a1', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', marginBottom: '10px' }}>
+                                                    <BookOpen size={14} />
+                                                    <span>{ann.courseId.courseId?.courseName || "Course Update"}</span>
+                                                </div>
+                                            )}
+
+                                            <h3 className="sd-ann-title" style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b', textAlign: 'right', direction: 'rtl' }}>
+                                                {ann.title}
+                                            </h3>
+                                            <p className="sd-ann-content" style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#475569', lineHeight: '1.6', textAlign: 'right', direction: 'rtl' }}>
+                                                {ann.content}
+                                            </p>
+
+                                            <div className="sd-ann-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '15px', borderTop: '1px solid #f1f5f9', flexWrap: 'wrap', gap: '10px' }}>
+                                                <div className="sd-footer-dates" style={{ display: 'flex', gap: '15px' }}>
+                                                    <div className="sd-meta-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b' }}>
+                                                        <CalendarPlus size={14} style={{ color: '#3b82f6' }} />
+                                                        <span>Published: {formatDate(ann.createdAt)}</span>
+                                                    </div>
+
+                                                    {ann.expiresAt && (
+                                                        <div className="sd-meta-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b' }}>
+                                                            <Clock size={14} style={{ color: '#f59e0b' }} />
+                                                            <span>Expires: {formatDate(ann.expiresAt)}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="sd-footer-author" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                    <div className="sd-author-info" style={{ textAlign: 'right' }}>
+                                                        <p className="sd-author-name" style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: '#1e293b' }}>{ann.staffId?.staffName || "Admin"}</p>
+                                                        <p className="sd-author-role" style={{ margin: 0, fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>{getStaffRole(ann)}</p>
+                                                    </div>
+                                                    <div className="sd-author-avatar" style={{ width: '32px', height: '32px', backgroundColor: '#f1f5f9', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                                                        <User size={18} />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -240,33 +300,33 @@ const StudentDashboard = () => {
 
                 {/* Sidebar: Meetings */}
                 <aside className="sd-meetings-sidebar">
-                    <div className="sd-glass-card">
-                        <div className="sd-sidebar-header">
-                            <div className="sd-title-inline">
-                                <Video size={20} className="sd-primary-icon" />
-                                <h3>My Meetings</h3>
+                    <div className="sd-glass-card" style={{ padding: '20px' }}>
+                        <div className="sd-sidebar-header" style={{ marginBottom: '15px' }}>
+                            <div className="sd-title-inline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Video size={20} color="#3b82f6" />
+                                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>My Meetings</h3>
                             </div>
                         </div>
 
-                        <div className="sd-mini-list">
+                        <div className="sd-mini-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {loading ? (
                                 <p className="sd-loading-text">Loading...</p>
                             ) : meetings.length === 0 ? (
                                 <div className="sd-empty-mini">
-                                    <p>No scheduled meetings.</p>
+                                    <p style={{ fontSize: '13px', color: '#94a3b8' }}>No scheduled meetings.</p>
                                 </div>
                             ) : (
                                 meetings.slice(0, 4).map(meet => (
-                                    <div key={meet._id} className="sd-mini-card">
-                                        <div className={`sd-card-accent ${getStatusClass(meet.meetingStatus)}`}></div>
-                                        <div className="sd-mini-info">
-                                            <h4>Meeting with Advisor</h4>
-                                            <div className="sd-mini-meta">
-                                                <span><Calendar size={12} /> {new Date(meet.meetingDate).toLocaleDateString()}</span>
-                                                <span><Clock size={12} /> {meet.meetingTime}</span>
+                                    <div key={meet._id} className="sd-mini-card" style={{ display: 'flex', alignItems: 'center', padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #f1f5f9', position: 'relative' }}>
+                                        <div className={`sd-card-accent ${getStatusClass(meet.meetingStatus)}`} style={{ width: '4px', height: '70%', position: 'absolute', left: 0, borderRadius: '0 4px 4px 0' }}></div>
+                                        <div className="sd-mini-info" style={{ flex: 1, paddingLeft: '10px' }}>
+                                            <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#1e293b' }}>Meeting with Advisor</h4>
+                                            <div className="sd-mini-meta" style={{ display: 'flex', gap: '10px', fontSize: '11px', color: '#64748b' }}>
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Calendar size={10} /> {new Date(meet.meetingDate).toLocaleDateString()}</span>
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Clock size={10} /> {meet.meetingTime}</span>
                                             </div>
                                         </div>
-                                        <div className={`sd-mini-status ${getStatusClass(meet.meetingStatus)}`}>
+                                        <div className={`sd-mini-status ${getStatusClass(meet.meetingStatus)}`} style={{ fontSize: '10px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>
                                             {meet.meetingStatus}
                                         </div>
                                     </div>
