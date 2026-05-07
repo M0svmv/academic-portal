@@ -33,27 +33,7 @@
     border: 1px solid #d1fae5;
 }
 
-.table-responsive {
-    width: 100%;
-    overflow: hidden; 
-  border-radius: 10px;
 
-}
-
-.modern-schedule-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed; 
-    border-spacing: 5px !important;
-}
-
-
-.modern-schedule-table th {
-    background: var( --primary-blue-color); 
-    color: #f8fafc;
-    padding: 12px 8px;
-    text-align: center;
-}
 
 
 .session-name {
