@@ -24,6 +24,16 @@ exports.createStudent = async (req, res) => {
     await student.save();
     const transcript = new Transcript({ studentId: student._id });
     await transcript.save();
+    const semester = await Semester.findOne({ isCurrent: true });
+    if(semester){
+      const enrollment = new Enrollment({ studentId: student._id , semesterId: semester._id });
+    await enrollment.save();
+    }else{
+      const semester = await Semester.findOne().sort({ endDate: -1 });
+      const enrollment = new Enrollment({ studentId: student._id,semesterId: semester._id });
+      await enrollment.save();
+    }
+    
     res.status(201).json({ message: "Student created successfully" });
   } catch (error) {
     console.error(error);
@@ -35,17 +45,25 @@ exports.createStudent = async (req, res) => {
 exports.createStudents = async (req, res) => {
   try {
     const students = req.body;
+    const semester = await Semester.findOne({ isCurrent: true });
+    if (!semester) {
+    const semester = await Semester.findOne().sort({ endDate: -1 });
+    }
     const transcripts = [];
+    const enrollments = [];
 
     for (let student of students) {
       const transcript = new Transcript({ studentId: student._id });
       transcripts.push(transcript);
+      const enrollment = new Enrollment({ studentId: student._id,semesterId: semester._id });
+      enrollments.push(enrollment);
       student.roles = ["student"];
       student.password = await bcrypt.hash(student.password, 10);
     }
 
     await Student.insertMany(students);
     await Transcript.insertMany(transcripts);
+    await Enrollment.insertMany(enrollments);
 
     res.status(201).json({ message: "Students created successfully" });
   } catch (error) {
