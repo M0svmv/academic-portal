@@ -363,7 +363,8 @@ exports.getAnnouncements = async (req, res) => {
   ]
 })
 .populate("staffId", "staffName")
-.sort({ isPinned: -1, createdAt: -1 });
+.populate({path:"courseId", populate: {path: "courseId", select: "courseName"}})
+.sort({ updatedAt: -1 });
 
     res.status(200).json(announcements);
 
