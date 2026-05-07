@@ -479,58 +479,84 @@ exports.updateStudentAttendance = async (req, res) => {
 
     const semester = await Semester.findOne({ isCurrent: true });
 
-    const course = await CourseOffering.findById(courseOfferingId);
+    const course = await CourseOffering.findOne({
+      _id: courseOfferingId,
+      semesterId: semester._id,
+    });
+
     if (!course) {
-      return res.status(404).json({ message: "Course offering not found" });
+      return res.status(404).json({
+        message: "Course offering not found",
+      });
     }
 
-    // 🔒 Authorization
-    if (course.instructorId !== req.user._id) {
-      return res.status(403).json({ message: "Not authorized" });
+    // Authorization
+    if (course.instructorId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
     }
 
-    const courseId = course.courseId;
-
-    // ❗ Validation
+    // Validation
     if (![0, 1].includes(status)) {
-      return res.status(400).json({ message: "Status must be 0 or 1" });
+      return res.status(400).json({
+        message: "Status must be 0 or 1",
+      });
     }
 
-    // 🔍 optional check (لو عايز تتأكد إن index مظبوط)
     const studentRecord = await SemesterWork.findOne({
-      courseId,
+      courseId: course.courseId,
       semesterId: semester._id,
       studentId,
-    }).select("attendanceTimes");
+    });
 
     if (!studentRecord) {
-      return res
-        .status(404)
-        .json({ message: "Student not found in this course" });
+      return res.status(404).json({
+        message: "Student not found in this course",
+      });
     }
 
+    // تأكد إن الليكشر موجودة
     if (
       lectureIndex < 0 ||
-      lectureIndex >= studentRecord.attendanceTimes.length
+      lectureIndex >= course.lecDates.length
     ) {
-      return res.status(400).json({ message: "Invalid lecture index" });
+      return res.status(400).json({
+        message: "Invalid lecture index",
+      });
     }
 
-    // 🚀 التحديث المباشر
-    await SemesterWork.updateOne(
-      { courseId, semesterId: semester._id, studentId },
-      {
-        $set: {
-          [`attendanceTimes.${lectureIndex}`]: status,
-        },
-      },
+    // كمل الأراي لو ناقصة
+    while (studentRecord.attendanceTimes.length < course.lecDates.length) {
+      studentRecord.attendanceTimes.push(0);
+    }
+
+    // تحديث الحضور
+    studentRecord.attendanceTimes[lectureIndex] = status;
+
+    // إعادة حساب attendance grade
+    const totalPresent = studentRecord.attendanceTimes.reduce(
+      (sum, val) => sum + val,
+      0
     );
+
+    const lecNum = course.lecNum || course.lecDates.length;
+
+    studentRecord.grade.attendanceGrade = Math.ceil(
+      (totalPresent / lecNum) * course.gradingSchema.attendance
+    );
+
+    await studentRecord.save();
 
     res.status(200).json({
       message: "Attendance updated successfully",
+      attendanceTimes: studentRecord.attendanceTimes,
+      attendanceGrade: studentRecord.grade.attendanceGrade,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
 
