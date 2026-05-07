@@ -17,10 +17,13 @@ const AcademicRequest = require("../../models/AcademicRequest");
 
 const enrollmentService = require("../../services/enrollment.service");
 const recommendationService = require("../../services/recommendations.service");
+const {getSemesterPreRegValidation} = require("../../utils/enrollment.utils");
 
 // Enroll in courses for the current semester
 exports.enrollStudent = async (req, res) => {
   try {
+
+    getSemesterPreRegValidation();
     const result = await enrollmentService.enrollStudent(req.user._id, req.body);
     return res.status(200).json(result);
   } catch (error) {

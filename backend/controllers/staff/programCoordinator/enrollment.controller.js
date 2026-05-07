@@ -82,9 +82,6 @@ exports.getStudentAvailableCourses = async (req, res) => {
 exports.enrollStudent = async (req, res) => {
   try {
     const studentId = req.params.id;
-    console.log("================================");
-    console.log("Enrollment request for student:", studentId + " with body:", req.body);
-    console.log("================================");
     const result = await EnrollmentService.enrollStudent(studentId, req.body);
     res.status(200).json(result);
   } catch (error) {

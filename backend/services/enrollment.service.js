@@ -19,7 +19,7 @@ exports.enrollStudent = async (studentId, body) => {
 
   // 🔹 step 1: الأساسي
   const [currentSemester, student] = await Promise.all([
-    getSemesterPreRegValidation(),
+    getCurrentSemester(),
     getStudentWithRules(studentId),
   ]);
 
@@ -42,7 +42,7 @@ exports.enrollStudent = async (studentId, body) => {
   const { addedCourses, removedCourses, currentCredits } =
     await computeChanges(studentId, courses, offerings, currentSemester._id);
 
-    console.log("Current Semester:", currentSemester);
+    
 
   // 🔹 step 5: updates (ترتيب مهم)
   await updateCounters(addedCourses, removedCourses, student);
