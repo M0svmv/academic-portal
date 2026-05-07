@@ -547,7 +547,7 @@ exports.getMyCoursesSchedule = async (req, res) => {
       semesterId: semester._id,
     })
       .populate("courseId")
-      .select("courseId schedule");
+      .select("courseId schedule instructorId enrolledCount taId").populate("taId", "staffName").populate("instructorId", "staffName");
     const schedule = await Schedule.find();
     res.status(200).json({ schedule, courses });
   } catch (error) {
