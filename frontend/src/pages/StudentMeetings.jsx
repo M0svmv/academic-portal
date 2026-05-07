@@ -260,6 +260,7 @@ const StudentMeetings = () => {
                                 <thead>
                                     <tr>
                                         <th>Date & Time</th>
+                                        <th>Prof.</th>
                                         <th>Notes</th>
                                         <th>Status</th>
                                     </tr>
@@ -279,6 +280,7 @@ const StudentMeetings = () => {
                                                     </div>
                                                 </div>
                                             </td>
+                                            <td>{meeting.advisorId?.staffName}</td>
                                             <td className="notes-cell">{meeting.meetingNotes || "No notes"}</td>
                                             <td>{getStatusBadge(meeting.meetingStatus)}</td>
                                         </tr>
