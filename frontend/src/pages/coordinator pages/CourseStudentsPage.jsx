@@ -4,7 +4,7 @@ import api from "../../services/api";
 import swalService from "../../services/swal";
 import {
     ArrowLeft, Search, Users, Eye, UserPlus, X,
-    GraduationCap, Filter, FileText, Layout, Info, UserCheck
+    GraduationCap, Filter, FileText, Layout, Info, UserCheck, Loader2
 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -16,7 +16,7 @@ const CourseStudentsPage = () => {
     const location = useLocation();
     const courseName = location.state?.courseName || "Course Students";
 
-    // استلام بيانات الاستاف من الـ state
+
     const currentInstructor = location.state?.instructorId;
     const currentTA = location.state?.taId;
 
@@ -24,11 +24,11 @@ const CourseStudentsPage = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
-    // فلاتر إضافية
+
     const [selectedLevel, setSelectedLevel] = useState("All");
     const [selectedRegulation, setSelectedRegulation] = useState("All");
 
-    // States للمودال والستاف
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState("instructor");
     const [lecturers, setLecturers] = useState([]);
@@ -59,7 +59,6 @@ const CourseStudentsPage = () => {
 
 
 
-    // منطق التصفية الموحد
     const filteredStudents = useMemo(() => {
         return students.filter(item => {
             console.log("Filtering item:", item);
@@ -69,13 +68,12 @@ const CourseStudentsPage = () => {
             const matchesReg = selectedRegulation === "All" || item.studentId?.transcript?.regulation === selectedRegulation;
 
 
-
-
             return matchesSearch && matchesLevel && matchesReg;
         });
     }, [students, searchTerm, selectedLevel, selectedRegulation]);
 
-    // الإحصائيات بناءً على الطلبة المفلترين حالياً
+
+
     const stats = useMemo(() => {
         const counts = {
             total: filteredStudents.length,
@@ -204,7 +202,6 @@ const CourseStudentsPage = () => {
                 </div>
             </div>
 
-            {/* عرض الـ Instructor والـ TA في بوكسات منقطة */}
             <div className="staff-assignment-overview" style={{
                 display: 'flex',
                 justifyContent: 'space-around',
@@ -280,8 +277,8 @@ const CourseStudentsPage = () => {
 
             <div className="data-section" style={{ marginTop: '30px' }}>
                 {/* Advanced Filters Row */}
-                <div className="filter-search-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '20px' }}>
-                    <div className="search-box" style={{ flex: '2', minWidth: '300px' }}>
+                <div className="table-controls" >
+                    <div className="search-box" >
                         <Search size={18} />
                         <input
                             type="text"
@@ -291,10 +288,9 @@ const CourseStudentsPage = () => {
                         />
                     </div>
 
-                    <div className="filter-item" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Filter size={16} color="#667085" />
+                    <div className="drop-filters-group" >
                         <select
-                            className="modal-select"
+                            className="filter-dropdown"
                             style={{ padding: '8px', width: '150px', marginTop: 0 }}
                             value={selectedLevel}
                             onChange={(e) => setSelectedLevel(e.target.value)}
@@ -304,9 +300,9 @@ const CourseStudentsPage = () => {
                         </select>
                     </div>
 
-                    <div className="filter-item" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="drop-filters-group" >
                         <select
-                            className="modal-select"
+                            className="filter-dropdown"
                             style={{ padding: '8px', width: '150px', marginTop: 0 }}
                             value={selectedRegulation}
                             onChange={(e) => setSelectedRegulation(e.target.value)}
@@ -316,6 +312,8 @@ const CourseStudentsPage = () => {
                         </select>
                     </div>
                 </div>
+
+
 
                 <div className="table-wrapper">
                     <table className="modern-table">

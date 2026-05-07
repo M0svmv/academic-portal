@@ -4,7 +4,7 @@ import api from "../../services/api";
 import swalService from "../../services/swal";
 import {
     ArrowLeft, Users, Search, Lock, Unlock,
-    GraduationCap, BookOpen, AlertCircle, CheckCircle2, FileText, UserSquare2
+    GraduationCap, BookOpen, AlertCircle, CheckCircle2, FileText, UserSquare2, Loader2
 } from "lucide-react";
 
 import { FaArrowLeft } from "react-icons/fa";
@@ -267,7 +267,7 @@ const EnrollmentStatsPage = () => {
 
             {/* Controls */}
             <div className="table-controls">
-                <div className="search-in-prereg-box">
+                <div className="search-box">
                     <Search size={20} color="#9ca3af" />
                     <input
                         type="text"
@@ -277,12 +277,16 @@ const EnrollmentStatsPage = () => {
                     />
                 </div>
                 <div className="drop-filters-group">
-                    <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="filter-dropdown">
+                    <select
+                        className="filter-dropdown"
+                        style={{ padding: '8px', width: '150px', marginTop: 0 }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} >
                         <option value="All">All Statuses</option>
                         <option value="open">Open</option>
                         <option value="closed">Closed</option>
                     </select>
-                    <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="filter-dropdown">
+                    <select
+                        className="filter-dropdown"
+                        style={{ padding: '8px', width: '150px', marginTop: 0 }} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} >
                         <option value="All">All Types</option>
                         <option value="Graduates">With Graduates</option>
                         <option value="Empty">Zero Enrollment</option>
@@ -306,51 +310,61 @@ const EnrollmentStatsPage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredData.map(off => (
-                            <tr key={off._id}>
-                                <td className="fetchCourse clickable-cell" onClick={() => handleViewStudents(off.courseId?._id, off._id, off.courseId?.courseName, off.instructorId?.staffName, off.taId?.staffName)}>
-                                    <div className="c-name">{off.courseId?.courseName || "Unknown Course"}</div>
-                                    <div className="c-id">{off.courseId?._id || off.courseId}</div>
-                                </td>
-                                <td style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
-                                    <div style={{ color: '#3b82f6', fontWeight: '500' }}>I: {off.instructorId?.staffName || '-'}</div>
-                                    <div style={{ color: '#6b7280' }}>T: {off.taId?.staffName || '-'}</div>
-                                </td>
-                                <td>
-                                    <span className={`status-badge ${off.status === 'open' ? 'live' : 'draft'}`}>
-                                        {off.status ? off.status.toUpperCase() : 'N/A'}
-                                    </span>
-                                </td>
-                                <td className="fetchCourse clickable-cell" onClick={() => handleViewStudents(off.courseId?._id, off._id, off.courseId?.courseName, off.instructorId, off.taId)}>
-                                    {off.enrolledCount || 0}
-                                </td>
-                                <td className="text-center">
-                                    <span className={(off.graduatingCount || 0) > 0 ? "g-critical" : "g-normal"}>
-                                        {off.graduatingCount || 0}
-                                    </span>
-                                </td>
-                                <td>
-                                    {(off.enrolledCount || 0) < 5 && off.status === 'open' && (off.graduatingCount || 0) === 0 ? (
-                                        <span className="h-low-demand">
-                                            <AlertCircle size={14} /> Low Demand
+                        {[...filteredData]
+                            .sort((a, b) => {
+                                const enrolledDiff = (b.enrolledCount || 0) - (a.enrolledCount || 0);
+
+                                if (enrolledDiff !== 0) return enrolledDiff;
+
+                                return (a.courseId?.courseName || "").localeCompare(
+                                    b.courseId?.courseName || ""
+                                );
+                            })
+                            .map(off => (
+                                <tr key={off._id}>
+                                    <td className="fetchCourse clickable-cell" onClick={() => handleViewStudents(off.courseId?._id, off._id, off.courseId?.courseName, off.instructorId?.staffName, off.taId?.staffName)}>
+                                        <div className="c-name">{off.courseId?.courseName || "Unknown Course"}</div>
+                                        <div className="c-id">{off.courseId?._id || off.courseId}</div>
+                                    </td>
+                                    <td style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
+                                        <div style={{ color: '#3b82f6', fontWeight: '500' }}>I: {off.instructorId?.staffName || '-'}</div>
+                                        <div style={{ color: '#6b7280' }}>T: {off.taId?.staffName || '-'}</div>
+                                    </td>
+                                    <td>
+                                        <span className={`status-badge ${off.status === 'open' ? 'live' : 'draft'}`}>
+                                            {off.status ? off.status.toUpperCase() : 'N/A'}
                                         </span>
-                                    ) : (off.graduatingCount || 0) > 0 ? (
-                                        <span className="h-mandatory">
-                                            <CheckCircle2 size={14} /> Mandatory
+                                    </td>
+                                    <td className="fetchCourse clickable-cell" onClick={() => handleViewStudents(off.courseId?._id, off._id, off.courseId?.courseName, off.instructorId, off.taId)}>
+                                        {off.enrolledCount || 0}
+                                    </td>
+                                    <td className="text-center">
+                                        <span className={(off.graduatingCount || 0) > 0 ? "g-critical" : "g-normal"}>
+                                            {off.graduatingCount || 0}
                                         </span>
-                                    ) : <span className="h-normal">Normal</span>}
-                                </td>
-                                <td className="text-center">
-                                    <button
-                                        className={`status-toggle-btn ${off.status === 'open' ? 'st-close' : 'st-open'}`}
-                                        onClick={() => handleToggleStatus(off._id, off.status)}
-                                    >
-                                        {off.status === 'open' ? <Lock size={14} /> : <Unlock size={14} />}
-                                        {off.status === 'open' ? 'Close' : 'Open'}
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
+                                    </td>
+                                    <td>
+                                        {(off.enrolledCount || 0) < 5 && off.status === 'open' && (off.graduatingCount || 0) === 0 ? (
+                                            <span className="h-low-demand">
+                                                <AlertCircle size={14} /> Low Demand
+                                            </span>
+                                        ) : (off.graduatingCount || 0) > 0 ? (
+                                            <span className="h-mandatory">
+                                                <CheckCircle2 size={14} /> Mandatory
+                                            </span>
+                                        ) : <span className="h-normal">Normal</span>}
+                                    </td>
+                                    <td className="text-center">
+                                        <button
+                                            className={`status-toggle-btn ${off.status === 'open' ? 'st-close' : 'st-open'}`}
+                                            onClick={() => handleToggleStatus(off._id, off.status)}
+                                        >
+                                            {off.status === 'open' ? <Lock size={14} /> : <Unlock size={14} />}
+                                            {off.status === 'open' ? 'Close' : 'Open'}
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
                     </tbody>
                 </table>
                 {filteredData.length === 0 && (
