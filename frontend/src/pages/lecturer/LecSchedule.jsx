@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from "../../services/api";
-import { Clock, AlertCircle, Download, Loader2 } from 'lucide-react';
+import { Trash2, Settings, X,AlertCircle, RefreshCw, Layers, User, Hash, Menu, Download, Megaphone, EyeOff, Search, Eye, Save, Clock, Users, UserPlus, Briefcase, MoreVertical, Loader2 } from 'lucide-react';
+
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import './LecSchedule.css';
@@ -175,8 +176,21 @@ const LecSchedule = () => {
                                                     {currentCourses.map((course, idx) => (
                                                         <div className="course-card-mini" key={idx}>
                                                             <div>
-                                                                <div className="course-code">#{course.courseId._id}</div>
+                                                                <div className="course-code">#{course.courseId._id} <div className="course-meta">
+                                                                    <Users size={10} style={{ marginRight: '4px' }} />
+                                                                    {course.enrolledCount}
+                                                                </div></div> 
                                                                 <div className="course-name">{course.courseId.courseName}</div>
+                                                                <div className="detail-item-s" title={`Instructor: ${course.instructorId?.staffName || 'None'}`}>
+                                                                                                <User size={10} />
+                                                                                                <span className="truncate">{course.instructorId?.staffName || "No Instructor"}</span>
+                                                                                            </div>
+
+                                                                                            <div className="detail-item-s" title={`TA: ${course.taId?.staffName || 'None'}`}>
+                                                                                                <Briefcase size={10} />
+                                                                                                <span className="truncate">{course.taId?.staffName || "No TA"}</span>
+                                                                                            </div>
+                                                                
                                                             </div>
                                                             <div className="course-meta">
                                                                 <Clock size={10} style={{ marginRight: '4px' }} />
