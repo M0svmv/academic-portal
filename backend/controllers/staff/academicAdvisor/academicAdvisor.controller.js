@@ -83,7 +83,7 @@ exports.showStudentDetails = async (req, res) => {
         }).populate("courseId", "courseName").select("courseId grade");
 
         res.status(200).json({
-            
+            semester,
             transcript,
             semesterWorks
         });
