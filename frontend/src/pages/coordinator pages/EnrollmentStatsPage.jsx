@@ -139,7 +139,7 @@ const EnrollmentStatsPage = () => {
         const tableColumn = ["Course Details", "Staff (Inst/TA)", "Status", "Students", "Graduating", "Hint"];
         const tableRows = filteredData.map(off => [
             `${off.courseId?.courseName || 'N/A'}\n(${off.courseId?._id || 'N/A'})`,
-            `Inst: ${off.instructorId || '-'}\nTA: ${off.taId || '-'}`,
+            `Inst: ${off.instructorId?.staffName || '-'}\nTA: ${off.taId?.staffName || '-'}`,
             (off.status || 'N/A').toUpperCase(),
             off.enrolledCount || 0,
             off.graduatingCount || 0,
@@ -286,13 +286,13 @@ const EnrollmentStatsPage = () => {
                     <tbody>
                         {filteredData.map(off => (
                             <tr key={off._id}>
-                                <td className="fetchCourse clickable-cell" onClick={() => handleViewStudents(off.courseId?._id, off._id, off.courseId?.courseName, off.instructorId, off.taId)}>
+                                <td className="fetchCourse clickable-cell" onClick={() => handleViewStudents(off.courseId?._id, off._id, off.courseId?.courseName, off.instructorId?.staffName, off.taId?.staffName)}>
                                     <div className="c-name">{off.courseId?.courseName || "Unknown Course"}</div>
                                     <div className="c-id">{off.courseId?._id || off.courseId}</div>
                                 </td>
                                 <td style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
-                                    <div style={{ color: '#3b82f6', fontWeight: '500' }}>I: {off.instructorId || '-'}</div>
-                                    <div style={{ color: '#6b7280' }}>T: {off.taId || '-'}</div>
+                                    <div style={{ color: '#3b82f6', fontWeight: '500' }}>I: {off.instructorId?.staffName || '-'}</div>
+                                    <div style={{ color: '#6b7280' }}>T: {off.taId?.staffName || '-'}</div>
                                 </td>
                                 <td>
                                     <span className={`status-badge ${off.status === 'open' ? 'live' : 'draft'}`}>

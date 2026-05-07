@@ -53,7 +53,7 @@ exports.getAllCourseOfferings = async (req, res) => {
   try {   
     const semester = await Semester.findOne({ isCurrent: true }); 
     const semesterId = semester._id;
-    const courseOfferings = await CourseOffering.find({ semesterId }).populate('courseId', 'courseName');
+    const courseOfferings = await CourseOffering.find({ semesterId }).populate('courseId', 'courseName').populate('instructorId', 'staffName').populate('taId', 'staffName');
     
 
     res.status(200).json(courseOfferings);
