@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import CoordinatorDashboard from "./coordinator pages/CoordinatorDashboard"
 import AdvisorDashboard from "./academicAdvisor/AdvisorDashboard"
 import LecturerDashboard from "./lecturer/LecturerDashboard"
-
+import TaDashboard from "./TA/TaDashboard"
 const StaffDashboard = () => {
     const { role } = useParams();
 
@@ -22,7 +22,7 @@ const StaffDashboard = () => {
             )}
 
             {role === "ta" && (
-                <p>Here you can assist courses and support lecturers.</p>
+                <TaDashboard />
             )}
 
             {role === "admin" && (

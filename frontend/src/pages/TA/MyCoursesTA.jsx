@@ -27,12 +27,10 @@ const MyCoursesTA = () => {
     const [showSchemaModal, setShowSchemaModal] = useState(false);
     const navigate = useNavigate();
 
-    // States لعرض التفاصيل (Expanded Row)
     const [expandedCourseId, setExpandedCourseId] = useState(null);
     const [courseDetails, setCourseDetails] = useState(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
 
-    // State لفلترة الإحصائيات (كارد 2)
     const [statsCourseFilter, setStatsCourseFilter] = useState("all");
 
     const [schema, setSchema] = useState({
@@ -50,7 +48,6 @@ const MyCoursesTA = () => {
 
     const fetchCourses = async () => {
         try {
-            // الـ Endpoint الخاص بالـ TA
             const res = await api.get("/tas/me/courses");
             setCourses(res.data);
         } catch (err) {
@@ -58,7 +55,6 @@ const MyCoursesTA = () => {
         }
     };
 
-    // فنكشن جلب التفاصيل والتحكم في فتح/غلق الصف
     const toggleCourseDetails = async (courseId) => {
         if (expandedCourseId === courseId) {
             setExpandedCourseId(null);

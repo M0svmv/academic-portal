@@ -42,7 +42,6 @@ const CourseGradingTA = () => {
 
     const loadData = async () => {
         try {
-            // جلب بيانات الكورسات ودرجات الطلاب
             const [detailsRes, studentRes] = await Promise.all([
                 api.get(`/tas/me/courses/${id}`),
                 api.get(`/semester-work/course/${courseId}`)
@@ -96,14 +95,14 @@ const CourseGradingTA = () => {
     }, [labDates, selectedDate]);
 
     const handleGradeChange = (studentId, field, value) => {
-        // 🔥 السماح فقط بتعديل اللاب والعملي للـ TA
+
         const allowedFields = ['labGrade', 'practicalGrade'];
         if (!allowedFields.includes(field)) return;
 
         const numValue = Number(value);
         if (numValue < 0) return;
 
-        // التحقق من الحد الأقصى بناءً على الـ gradingSchema
+
         const schemaField = field.replace('Grade', '');
         const maxAllowed = course?.gradingSchema?.[schemaField] || 100;
 
@@ -130,15 +129,13 @@ const CourseGradingTA = () => {
         try {
             swalService.showLoading("Saving data...");
 
-            // 1. حفظ الدرجات (إرسال الـ labGrade و الـ practicalGrade فقط)
             if (hasUnsavedChanges) {
                 const gradePayload = {
                     grades: localGrades.map(s => ({
                         studentId: s.studentId._id,
                         labGrade: s.grade.labGrade,
                         practicalGrade: s.grade.practicalGrade,
-                        // نرسل الأصفار أو القيم الحالية للباقي لضمان سلامة الـ Payload 
-                        // لكن الـ Backend سيهتم فقط بما لديه صلاحية بتعديله
+                  
                         midTermGrade: s.grade.midTermGrade,
                         bonusGrade: s.grade.bonusGrade
                     }))
