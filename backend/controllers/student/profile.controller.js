@@ -214,10 +214,10 @@ exports.getAllCourses = async (req, res) => {
   try {
     const studentId = req.user._id;
 
-    const [transcript, courses] = await Promise.all([
-      Transcript.findOne({ studentId }),
-      Course.find({ courseRegulation: transcript.regulation }),
+    const [transcript] = await Promise.all([
+      Transcript.findOne({ studentId })
     ])
+    courses = await Course.find({ courseRegulation: transcript.regulation })
     res.status(200).json({ courses, transcript });
   } catch (error) {
     res.status(500).json({ message: error.message });
