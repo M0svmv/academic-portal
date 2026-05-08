@@ -40,11 +40,12 @@ const ResultsManagement = () => {
             const detailsRes = await api.get(`/control/courses/${id}/students`);
             const studentRes = detailsRes.data.semesterWorks || [];
 
+            console.log(studentRes)
+
             setCourse(detailsRes.data.course);
             setLocalGrades(studentRes);
             setFinalExamGradesStatus(detailsRes.data.course.finalExamGradesStatus || "");
             setOriginalGrades(JSON.parse(JSON.stringify(studentRes)));
-            // عند التحميل، تأكد أن وضع التصحيح مغلق دائماً
             setIsCorrectionMode(false);
         } catch (err) {
             console.error("Error loading data", err);
@@ -59,7 +60,6 @@ const ResultsManagement = () => {
     }, [localGrades, originalGrades]);
 
     const handleGradeChange = (studentId, field, value) => {
-        // الكنترول مسموح له فقط بتعديل درجات الفاينل هنا
         if (field !== 'finalGrade') return;
 
         const numValue = value === "" ? 0 : Number(value);

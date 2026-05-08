@@ -1,8 +1,9 @@
 import { useParams } from "react-router-dom";
 import CoordinatorDashboard from "./coordinator pages/CoordinatorDashboard"
-import AdvisorDashboard from "./academicAdvisor/AdvisorDashboard"
-import LecturerDashboard from "./lecturer/LecturerDashboard"
-import TaDashboard from "./TA/TaDashboard"
+import AdvisorDashboard from "./academicAdvisor/AdvisorDashboard";
+import LecturerDashboard from "./lecturer/LecturerDashboard";
+import TaDashboard from "./TA/TaDashboard";
+import ControlDashboard from "./controlMember/ControlDashboard"
 const StaffDashboard = () => {
     const { role } = useParams();
 
@@ -31,8 +32,8 @@ const StaffDashboard = () => {
 
 
 
-            {role === "control-member" && (
-                <p>Here you can manage users and system settings.</p>
+            {role === "control" && (
+                <ControlDashboard />
             )}
         </div>
     );
