@@ -1,7 +1,9 @@
 const Semester = require("../models/Semester");
 
 exports.getCurrentSemester = async () => {
+  
   return await Semester.findOne({ isCurrent: true });
+
 };
 
 exports.getLatestSemester = async () => {

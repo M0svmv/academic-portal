@@ -6,6 +6,10 @@ const SemesterWork = require("../../../models/SemesterWork");
 const AdvisingList = require("../../../models/AdvisingList");
 const bcrypt = require("bcryptjs");
 
+
+
+const studentService = require("../../../services/student.service");
+
 // Create a new student
 exports.createStudent = async (req, res) => {
   try {
@@ -115,10 +119,7 @@ exports.getStudentsWithoutTranscript = async (req, res) => {
 // Get a student by ID
 exports.getStudentById = async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id);
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    const student = await studentService.getStudent(req.params.id);
     res.status(200).json(student);
   } catch (error) {
     console.error(error);
@@ -131,39 +132,8 @@ exports.getStudentDetailsById = async (req, res) => {
   try {
 
     
-    const semester = await Semester.findOne({ isCurrent: true });
-    
-    const transcript = await Transcript.findOne({
-      studentId: req.params.id,
-    }).populate("studentId", "studentName studentPhone studentEmail username").populate("completedCourses.courseId");
-
-    if (!transcript) {
-      return res.status(404).json({ message: "Transcript not found" });
-    }
-
-    
-
-
-    const semesterWorks = await SemesterWork.find({
-      studentId: req.params.id,
-      semesterId: semester._id
-    }).populate("courseId", "courseName").select("courseId grade");
-
-    let advisor = await AdvisingList.findOne({
-  "students.student": req.params.id
-})
-.populate("advisor", "staffName email phone")
-.select("advisor -_id");
-
-advisor = advisor ? advisor.advisor : null;
-
-if (!semester) {
-      res.status(200).json({
-      transcript,
-      advisor
-    });
-    }
-
+    const studentDetails = await studentService.getStudentDetails(req.params.id)
+    const {semester, transcript, advisor, semesterWorks} = studentDetails
     
     res.status(200).json({
       semester,  
@@ -173,7 +143,6 @@ if (!semester) {
       
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };

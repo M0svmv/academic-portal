@@ -59,14 +59,9 @@ exports.getRecommendations = async (req, res) => {
 // Get my student profile
 exports.getStudentProfile = async (req, res) => {
   try {
-    const studentId = req.user._id;
-    const student = await Student.findById(studentId).select("-password");
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    const student = await studentService.getStudent(req.user._id);
     res.status(200).json(student);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -86,7 +81,6 @@ exports.getStudentTranscript = async (req, res) => {
     const transcript = await transcriptService.getTranscript(req.user._id);
     res.status(200).json(transcript);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -134,42 +128,13 @@ exports.getAvailableCourses = async (req, res) => {
 // get student all details
 exports.getStudentDetails = async (req, res) => {
   try {
-    let semester = await Semester.findOne({ isCurrent: true });
-
-    if (!semester) {
-      semester = await Semester.findOne().sort({ endDate: -1 });
-    }
-
-    const transcript = await Transcript.findOne({
-      studentId: req.user._id,
-    })
-      .populate("studentId", "studentName studentPhone studentEmail username")
-      .populate("completedCourses.courseId");
-
-    if (!transcript) {
-      return res.status(404).json({ message: "Transcript not found" });
-    }
-
-    const semesterWorks = await SemesterWork.find({
-      studentId: req.user._id,
-      semesterId: semester._id,
-    })
-      .populate("courseId", "courseName")
-      .select("courseId grade");
-
-    let advisor = await AdvisingList.findOne({
-      "students.student": req.user._id,
-    })
-      .populate("advisor", "staffName email phone")
-      .select("advisor -_id");
-
-    advisor = advisor ? advisor.advisor : null;
+    const studentDetails = await studentService.getStudentDetails(req.user._id)
 
     res.status(200).json({
-      semester,
-      transcript,
-      advisor,
-      semesterWorks,
+      semester: studentDetails.semester,
+      transcript: studentDetails.transcript,
+      advisor: studentDetails.advisor,
+      semesterWorks: studentDetails.semesterWorks,
     });
   } catch (error) {
     console.error(error);
