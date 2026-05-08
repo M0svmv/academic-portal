@@ -93,636 +93,632 @@ const CoordinatorDashboard = () => {
 
         } catch (err) {
             console.error("Dashboard error:", err);
-
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchStudents = async () => {
-        try {
-            const res = await api.get("/transcripts");
-            const data = res.data?.data || res.data || [];
-            setStudents(data);
-        } catch (err) {
-            console.error("Error fetching students for insights:", err);
-        }
-    };
-    const fetchCourses = async () => {
-        try {
-            const res = await api.get("/courses");
-            setCourses(res.data || []);
-        } catch (err) {
-            console.error("Error fetching courses for insights:", err);
-        }
-    };
-    const fetchStaff = async () => {
-        try {
-            const res = await api.get("/staff");
-            setStaff(res.data || []);
-        } catch (err) {
-            console.error("Error fetching staff for insights:", err);
-        }
-    };
-
-    // تجهيز بيانات جراف توزيع الطلاب حسب المستوى
-    const studentLevelData = useMemo(() => {
-        return VALID_LEVELS.map(level => ({
-            name: level.charAt(0).toUpperCase() + level.slice(1),
-            value: students.filter(s => s.level === level).length
-        })).filter(item => item.value > 0);
-    }, [students]);
-
-    // تجهيز بيانات جراف توزيع الـ GPA
-    const gpaDistributionData = useMemo(() => {
-        const ranges = [
-            { range: '0-1', count: 0 },
-            { range: '1-2', count: 0 },
-            { range: '2-3', count: 0 },
-            { range: '3-3.5', count: 0 },
-            { range: '3.5-4', count: 0 }
-        ];
-        students.forEach(s => {
-            const g = s.GPA || 0;
-            if (g < 1) ranges[0].count++;
-            else if (g < 2) ranges[1].count++;
-            else if (g < 3) ranges[2].count++;
-            else if (g < 3.5) ranges[3].count++;
-            else ranges[4].count++;
-        });
-        return ranges;
-    }, [students]);
-
-
-    const courseTypeData = useMemo(() => {
-        return VALID_TYPES.map(type => ({
-            subject: type.length > 15 ? type.substring(0, 12) + '...' : type,
-            A: courses.filter(c => c.courseType === type).length,
-            fullMark: Math.max(...VALID_TYPES.map(t => courses.filter(c => c.courseType === t).length)) + 1
-        }));
-    }, [courses]);
-
-    // تجهيز بيانات الموظفين
-    const staffRoleData = useMemo(() => {
-        const roles = ['admin', 'coordinator', 'academic-advisor', 'lecturer', 'ta'];
-        return roles.map(r => ({
-            role: r.replace('-', ' '),
-            count: staff.filter(s => s.roles.includes(r)).length
-        }));
-    }, [staff]);
-
-    const averageGPA = (students.reduce((sum, s) => sum + (s.GPA || 0), 0) / (students.length || 1)).toFixed(2);
-
-    const fetchUserData = async () => {
-        try {
-            const response = await api.get("/staff/me");
-            setprofileData(response.data);
-        } catch (error) {
-            console.error("Error fetching profile:", error);
-        }
-    };
-
-    const fetchAllSemesters = async () => {
-        try {
-            const res = await api.get("/semesters");
-            const sortedSemesters = [...res.data].sort((a, b) => {
-                if (a.isCurrent) return -1;
-                if (b.isCurrent) return 1;
-                return new Date(b.startDate) - new Date(a.startDate);
-            });
-            setSemesters(sortedSemesters);
-            const current = res.data.find(s => s.isCurrent);
-            if (current) {
-                const detailRes = await api.get(`/semesters/${current._id}`);
-                setCurrentSemester(detailRes.data);
-            } else {
-                setCurrentSemester(null);
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const getTimelineProgress = (start, end) => {
-        const now = new Date();
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        if (now < startDate) return 0;
-        if (now > endDate) return 100;
-        return ((now - startDate) / (endDate - startDate)) * 100;
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return "N/A";
-        return new Date(dateString).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-        });
-    };
-
-    const loadInsightData = async () => {
-        try {
-            const [advRes, nonAdvRes, allListsRes, unassignedRes] = await Promise.all([
-                api.get("/advisors/"),
-                api.get("/advisors/non-advisors"),
-                api.get("/advisors/advising-lists/all"),
-                api.get("/advisors/advising-lists/unassigned-students")
-            ]);
-
-            setStats({
-                totalAdvisors: advRes.data.advisors?.length || 0,
-                staffAvailable: nonAdvRes.data.nonAdvisors?.length || 0,
-                emptyLists: (allListsRes.data || []).filter(l => l.studentsCount === 0).length,
-                unassignedStudents: unassignedRes.data?.length || 0
-            });
-        } catch (error) {
-            console.error("Error fetching insights:", error);
-        }
-    };
-
-    const renderInsightCard = ({ icon: Icon, label, value, footer, colorClass, select, onClick, className = "" }) => (
-        <div className={`insight-card-v2 ${colorClass} ${onClick ? 'clickable' : ''} ${className}`} onClick={onClick}>
-            <div className="card-top">
-                <div className="icon-box"><Icon size={20} /></div>
-                <div className="label-area">
-                    {select ? select : <span className="label-text">{label}</span>}
-                </div>
-            </div>
-            <div className="card-mid">
-                <span className="value-text">{value}</span>
-            </div>
-            <div className="card-bottom">
-                <span className="footer-text">{footer}</span>
-            </div>
-        </div>
-    );
-
-    const getStatusClass = (status) => {
-        switch (status) {
-            case "approved": return "sd-status-approved";
-            case "declined": return "sd-status-declined";
-            default: return "sd-status-pending";
-        }
-    };
-
-    const getTagClass = (target) => {
-        switch (target) {
-            case "advisingList": return "sd-tag-academic";
-            case "all": return "sd-tag-public";
-            case "specificStudents": return "sd-tag-dept";
-            case "course":
-            case "level": return "sd-tag-academic";
-            default: return "sd-tag-public";
-        }
-    };
-
-    const getTargetLabel = (target) => {
-        switch (target) {
-            case "all": return "Public";
-            case "advisingList": return "Advising";
-            case "specificStudents": return "Private";
-            case "course": return "Course";
-            case "level": return "Level";
-            default: return target;
-        }
-    };
-
-    const getTypeBadgeStyle = (type) => {
-        const base = {
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "4px",
-            padding: "4px 8px",
-            borderRadius: "6px",
-            fontSize: "10px",
-            fontWeight: "bold",
-            textTransform: "uppercase",
-            marginLeft: "8px"
         };
-        switch (type) {
-            case "urgent": return { ...base, backgroundColor: "#fee2e2", color: "#dc2626" };
-            case "deadline": return { ...base, backgroundColor: "#fef3c7", color: "#d97706" };
-            case "warning": return { ...base, backgroundColor: "#ffedd5", color: "#ea580c" };
-            case "event": return { ...base, backgroundColor: "#f3e8ff", color: "#9333ea" };
-            default: return { ...base, backgroundColor: "#e0f2fe", color: "#0284c7" };
-        }
-    };
 
-    const getTypeIcon = (type) => {
-        switch (type) {
-            case "urgent": return <AlertCircle size={12} />;
-            case "deadline": return <Clock size={12} />;
-            case "warning": return <AlertTriangle size={12} />;
-            case "event": return <Calendar size={12} />;
-            default: return <Info size={12} />;
-        }
-    };
-
-    const getStaffRole = (ann) => {
-        if (ann.target === "course") return "Course Instructor";
-        if (ann.target === "advisingList") return "Academic Advisor";
-        return "Department Admin";
-    };
-
-    const handleTabChange = async (tabType) => {
-        setActiveTab(tabType);
-        setLoading(true);
-        try {
-            if (tabType === "all") {
-                setFilteredAnnouncements(announcements);
-                setLoading(false);
-                return;
+        const fetchStudents = async () => {
+            try {
+                const res = await api.get("/transcripts");
+                const data = res.data?.data || res.data || [];
+                setStudents(data);
+            } catch (err) {
+                console.error("Error fetching students for insights:", err);
             }
-
-            let filtered;
-            if (tabType === "advisingList") {
-                const res = await api.get("/student/me/advising-list-announcements");
-                setFilteredAnnouncements(res.data);
-                setLoading(false);
-                return;
-            } else if (tabType === "specificStudents") {
-                filtered = announcements.filter(a => a.target === "specificStudents");
-            } else if (tabType === "all-public") {
-                filtered = announcements.filter(a => a.target === "all");
-            } else if (tabType === "academic") {
-                filtered = announcements.filter(a => a.target === "course" || a.target === "level");
+        };
+        const fetchCourses = async () => {
+            try {
+                const res = await api.get("/courses");
+                setCourses(res.data || []);
+            } catch (err) {
+                console.error("Error fetching courses for insights:", err);
             }
+        };
+        const fetchStaff = async () => {
+            try {
+                const res = await api.get("/staff");
+                setStaff(res.data || []);
+            } catch (err) {
+                console.error("Error fetching staff for insights:", err);
+            }
+        };
 
-            setFilteredAnnouncements(filtered || []);
-        } catch (err) {
-            console.error("Filter error:", err);
-            setFilteredAnnouncements([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-    const filterOptions = [
-        { id: "all", label: "All Announcements" },
-        { id: "all-public", label: "Public Announcements" },
-        { id: "advisingList", label: "Advising List" },
-        { id: "specificStudents", label: "Private (Specific)" },
-        { id: "academic", label: "Academic (Course/Level)" }
-    ];
+        // تجهيز بيانات جراف توزيع الطلاب حسب المستوى
+        const studentLevelData = useMemo(() => {
+            return VALID_LEVELS.map(level => ({
+                name: level.charAt(0).toUpperCase() + level.slice(1),
+                value: students.filter(s => s.level === level).length
+            })).filter(item => item.value > 0);
+        }, [students]);
+
+        // تجهيز بيانات جراف توزيع الـ GPA
+        const gpaDistributionData = useMemo(() => {
+            const ranges = [
+                { range: '0-1', count: 0 },
+                { range: '1-2', count: 0 },
+                { range: '2-3', count: 0 },
+                { range: '3-3.5', count: 0 },
+                { range: '3.5-4', count: 0 }
+            ];
+            students.forEach(s => {
+                const g = s.GPA || 0;
+                if (g < 1) ranges[0].count++;
+                else if (g < 2) ranges[1].count++;
+                else if (g < 3) ranges[2].count++;
+                else if (g < 3.5) ranges[3].count++;
+                else ranges[4].count++;
+            });
+            return ranges;
+        }, [students]);
 
 
-    if (loading) return (
-        <div
-            className="management-container"
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '80vh',
-                flexDirection: 'column',
-                gap: '14px'
-            }}
-        >
-            <Loader2
-                size={42}
+        const courseTypeData = useMemo(() => {
+            return VALID_TYPES.map(type => ({
+                subject: type.length > 15 ? type.substring(0, 12) + '...' : type,
+                A: courses.filter(c => c.courseType === type).length,
+                fullMark: Math.max(...VALID_TYPES.map(t => courses.filter(c => c.courseType === t).length)) + 1
+            }));
+        }, [courses]);
+
+        // تجهيز بيانات الموظفين
+        const staffRoleData = useMemo(() => {
+            const roles = ['admin', 'coordinator', 'academic-advisor', 'lecturer', 'ta'];
+            return roles.map(r => ({
+                role: r.replace('-', ' '),
+                count: staff.filter(s => s.roles.includes(r)).length
+            }));
+        }, [staff]);
+
+        const averageGPA = (students.reduce((sum, s) => sum + (s.GPA || 0), 0) / (students.length || 1)).toFixed(2);
+
+        const fetchUserData = async () => {
+            try {
+                const response = await api.get("/staff/me");
+                setprofileData(response.data);
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+            }
+        };
+
+        const fetchAllSemesters = async () => {
+            try {
+                const res = await api.get("/semesters");
+                const sortedSemesters = [...res.data].sort((a, b) => {
+                    if (a.isCurrent) return -1;
+                    if (b.isCurrent) return 1;
+                    return new Date(b.startDate) - new Date(a.startDate);
+                });
+                setSemesters(sortedSemesters);
+                const current = res.data.find(s => s.isCurrent);
+                if (current) {
+                    const detailRes = await api.get(`/semesters/${current._id}`);
+                    setCurrentSemester(detailRes.data);
+                } else {
+                    setCurrentSemester(null);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        const getTimelineProgress = (start, end) => {
+            const now = new Date();
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            if (now < startDate) return 0;
+            if (now > endDate) return 100;
+            return ((now - startDate) / (endDate - startDate)) * 100;
+        };
+
+        const formatDate = (dateString) => {
+            if (!dateString) return "N/A";
+            return new Date(dateString).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+            });
+        };
+
+        const loadInsightData = async () => {
+            try {
+                const [advRes, nonAdvRes, allListsRes, unassignedRes] = await Promise.all([
+                    api.get("/advisors/"),
+                    api.get("/advisors/non-advisors"),
+                    api.get("/advisors/advising-lists/all"),
+                    api.get("/advisors/advising-lists/unassigned-students")
+                ]);
+
+                setStats({
+                    totalAdvisors: advRes.data.advisors?.length || 0,
+                    staffAvailable: nonAdvRes.data.nonAdvisors?.length || 0,
+                    emptyLists: (allListsRes.data || []).filter(l => l.studentsCount === 0).length,
+                    unassignedStudents: unassignedRes.data?.length || 0
+                });
+            } catch (error) {
+                console.error("Error fetching insights:", error);
+            }
+        };
+
+        const renderInsightCard = ({ icon: Icon, label, value, footer, colorClass, select, onClick, className = "" }) => (
+            <div className={`insight-card-v2 ${colorClass} ${onClick ? 'clickable' : ''} ${className}`} onClick={onClick}>
+                <div className="card-top">
+                    <div className="icon-box"><Icon size={20} /></div>
+                    <div className="label-area">
+                        {select ? select : <span className="label-text">{label}</span>}
+                    </div>
+                </div>
+                <div className="card-mid">
+                    <span className="value-text">{value}</span>
+                </div>
+                <div className="card-bottom">
+                    <span className="footer-text">{footer}</span>
+                </div>
+            </div>
+        );
+
+        const getStatusClass = (status) => {
+            switch (status) {
+                case "approved": return "sd-status-approved";
+                case "declined": return "sd-status-declined";
+                default: return "sd-status-pending";
+            }
+        };
+
+        const getTagClass = (target) => {
+            switch (target) {
+                case "advisingList": return "sd-tag-academic";
+                case "all": return "sd-tag-public";
+                case "specificStudents": return "sd-tag-dept";
+                case "course":
+                case "level": return "sd-tag-academic";
+                default: return "sd-tag-public";
+            }
+        };
+
+        const getTargetLabel = (target) => {
+            switch (target) {
+                case "all": return "Public";
+                case "advisingList": return "Advising";
+                case "specificStudents": return "Private";
+                case "course": return "Course";
+                case "level": return "Level";
+                default: return target;
+            }
+        };
+
+        const getTypeBadgeStyle = (type) => {
+            const base = {
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                padding: "4px 8px",
+                borderRadius: "6px",
+                fontSize: "10px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                marginLeft: "8px"
+            };
+            switch (type) {
+                case "urgent": return { ...base, backgroundColor: "#fee2e2", color: "#dc2626" };
+                case "deadline": return { ...base, backgroundColor: "#fef3c7", color: "#d97706" };
+                case "warning": return { ...base, backgroundColor: "#ffedd5", color: "#ea580c" };
+                case "event": return { ...base, backgroundColor: "#f3e8ff", color: "#9333ea" };
+                default: return { ...base, backgroundColor: "#e0f2fe", color: "#0284c7" };
+            }
+        };
+
+        const getTypeIcon = (type) => {
+            switch (type) {
+                case "urgent": return <AlertCircle size={12} />;
+                case "deadline": return <Clock size={12} />;
+                case "warning": return <AlertTriangle size={12} />;
+                case "event": return <Calendar size={12} />;
+                default: return <Info size={12} />;
+            }
+        };
+
+        const getStaffRole = (ann) => {
+            if (ann.target === "course") return "Course Instructor";
+            if (ann.target === "advisingList") return "Academic Advisor";
+            return "Department Admin";
+        };
+
+        const handleTabChange = async (tabType) => {
+            setActiveTab(tabType);
+            setLoading(true);
+            try {
+                if (tabType === "all") {
+                    setFilteredAnnouncements(announcements);
+                    setLoading(false);
+                    return;
+                }
+
+                let filtered;
+                if (tabType === "advisingList") {
+                    const res = await api.get("/student/me/advising-list-announcements");
+                    setFilteredAnnouncements(res.data);
+                    setLoading(false);
+                    return;
+                } else if (tabType === "specificStudents") {
+                    filtered = announcements.filter(a => a.target === "specificStudents");
+                } else if (tabType === "all-public") {
+                    filtered = announcements.filter(a => a.target === "all");
+                } else if (tabType === "academic") {
+                    filtered = announcements.filter(a => a.target === "course" || a.target === "level");
+                }
+
+                setFilteredAnnouncements(filtered || []);
+            } catch (err) {
+                console.error("Filter error:", err);
+                setFilteredAnnouncements([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        const filterOptions = [
+            { id: "all", label: "All Announcements" },
+            { id: "all-public", label: "Public Announcements" },
+            { id: "advisingList", label: "Advising List" },
+            { id: "specificStudents", label: "Private (Specific)" },
+            { id: "academic", label: "Academic (Course/Level)" }
+        ];
+
+
+        if (loading) return (
+            <div
+                className="management-container"
                 style={{
-                    animation: 'spin 1s linear infinite',
-                    color: '#2563eb'
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '80vh',
+                    flexDirection: 'column',
+                    gap: '14px'
                 }}
-            />
-            <h3>Loading Your Dashboard...</h3>
-        </div>
-    );
-
-    return (
-        <div className="management-container">
-            <header className="sd-main-header">
-                <div className="prereg-header">
-                    <h2 >Welcome back, {profileData?.staffName}!</h2>
-                    <p className="sd-subtitle">
-                        <span className="badge dept" style={{ marginLeft: '5px' }}> {currentSemester?.name || "Loading..."}</span>
-                    </p>
-                </div>
-            </header>
-            {/* --- SEMESTER TIMELINE --- */}
-            {currentSemester && (
-                <div className="st-container">
-                    <div className="st-glass-card-main">
-                        <div className="st-header">
-                            <div className="st-title-wrapper">
-
-                                <h3 className="sd-section-heading">Semester Timeline: {currentSemester.name || currentSemester._id}</h3>
-                            </div>
-                        </div>
-                        <div className="st-milestones-grid">
-                            {Object.entries(currentSemester.timeLine || {}).map(([key, dates]) => {
-                                const progress = getTimelineProgress(dates.start, dates.end);
-                                const isActive = progress > 0 && progress < 100;
-                                const isDone = progress === 100;
-                                const daysLeft = Math.ceil((new Date(dates.end) - new Date()) / (1000 * 60 * 60 * 24));
-                                return (
-                                    <div key={key} className={`st-liquid-card ${isActive ? 'is-active' : ''} ${isDone ? 'is-done' : ''}`}>
-                                        <div className="st-liquid-fill" style={{ height: `${progress}%` }} />
-                                        <div className="st-card-content">
-                                            <div className="st-card-header">
-                                                <span className="st-label">{key.replace(/([A-Z])/g, ' $1')}</span>
-                                                {isDone ? <CheckCircle2 size={16} className="st-status-done" /> : isActive ? <div className="st-pulse-indicator" /> : null}
-                                            </div>
-                                            <div className="st-date-text">{formatDate(dates.start)} — {formatDate(dates.end)}</div>
-                                            {isActive && daysLeft > 0 && (
-                                                <div className="st-timer-badge">
-                                                    <Clock size={12} /> <span>{daysLeft}d left</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* --- SECTION 1: STUDENT VISUALIZATIONS --- */}
-            <h3 className="section-divider-title"> Student Analytics</h3>
-            <div className="charts-main-grid">
-                {/* Pie Chart for Levels */}
-                <div className="chart-container-card">
-                    <h4>Student Distribution (Levels)</h4>
-                    <div className="chart-wrapper">
-                        <ResponsiveContainer width="100%" height={250}>
-                            <PieChart>
-                                <Pie
-                                    data={studentLevelData}
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                >
-                                    {studentLevelData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                <Legend verticalAlign="bottom" height={36} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                {/* Bar Chart for GPA */}
-                <div className="chart-container-card">
-                    <h4>GPA Performance Range</h4>
-                    <div className="chart-wrapper">
-                        <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={gpaDistributionData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="range" />
-                                <YAxis />
-                                <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
-                                <Bar dataKey="count" fill="#8884d8" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+            >
+                <Loader2
+                    size={42}
+                    style={{
+                        animation: 'spin 1s linear infinite',
+                        color: '#2563eb'
+                    }}
+                />
+                <h3>Loading Your Dashboard...</h3>
             </div>
+        );
 
-            <div className="insights-grid-v2">
-                {renderInsightCard({
-                    icon: AlertTriangle,
-                    label: "At Risk Students",
-                    value: students.filter(s => s.atRisk).length,
-                    footer: "Requires urgent follow-up",
-                    colorClass: "orange-grad"
-                })}
-                {renderInsightCard({
-                    icon: Star,
-                    label: "Average System GPA",
-                    value: averageGPA,
-                    footer: "Overall student performance",
-                    colorClass: "purple-grad"
-                })}
-                {renderInsightCard({
-                    icon: AlertCircle,
-                    label: "Unassigned Students",
-                    value: stats.unassignedStudents,
-                    footer: "Click to manage",
-                    colorClass: "orange-grad",
-                    onClick: () => navigate(`/staff/${role}/advising/unassigned`)
-                })}
-            </div>
-
-            {/* --- SECTION 2: ACADEMIC & FACULTY --- */}
-            <h3 className="section-divider-title"> Academic Structure</h3>
-            <div className="charts-main-grid">
-                {/* Radar Chart for Courses */}
-                <div className="chart-container-card">
-                    <h4>Course Type Concentration</h4>
-                    <div className="chart-wrapper">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={courseTypeData}>
-                                <PolarGrid />
-                                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
-                                <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
-                                <Radar name="Courses" dataKey="A" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.5} />
-                                <Tooltip />
-                            </RadarChart>
-                        </ResponsiveContainer>
+        return (
+            <div className="management-container">
+                <header className="sd-main-header">
+                    <div className="prereg-header">
+                        <h2 >Welcome back, {profileData?.staffName}!</h2>
+                        <p className="sd-subtitle">
+                            <span className="badge dept" style={{ marginLeft: '5px' }}> {currentSemester?.name || "Loading..."}</span>
+                        </p>
                     </div>
-                </div>
+                </header>
+                {/* --- SEMESTER TIMELINE --- */}
+                {currentSemester && (
+                    <div className="st-container">
+                        <div className="st-glass-card-main">
+                            <div className="st-header">
+                                <div className="st-title-wrapper">
 
-                {/* Staff Distribution */}
-                <div className="chart-container-card">
-                    <h4>Staff Roles Breakdown</h4>
-                    <div className="chart-wrapper">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart layout="vertical" data={staffRoleData}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                <XAxis type="number" />
-                                <YAxis dataKey="role" type="category" width={100} />
-                                <Tooltip />
-                                <Bar dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-            </div>
-
-            <div className="insights-grid-v2">
-                {renderInsightCard({
-                    icon: UserCheck,
-                    label: "Workload Alert",
-                    value: staff.filter(s => s.roles.length > 1).length,
-                    footer: "Staff with multiple roles",
-                    colorClass: "rose-grad"
-                })}
-                {renderInsightCard({
-                    icon: BookCheck,
-                    label: "Total Courses",
-                    value: courses.length,
-                    footer: "Across all levels",
-                    colorClass: "cyan-grad"
-                })}
-                {renderInsightCard({
-                    icon: ListPlus,
-                    label: "Empty Lists",
-                    value: stats.emptyLists,
-                    footer: "No students assigned",
-                    colorClass: "rose-grad"
-                })}
-            </div>
-
-            <div className="sd-content-layout">
-                <main className="sd-announcements-area">
-                    <div className="sd-glass-card sd-announcements-card">
-                        <div className="sd-section-header-flex">
-                            <div className="sd-section-title-box">
-                                <h3 className="sd-section-heading">Recent Announcements</h3>
-                            </div>
-
-                            <div className="sd-filter-dropdown-container">
-                                <div className="sd-select-wrapper">
-                                    <select
-                                        className="sd-custom-select"
-                                        value={activeTab}
-                                        onChange={(e) => handleTabChange(e.target.value)}
-                                    >
-                                        {filterOptions.map((opt) => (
-                                            <option key={opt.id} value={opt.id}>{opt.label}</option>
-                                        ))}
-                                    </select>
-                                    <Filter className="sd-filter-icon" size={16} />
+                                    <h3 className="sd-section-heading">Semester Timeline: {currentSemester.name || currentSemester._id}</h3>
                                 </div>
                             </div>
-                        </div>
-
-                        {loading ? (
-                            <div className="sd-loading-state">
-                                <div className="sd-custom-spinner"></div>
-                                <p>Updating feed...</p>
-                            </div>
-                        ) : !filteredAnnouncements || filteredAnnouncements.length === 0 ? (
-                            <div className="sd-empty-state">
-                                <p>No announcements found in this category.</p>
-                            </div>
-                        ) : (
-                            <div className="sd-cards-stack-coo">
-                                {filteredAnnouncements.map((ann) => {
-                                    // للتأكد من وصول البيانات بشكل صحيح في الكونسول
-                                    console.log("Rendering announcement:", ann);
-
+                            <div className="st-milestones-grid">
+                                {Object.entries(currentSemester.timeLine || {}).map(([key, dates]) => {
+                                    const progress = getTimelineProgress(dates.start, dates.end);
+                                    const isActive = progress > 0 && progress < 100;
+                                    const isDone = progress === 100;
+                                    const daysLeft = Math.ceil((new Date(dates.end) - new Date()) / (1000 * 60 * 60 * 24));
                                     return (
-                                        <div key={ann._id || Math.random()} className={`sd-ann-item ${ann.isPinned ? 'sd-pinned' : ''}`}>
-                                            <div className="sd-ann-header-flex">
-                                                <div className="sd-header-badges">
-                                                    <span className={`sd-pill-tag ${getTagClass?.(ann.target)}`} style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', backgroundColor: '#e0e7ff', color: '#4338ca' }}>
-                                                        {getTargetLabel ? getTargetLabel(ann.target) : ann.target}
-                                                    </span>
-                                                    <span style={getTypeBadgeStyle ? getTypeBadgeStyle(ann.type) : {}}>
-                                                        {getTypeIcon?.(ann.type)}
-                                                        {ann.type}
-                                                    </span>
+                                        <div key={key} className={`st-liquid-card ${isActive ? 'is-active' : ''} ${isDone ? 'is-done' : ''}`}>
+                                            <div className="st-liquid-fill" style={{ height: `${progress}%` }} />
+                                            <div className="st-card-content">
+                                                <div className="st-card-header">
+                                                    <span className="st-label">{key.replace(/([A-Z])/g, ' $1')}</span>
+                                                    {isDone ? <CheckCircle2 size={16} className="st-status-done" /> : isActive ? <div className="st-pulse-indicator" /> : null}
                                                 </div>
-                                                <span className="sd-semester-text">
-                                                    {/* حل مشكلة إذا كان السيمستر Object أو String مباشرة كما في الصورة */}
-                                                    {typeof ann.semesterId === 'object' ? ann.semesterId?.name : ann.semesterId}
-                                                </span>
-                                            </div>
-
-                                            {ann.courseId && (
-                                                <div className="sd-course-context">
-                                                    <BookOpen size={14} />
-                                                    <span>{ann.courseId?.courseId?.courseName || ann.courseId?.courseName || "Course Update"}</span>
-                                                </div>
-                                            )}
-
-                                            <h3 className="sd-ann-title">
-                                                {ann.title || "Untitled Announcement"}
-                                            </h3>
-                                            <p className="sd-ann-content">
-                                                {ann.content}
-                                            </p>
-
-                                            <div className="sd-ann-footer-flex">
-                                                <div className="sd-footer-dates">
-                                                    <div className="sd-meta-item">
-                                                        <CalendarPlus size={14} style={{ color: '#3b82f6' }} />
-                                                        <span>Published: {formatDate ? formatDate(ann.createdAt) : ann.createdAt}</span>
+                                                <div className="st-date-text">{formatDate(dates.start)} — {formatDate(dates.end)}</div>
+                                                {isActive && daysLeft > 0 && (
+                                                    <div className="st-timer-badge">
+                                                        <Clock size={12} /> <span>{daysLeft}d left</span>
                                                     </div>
-
-                                                    {ann.expiresAt && (
-                                                        <div className="sd-meta-item">
-                                                            <Clock size={14} style={{ color: '#f59e0b' }} />
-                                                            <span>Expires: {formatDate ? formatDate(ann.expiresAt) : ann.expiresAt}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <div className="sd-footer-author">
-                                                    <div className="sd-author-info">
-                                                        {/* التأكد من عرض اسم الموظف بشكل صحيح */}
-                                                        <p className="sd-author-name">
-                                                            {ann.staffId?.staffName || (typeof ann.staffId === 'string' ? ann.staffId : "Admin")}
-                                                        </p>
-                                                        <p className="sd-author-role">{getStaffRole ? getStaffRole(ann) : 'Staff'}</p>
-                                                    </div>
-                                                    <div className="sd-author-avatar">
-                                                        <User size={18} />
-                                                    </div>
-                                                </div>
+                                                )}
                                             </div>
                                         </div>
                                     );
                                 })}
                             </div>
-                        )}
-                    </div>
-                </main>
-
-                <aside className="sd-meetings-sidebar">
-
-
-                    {/* Academic Requests Sidebar Card */}
-                    <div className="sd-glass-card sd-sidebar-card">
-                        <div className="sd-sidebar-header">
-                            <div className="sd-title-inline">
-                                <h3 className="sd-section-heading">Academic Requests</h3>
-                            </div>
                         </div>
-                        <div className="sd-mini-list">
+                    </div>
+                )}
+
+                {/* --- SECTION 1: STUDENT VISUALIZATIONS --- */}
+                <h3 className="section-divider-title"> Student Analytics</h3>
+                <div className="charts-main-grid">
+                    {/* Pie Chart for Levels */}
+                    <div className="chart-container-card">
+                        <h4>Student Distribution (Levels)</h4>
+                        <div className="chart-wrapper">
+                            <ResponsiveContainer width="100%" height={250}>
+                                <PieChart>
+                                    <Pie
+                                        data={studentLevelData}
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {studentLevelData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                    <Legend verticalAlign="bottom" height={36} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* Bar Chart for GPA */}
+                    <div className="chart-container-card">
+                        <h4>GPA Performance Range</h4>
+                        <div className="chart-wrapper">
+                            <ResponsiveContainer width="100%" height={250}>
+                                <BarChart data={gpaDistributionData}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis dataKey="range" />
+                                    <YAxis />
+                                    <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                                    <Bar dataKey="count" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="insights-grid-v2">
+                    {renderInsightCard({
+                        icon: AlertTriangle,
+                        label: "At Risk Students",
+                        value: students.filter(s => s.atRisk).length,
+                        footer: "Requires urgent follow-up",
+                        colorClass: "orange-grad"
+                    })}
+                    {renderInsightCard({
+                        icon: Star,
+                        label: "Average System GPA",
+                        value: averageGPA,
+                        footer: "Overall student performance",
+                        colorClass: "purple-grad"
+                    })}
+                    {renderInsightCard({
+                        icon: AlertCircle,
+                        label: "Unassigned Students",
+                        value: stats.unassignedStudents,
+                        footer: "Click to manage",
+                        colorClass: "orange-grad",
+                        onClick: () => navigate(`/staff/${role}/advising/unassigned`)
+                    })}
+                </div>
+
+                {/* --- SECTION 2: ACADEMIC & FACULTY --- */}
+                <h3 className="section-divider-title"> Academic Structure</h3>
+                <div className="charts-main-grid">
+                    {/* Radar Chart for Courses */}
+                    <div className="chart-container-card">
+                        <h4>Course Type Concentration</h4>
+                        <div className="chart-wrapper">
+                            <ResponsiveContainer width="100%" height={300}>
+                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={courseTypeData}>
+                                    <PolarGrid />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
+                                    <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
+                                    <Radar name="Courses" dataKey="A" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.5} />
+                                    <Tooltip />
+                                </RadarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* Staff Distribution */}
+                    <div className="chart-container-card">
+                        <h4>Staff Roles Breakdown</h4>
+                        <div className="chart-wrapper">
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart layout="vertical" data={staffRoleData}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                    <XAxis type="number" />
+                                    <YAxis dataKey="role" type="category" width={100} />
+                                    <Tooltip />
+                                    <Bar dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="insights-grid-v2">
+                    {renderInsightCard({
+                        icon: UserCheck,
+                        label: "Workload Alert",
+                        value: staff.filter(s => s.roles.length > 1).length,
+                        footer: "Staff with multiple roles",
+                        colorClass: "rose-grad"
+                    })}
+                    {renderInsightCard({
+                        icon: BookCheck,
+                        label: "Total Courses",
+                        value: courses.length,
+                        footer: "Across all levels",
+                        colorClass: "cyan-grad"
+                    })}
+                    {renderInsightCard({
+                        icon: ListPlus,
+                        label: "Empty Lists",
+                        value: stats.emptyLists,
+                        footer: "No students assigned",
+                        colorClass: "rose-grad"
+                    })}
+                </div>
+
+                <div className="sd-content-layout">
+                    <main className="sd-announcements-area">
+                        <div className="sd-glass-card sd-announcements-card">
+                            <div className="sd-section-header-flex">
+                                <div className="sd-section-title-box">
+                                    <h3 className="sd-section-heading">Recent Announcements</h3>
+                                </div>
+
+                                <div className="sd-filter-dropdown-container">
+                                    <div className="sd-select-wrapper">
+                                        <select
+                                            className="sd-custom-select"
+                                            value={activeTab}
+                                            onChange={(e) => handleTabChange(e.target.value)}
+                                        >
+                                            {filterOptions.map((opt) => (
+                                                <option key={opt.id} value={opt.id}>{opt.label}</option>
+                                            ))}
+                                        </select>
+                                        <Filter className="sd-filter-icon" size={16} />
+                                    </div>
+                                </div>
+                            </div>
+
                             {loading ? (
-                                <p className="sd-loading-text">Loading...</p>
-                            ) : academicRequests.length === 0 ? (
-                                <div className="sd-empty-mini">
-                                    <p className="sd-empty-mini-text">No requests found.</p>
+                                <div className="sd-loading-state">
+                                    <div className="sd-custom-spinner"></div>
+                                    <p>Updating feed...</p>
+                                </div>
+                            ) : !filteredAnnouncements || filteredAnnouncements.length === 0 ? (
+                                <div className="sd-empty-state">
+                                    <p>No announcements found in this category.</p>
                                 </div>
                             ) : (
-                                <>
-                                    {academicRequests.slice(0, 3).map(req => (
-                                        <div key={req._id} className="sd-mini-card">
-                                            <div className={`sd-card-accent ${getStatusClass(req.status)}`}></div>
-                                            <div className="sd-mini-info">
-                                                <div className="sd-request-header">
-                                                    <h3 className="sd-author-name">{req.requestType}</h3>
-                                                    <span className={`sd-status-dot ${req.status}`}></span>
+                                <div className="sd-cards-stack-coo">
+                                    {filteredAnnouncements.map((ann) => {
+                                        // للتأكد من وصول البيانات بشكل صحيح في الكونسول
+                                        console.log("Rendering announcement:", ann);
+
+                                        return (
+                                            <div key={ann._id || Math.random()} className={`sd-ann-item ${ann.isPinned ? 'sd-pinned' : ''}`}>
+                                                <div className="sd-ann-header-flex">
+                                                    <div className="sd-header-badges">
+                                                        <span className={`sd-pill-tag ${getTagClass?.(ann.target)}`} style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', backgroundColor: '#e0e7ff', color: '#4338ca' }}>
+                                                            {getTargetLabel ? getTargetLabel(ann.target) : ann.target}
+                                                        </span>
+                                                        <span style={getTypeBadgeStyle ? getTypeBadgeStyle(ann.type) : {}}>
+                                                            {getTypeIcon?.(ann.type)}
+                                                            {ann.type}
+                                                        </span>
+                                                    </div>
+                                                    <span className="sd-semester-text">
+                                                        {/* حل مشكلة إذا كان السيمستر Object أو String مباشرة كما في الصورة */}
+                                                        {typeof ann.semesterId === 'object' ? ann.semesterId?.name : ann.semesterId}
+                                                    </span>
                                                 </div>
-                                                <div className="sd-mini-meta">
-                                                    <p className="sd-author-role" style={{ fontSize: '11px' }}>
-                                                        {req.courseId?.courseName || req.withdrawalReason || "General Request"}
-                                                    </p>
-                                                    <span><Clock size={10} /> {formatDate(req.createdAt)}</span>
+
+                                                {ann.courseId && (
+                                                    <div className="sd-course-context">
+                                                        <BookOpen size={14} />
+                                                        <span>{ann.courseId?.courseId?.courseName || ann.courseId?.courseName || "Course Update"}</span>
+                                                    </div>
+                                                )}
+
+                                                <h3 className="sd-ann-title">
+                                                    {ann.title || "Untitled Announcement"}
+                                                </h3>
+                                                <p className="sd-ann-content">
+                                                    {ann.content}
+                                                </p>
+
+                                                <div className="sd-ann-footer-flex">
+                                                    <div className="sd-footer-dates">
+                                                        <div className="sd-meta-item">
+                                                            <CalendarPlus size={14} style={{ color: '#3b82f6' }} />
+                                                            <span>Published: {formatDate ? formatDate(ann.createdAt) : ann.createdAt}</span>
+                                                        </div>
+
+                                                        {ann.expiresAt && (
+                                                            <div className="sd-meta-item">
+                                                                <Clock size={14} style={{ color: '#f59e0b' }} />
+                                                                <span>Expires: {formatDate ? formatDate(ann.expiresAt) : ann.expiresAt}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="sd-footer-author">
+                                                        <div className="sd-author-info">
+                                                            {/* التأكد من عرض اسم الموظف بشكل صحيح */}
+                                                            <p className="sd-author-name">
+                                                                {ann.staffId?.staffName || (typeof ann.staffId === 'string' ? ann.staffId : "Admin")}
+                                                            </p>
+                                                            <p className="sd-author-role">{getStaffRole ? getStaffRole(ann) : 'Staff'}</p>
+                                                        </div>
+                                                        <div className="sd-author-avatar">
+                                                            <User size={18} />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
-                                    {academicRequests.length > 3 && <div className="sd-list-fade-edge"></div>}
-                                </>
+                                        );
+                                    })}
+                                </div>
                             )}
                         </div>
-                        <button className="sd-full-btn" onClick={() => navigate("/student/requests")}>
-                            Manage Requests {academicRequests.length > 3 && <span className="sd-btn-badge">+{academicRequests.length - 3} more</span>}
-                        </button>
-                    </div>
-                </aside>
-            </div >
+                    </main>
 
-        </div>
-    );
-};
+                    <aside className="sd-meetings-sidebar">
 
-export default CoordinatorDashboard;
+
+                        {/* Academic Requests Sidebar Card */}
+                        <div className="sd-glass-card sd-sidebar-card">
+                            <div className="sd-sidebar-header">
+                                <div className="sd-title-inline">
+                                    <h3 className="sd-section-heading">Academic Requests</h3>
+                                </div>
+                            </div>
+                            <div className="sd-mini-list">
+                                {loading ? (
+                                    <p className="sd-loading-text">Loading...</p>
+                                ) : academicRequests.length === 0 ? (
+                                    <div className="sd-empty-mini">
+                                        <p className="sd-empty-mini-text">No requests found.</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {academicRequests.slice(0, 3).map(req => (
+                                            <div key={req._id} className="sd-mini-card">
+                                                <div className={`sd-card-accent ${getStatusClass(req.status)}`}></div>
+                                                <div className="sd-mini-info">
+                                                    <div className="sd-request-header">
+                                                        <h3 className="sd-author-name">{req.requestType}</h3>
+                                                        <span className={`sd-status-dot ${req.status}`}></span>
+                                                    </div>
+                                                    <div className="sd-mini-meta">
+                                                        <p className="sd-author-role" style={{ fontSize: '11px' }}>
+                                                            {req.courseId?.courseName || req.withdrawalReason || "General Request"}
+                                                        </p>
+                                                        <span><Clock size={10} /> {formatDate(req.createdAt)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {academicRequests.length > 3 && <div className="sd-list-fade-edge"></div>}
+                                    </>
+                                )}
+                            </div>
+                            <button className="sd-full-btn" onClick={() => navigate("/student/requests")}>
+                                Manage Requests {academicRequests.length > 3 && <span className="sd-btn-badge">+{academicRequests.length - 3} more</span>}
+                            </button>
+                        </div>
+                    </aside>
+                </div >
+
+            </div>
+        );
+    };
+
+    export default CoordinatorDashboard;
