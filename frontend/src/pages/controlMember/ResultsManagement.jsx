@@ -21,12 +21,12 @@ const ResultsManagement = () => {
 
     const [isCorrectionMode, setIsCorrectionMode] = useState(false);
 
-  
+
     const [searchTerm, setSearchTerm] = useState("");
     const [levelFilter, setLevelFilter] = useState("all");
     const [regFilter, setRegFilter] = useState("all");
 
-   
+
     const [expandedStudentId, setExpandedStudentId] = useState(null);
 
     useEffect(() => {
@@ -97,7 +97,7 @@ const ResultsManagement = () => {
 
             swalService.success("Success", "Final grades saved successfully!");
             setOriginalGrades(JSON.parse(JSON.stringify(localGrades)));
-            setIsCorrectionMode(false); // أغلق وضع التعديل بعد الحفظ الناجح
+            setIsCorrectionMode(false);
 
         } catch (err) {
             console.error(err);
@@ -217,12 +217,10 @@ const ResultsManagement = () => {
 
                 <div className="split-button-container" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
 
-                    {/* زر التصدير */}
                     <button className="btn-2" onClick={handleExportCSV}>
                         <Download size={18} /> Export CSV
                     </button>
 
-                    {/* زر الحفظ يظهر فقط إذا كان هناك تغييرات وفي وضع مسموح به */}
                     <button
                         className={`btn-1 ${(!hasUnsavedChanges) ? 'btn-disabled' : ''}`}
                         onClick={saveEverything}
@@ -231,7 +229,7 @@ const ResultsManagement = () => {
                         <Save size={18} /> {hasUnsavedChanges ? "Save Changes" : "Up to date"}
                     </button>
 
-                    {/* إذا كانت النتيجة غير معتمدة، يظهر زر الاعتماد */}
+
                     {finalExamGradesStatus !== "approved" ? (
                         <button
                             className="btn-1"
@@ -241,7 +239,7 @@ const ResultsManagement = () => {
                             <Check size={18} /> Approve Final Grades
                         </button>
                     ) : (
-                        /* إذا كانت معتمدة، يظهر زر تفعيل وضع التصحيح/التظلمات */
+
                         <button
                             className="btn-1"
                             onClick={() => setIsCorrectionMode(!isCorrectionMode)}
@@ -341,7 +339,6 @@ const ResultsManagement = () => {
                             const isExpanded = expandedStudentId === s.studentId._id;
                             const originalStudent = originalGrades.find(og => og.studentId._id === s.studentId._id);
 
-                            // الحقل يكون معطلاً إذا كانت الحالة معتمدة ولم يتم تفعيل وضع التصحيح
                             const isInputDisabled = finalExamGradesStatus === "approved" && !isCorrectionMode;
 
                             return (
@@ -350,7 +347,8 @@ const ResultsManagement = () => {
                                         backgroundColor: isExpanded ? '#f8fafc' : 'inherit',
                                         borderLeft: isExpanded ? '4px solid #3b82f6' : 'none'
                                     }}>
-                                        <td onClick={() => setExpandedStudentId(isExpanded ? null : s.studentId._id)} style={{ cursor: 'pointer' }}>
+                                        {/* <td onClick={() => setExpandedStudentId(isExpanded ? null : s.studentId._id)} style={{ cursor: 'pointer' }}> */}
+                                        <td >
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                 <div>
                                                     <div style={{ fontWeight: '600', color: 'var(--primary-blue-color)' }}>{s.studentId.studentName}</div>
@@ -396,36 +394,38 @@ const ResultsManagement = () => {
                                         </td>
                                     </tr>
 
-                                    {isExpanded && (
-                                        <tr>
-                                            <td colSpan="7" style={{ padding: '0' }}>
-                                                <div style={{ background: '#f8fafc', padding: '15px 50px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <div style={{ display: 'flex', gap: '30px' }}>
-                                                        <div>
-                                                            <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>GPA Score</p>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                <Award size={16} color="#f59e0b" />
-                                                                <span style={{ fontWeight: 'bold', color: 'var(--primary-blue-color)' }}>{s.studentId.transcript?.GPA || 'N/A'}</span>
+                                    {
+                                        isExpanded && (
+                                            <tr>
+                                                <td colSpan="7" style={{ padding: '0' }}>
+                                                    <div style={{ background: '#f8fafc', padding: '15px 50px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <div style={{ display: 'flex', gap: '30px' }}>
+                                                            <div>
+                                                                <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>GPA Score</p>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <Award size={16} color="#f59e0b" />
+                                                                    <span style={{ fontWeight: 'bold', color: 'var(--primary-blue-color)' }}>{s.studentId.transcript?.GPA || 'N/A'}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Academic Level</p>
+                                                                <span className="type-badge" style={{ background: '#dcfce7', color: '#166534', fontSize: '11px' }}>
+                                                                    {s.studentId.transcript?.level || 'Unknown'}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Regulation</p>
+                                                                <span style={{ fontWeight: '500', color: 'var(--primary-blue-color)' }}>{s.studentId.transcript?.regulation || 'Standard'}</span>
                                                             </div>
                                                         </div>
-                                                        <div>
-                                                            <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Academic Level</p>
-                                                            <span className="type-badge" style={{ background: '#dcfce7', color: '#166534', fontSize: '11px' }}>
-                                                                {s.studentId.transcript?.level || 'Unknown'}
-                                                            </span>
-                                                        </div>
-                                                        <div>
-                                                            <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Regulation</p>
-                                                            <span style={{ fontWeight: '500', color: 'var(--primary-blue-color)' }}>{s.studentId.transcript?.regulation || 'Standard'}</span>
-                                                        </div>
+                                                        <button onClick={() => setExpandedStudentId(null)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px' }}>
+                                                            <X size={14} color="#64748b" />
+                                                        </button>
                                                     </div>
-                                                    <button onClick={() => setExpandedStudentId(null)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px' }}>
-                                                        <X size={14} color="#64748b" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
+                                                </td>
+                                            </tr>
+                                        )
+                                    }
                                 </React.Fragment>
                             );
                         })}
@@ -433,16 +433,18 @@ const ResultsManagement = () => {
                 </table>
             </div>
 
-            {hasUnsavedChanges && (
-                <div className="unsaved-alert" style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', background: 'var(--primary-blue-color)', color: 'white', padding: '12px 24px', borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '15px', zIndex: 1000, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
-                    <AlertCircle size={20} color="#f59e0b" />
-                    <span style={{ fontSize: '13px' }}>
-                        You have unsaved Final Grades {isCorrectionMode ? "(Correction Mode active)" : ""}
-                    </span>
-                    <button onClick={saveEverything} style={{ background: '#3b82f6', border: 'none', color: 'white', padding: '6px 18px', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer' }}>Save Now</button>
-                </div>
-            )}
-        </div>
+            {
+                hasUnsavedChanges && (
+                    <div className="unsaved-alert" style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', background: 'var(--primary-blue-color)', color: 'white', padding: '12px 24px', borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '15px', zIndex: 1000, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+                        <AlertCircle size={20} color="#f59e0b" />
+                        <span style={{ fontSize: '13px' }}>
+                            You have unsaved Final Grades {isCorrectionMode ? "(Correction Mode active)" : ""}
+                        </span>
+                        <button onClick={saveEverything} style={{ background: '#3b82f6', border: 'none', color: 'white', padding: '6px 18px', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer' }}>Save Now</button>
+                    </div>
+                )
+            }
+        </div >
     );
 };
 
