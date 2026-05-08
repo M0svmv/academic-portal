@@ -189,24 +189,16 @@ const CoordinatorDashboard = () => {
 
     const fetchAllSemesters = async () => {
         try {
-            const res = await api.get("/semesters");
-            const sortedSemesters = [...res.data].sort((a, b) => {
-                if (a.isCurrent) return -1;
-                if (b.isCurrent) return 1;
-                return new Date(b.startDate) - new Date(a.startDate);
-            });
-            setSemesters(sortedSemesters);
-            const current = res.data.find(s => s.isCurrent);
-            if (current) {
-                const detailRes = await api.get(`/semesters/${current._id}`);
-                setCurrentSemester(detailRes.data);
-            } else {
-                setCurrentSemester(null);
-            }
+            const res = await api.get("/semesters/current");
+
+
+            setCurrentSemester(res.data);
+
         } catch (err) {
             console.error(err);
         }
     };
+
 
     const getTimelineProgress = (start, end) => {
         const now = new Date();

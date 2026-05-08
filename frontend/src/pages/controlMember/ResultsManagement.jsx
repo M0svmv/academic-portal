@@ -19,15 +19,14 @@ const ResultsManagement = () => {
     const [loading, setLoading] = useState(true);
     const [finalExamGradesStatus, setFinalExamGradesStatus] = useState("");
 
-    // وضع التعديل الخاص بالتظلمات (يُفعل يدوياً لو النتيجة معتمدة)
     const [isCorrectionMode, setIsCorrectionMode] = useState(false);
 
-    // States للبحث والفلاتر
+  
     const [searchTerm, setSearchTerm] = useState("");
     const [levelFilter, setLevelFilter] = useState("all");
     const [regFilter, setRegFilter] = useState("all");
 
-    // State للتحكم في الصف المفتوح (التفاصيل)
+   
     const [expandedStudentId, setExpandedStudentId] = useState(null);
 
     useEffect(() => {
@@ -88,7 +87,7 @@ const ResultsManagement = () => {
                     }))
                 };
 
-                // اختيار الإندبوينت بناءً على حالة الاعتماد
+
                 const endpoint = finalExamGradesStatus === "approved"
                     ? `/control/courses/${id}/update-grades`
                     : `/control/courses/${id}/assign-final-grades`;

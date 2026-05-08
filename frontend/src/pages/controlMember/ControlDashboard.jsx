@@ -9,7 +9,9 @@ import {
     GraduationCap,
     Users,
     Loader2,
-    CheckCircle2
+    CheckCircle2,
+    ShieldCheck,
+    ShieldAlert
 } from "lucide-react";
 
 import {
@@ -33,6 +35,8 @@ const ControlDashboard = () => {
     const [filteredAnnouncements, setFilteredAnnouncements] = useState([]);
     const [activeTab, setActiveTab] = useState("all");
     const [statsCourseFilter, setStatsCourseFilter] = useState("all");
+    // الحالة الجديدة للأبروفال
+    const [finalExamGradesStatus, setFinalExamGradesStatus] = useState("");
 
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
@@ -116,9 +120,15 @@ const ControlDashboard = () => {
         try {
             const detailsRes = await api.get(`/control/courses/${courseId}/students`);
             setStudentsData(Array.isArray(detailsRes.data.semesterWorks) ? detailsRes.data.semesterWorks : []);
+
+            // تحديث حالة الأبروفال بناءً على بيانات الكورس المختار
+            if (detailsRes.data.course) {
+                setFinalExamGradesStatus(detailsRes.data.course.finalExamGradesStatus || "pending");
+            }
         } catch (err) {
             console.error("Error fetching students for graph:", err);
             setStudentsData([]);
+            setFinalExamGradesStatus("");
         }
     };
 
@@ -133,20 +143,8 @@ const ControlDashboard = () => {
 
     const fetchAllSemesters = async () => {
         try {
-            const res = await api.get("/semesters");
-            if (res.data && Array.isArray(res.data)) {
-                const sortedSemesters = [...res.data].sort((a, b) => {
-                    if (a.isCurrent) return -1;
-                    if (b.isCurrent) return 1;
-                    return new Date(b.startDate) - new Date(a.startDate);
-                });
-                setSemesters(sortedSemesters);
-                const current = res.data.find(s => s.isCurrent);
-                if (current) {
-                    const detailRes = await api.get(`/semesters/${current._id}`);
-                    setCurrentSemester(detailRes.data);
-                }
-            }
+            const res = await api.get("/semesters/current");
+            setCurrentSemester(res.data);
         } catch (err) {
             console.error(err);
         }
@@ -243,7 +241,33 @@ const ControlDashboard = () => {
             )}
 
             <div className="analyze" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px' }}>
-                <h3 className="section-divider-title">Course Analytics</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <h3 className="section-divider-title" style={{ margin: 0 }}>Course Analytics</h3>
+
+                    {/* الإنديكيشن الجديد للاحتمالية Approval */}
+                    {selectedCourseId && (
+                        <div className={`status-indicator-badge ${finalExamGradesStatus === 'approved' ? 'status-approved' : 'status-pending'}`}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '6px 12px',
+                                borderRadius: '20px',
+                                fontSize: '13px',
+                                fontWeight: '500',
+                                backgroundColor: finalExamGradesStatus === 'approved' ? '#ecfdf5' : '#fffbeb',
+                                color: finalExamGradesStatus === 'approved' ? '#059669' : '#d97706',
+                                border: `1px solid ${finalExamGradesStatus === 'approved' ? '#10b981' : '#f59e0b'}`
+                            }}>
+                            {finalExamGradesStatus === 'approved' ? (
+                                <> <ShieldCheck size={16} /> Grades Approved </>
+                            ) : (
+                                <> <ShieldAlert size={16} /> Grades Pending </>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 <div className="sd-filter-dropdown-container" >
                     <div className="sd-select-wrapper" style={{ width: '250px' }}>
                         <select
@@ -257,75 +281,6 @@ const ControlDashboard = () => {
                             {courses.map(c => <option key={c._id} value={c._id}>{c.courseId?.courseName || "Unknown Course"}</option>)}
                         </select>
                         <Filter className="sd-filter-icon" size={16} />
-                    </div>
-                </div>
-            </div>
-
-            <div className="charts-main-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '20px' }}>
-                <div className="chart-container-card">
-                    <h4>Student Levels ({courses.find(c => c._id === selectedCourseId)?.courseId?.courseName || "Select Course"})</h4>
-                    <div className="chart-wrapper" style={{ position: 'relative' }}>
-                        {processedStats.levelDist.length > 0 ? (
-                            <ResponsiveContainer width="100%" height={250}>
-                                <PieChart>
-                                    <Pie data={processedStats.levelDist} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" nameKey="name">
-                                        {processedStats.levelDist.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="sd-empty-state" style={{ height: '250px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <p style={{ fontSize: '12px', color: '#64748b' }}>No students enrolled in this course yet.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="chart-container-card">
-                    <h4>Regulations ({courses.find(c => c._id === selectedCourseId)?.courseId?.courseName || "Select Course"})</h4>
-                    <div className="chart-wrapper">
-                        {processedStats.regDist.length > 0 ? (
-                            <ResponsiveContainer width="100%" height={250}>
-                                <PieChart>
-                                    <Pie data={processedStats.regDist} outerRadius={80} dataKey="value" nameKey="name" label>
-                                        {processedStats.regDist.map((entry, index) => <Cell key={`reg-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />)}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="sd-empty-state" style={{ height: '250px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <p style={{ fontSize: '12px', color: '#64748b' }}>No regulation data available.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="chart-container-card">
-                    <h4>Course Credits Overview</h4>
-                    <div className="chart-wrapper">
-                        {courses.length > 0 ? (
-                            <ResponsiveContainer width="100%" height={250}>
-                                <BarChart data={courses.map(c => ({
-                                    fullName: c.courseId?.courseName || "N/A",
-                                    name: c.courseId?.courseCode || c.courseId?.courseName?.substring(0, 5) || "N/A",
-                                    credits: c.courseId?.courseCredits || 0
-                                }))}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                                    <YAxis />
-                                    <Tooltip formatter={(value, name, props) => [value, props.payload.fullName]} />
-                                    <Bar dataKey="credits" fill="#8884d8" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="sd-empty-state" style={{ height: '250px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <p style={{ fontSize: '12px', color: '#64748b' }}>No courses available.</p>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
@@ -352,7 +307,7 @@ const ControlDashboard = () => {
                     icon: GraduationCap,
                     label: "Graduates Count",
                     value: statsCourseFilter === "all"
-                        ? processedStats.graduatesEnrolledCount
+                        ? (processedStats.graduatesEnrolledCount || 0)
                         : (courses.find(c => c._id === statsCourseFilter)?.graduatesCount || 0),
                     footer: "Grads participation",
                     colorClass: "purple-grad",
