@@ -36,10 +36,8 @@ const AdvisingMeetings = () => {
                 api.get("/academic-advisors/me/meetings/requests")
             ]);
 
-            // دمج البيانات من الـ 2 endpoints لضمان شمولية كل الحالات (Pending, Approved, Declined)
             const combinedData = [...(meetingsRes.data || []), ...(requestsRes.data || [])];
 
-            // إزالة التكرار بناءً على الـ _id
             const uniqueMeetings = Array.from(
                 new Map(combinedData.map(item => [item._id, item])).values()
             );

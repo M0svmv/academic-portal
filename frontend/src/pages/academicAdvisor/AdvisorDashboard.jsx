@@ -7,7 +7,7 @@ import {
     GraduationCap, BookCheck, Activity, Award, TrendingUp, BarChart3, Users, Scale, Star, LayoutGrid, GitBranch, ListPlus,
     CalendarDays, CalendarPlus, Loader2, CheckCircle2, PieChart as PieIcon
 } from "lucide-react";
-// استيراد مكونات Recharts
+
 import {
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
@@ -15,9 +15,9 @@ import {
     AreaChart, Area
 } from 'recharts';
 import api from "../../services/api";
-import "./styles/cooDashbord.css"
+import "../coordinator pages/styles/cooDashbord.css"
 
-const CoordinatorDashboard = () => {
+const AdvisorDashboard = () => {
     const { role } = useParams();
     const navigate = useNavigate();
     const [semesters, setSemesters] = useState([]);
@@ -31,6 +31,7 @@ const CoordinatorDashboard = () => {
     const [insightLevel, setInsightLevel] = useState('all');
     const [insightType, setInsightType] = useState('Core');
     const [staff, setStaff] = useState([]);
+    const [meetings, setMeetings] = useState([]);
     const [roleView, setRoleView] = useState('all');
     const VALID_LEVELS = ["freshman", "sophomore", "junior", "senior-1", "senior-2", "senior"];
     const VALID_TYPES = [
@@ -61,9 +62,6 @@ const CoordinatorDashboard = () => {
                     fetchAllSemesters(),
                     fetchUserData(),
                     fetchStudents(),
-                    fetchCourses(),
-                    fetchStaff(),
-                    loadInsightData(),
                     fetchDashboardData()
                 ]);
             } catch (err) {
@@ -80,13 +78,14 @@ const CoordinatorDashboard = () => {
         try {
             setLoading(true);
 
-            const [annRes, requestsRes] = await Promise.all([
-                api.get("/announcements/"),
-
+            const [annRes, meetingRes, requestsRes] = await Promise.all([
+                api.get("/academic-advisors/me/advising-list/announcements"),
+                api.get("/academic-advisors/me/meetings"),
                 api.get("/academic-requests/all")
             ]);
 
             setAnnouncements(annRes.data);
+            setMeetings(meetingRes.data);
             setFilteredAnnouncements(annRes.data);
             setAcademicRequests(requestsRes.data.Requests || []);
 
@@ -99,27 +98,14 @@ const CoordinatorDashboard = () => {
 
     const fetchStudents = async () => {
         try {
-            const res = await api.get("/transcripts");
-            const data = res.data?.data || res.data || [];
-            setStudents(data);
+            const res = await api.get("/academic-advisors/me/list");
+            console.log("Full API Response:", res.data);
+            // بناءً على الصورة، البيانات موجودة داخل Array بداخلها Objects تحتوي على مصفوفة students
+            // نقوم بعمل flat لاستخراج كل الطلاب في قائمة واحدة لسهولة التعامل
+            const allStudentsRaw = res.data.flatMap(item => item.students.map(s => s.student)) || [];
+            setStudents(allStudentsRaw);
         } catch (err) {
             console.error("Error fetching students for insights:", err);
-        }
-    };
-    const fetchCourses = async () => {
-        try {
-            const res = await api.get("/courses");
-            setCourses(res.data || []);
-        } catch (err) {
-            console.error("Error fetching courses for insights:", err);
-        }
-    };
-    const fetchStaff = async () => {
-        try {
-            const res = await api.get("/staff");
-            setStaff(res.data || []);
-        } catch (err) {
-            console.error("Error fetching staff for insights:", err);
         }
     };
 
@@ -127,15 +113,16 @@ const CoordinatorDashboard = () => {
     const studentLevelData = useMemo(() => {
         return VALID_LEVELS.map(level => ({
             name: level.charAt(0).toUpperCase() + level.slice(1),
-            value: students.filter(s => s.level === level).length
+            value: students.filter(s => s.transcript?.level === level).length
         })).filter(item => item.value > 0);
     }, [students]);
 
+    // جراف توزيع Regulation (New vs Old)
     const regulationData = useMemo(() => {
         const regs = ["New", "last"];
         return regs.map(reg => ({
             name: reg + " Regulation",
-            value: students.filter(s => s.regulation === reg).length
+            value: students.filter(s => s.transcript?.regulation === reg).length
         })).filter(item => item.value > 0);
     }, [students]);
 
@@ -149,7 +136,7 @@ const CoordinatorDashboard = () => {
             { range: '3.5-4', count: 0 }
         ];
         students.forEach(s => {
-            const g = s.GPA || 0;
+            const g = s.transcript?.GPA || 0;
             if (g < 1) ranges[0].count++;
             else if (g < 2) ranges[1].count++;
             else if (g < 3) ranges[2].count++;
@@ -176,7 +163,7 @@ const CoordinatorDashboard = () => {
         }));
     }, [staff]);
 
-    const averageGPA = (students.reduce((sum, s) => sum + (s.GPA || 0), 0) / (students.length || 1)).toFixed(2);
+    const averageGPA = (students.reduce((sum, s) => sum + (s.transcript?.GPA || 0), 0) / (students.length || 1)).toFixed(2);
 
     const fetchUserData = async () => {
         try {
@@ -226,25 +213,6 @@ const CoordinatorDashboard = () => {
         });
     };
 
-    const loadInsightData = async () => {
-        try {
-            const [advRes, nonAdvRes, allListsRes, unassignedRes] = await Promise.all([
-                api.get("/advisors/"),
-                api.get("/advisors/non-advisors"),
-                api.get("/advisors/advising-lists/all"),
-                api.get("/advisors/advising-lists/unassigned-students")
-            ]);
-
-            setStats({
-                totalAdvisors: advRes.data.advisors?.length || 0,
-                staffAvailable: nonAdvRes.data.nonAdvisors?.length || 0,
-                emptyLists: (allListsRes.data || []).filter(l => l.studentsCount === 0).length,
-                unassignedStudents: unassignedRes.data?.length || 0
-            });
-        } catch (error) {
-            console.error("Error fetching insights:", error);
-        }
-    };
 
     const renderInsightCard = ({ icon: Icon, label, value, footer, colorClass, select, onClick, className = "" }) => (
         <div className={`insight-card-v2 ${colorClass} ${onClick ? 'clickable' : ''} ${className}`} onClick={onClick}>
@@ -513,88 +481,29 @@ const CoordinatorDashboard = () => {
 
             <div className="insights-grid-v2">
                 {renderInsightCard({
+                    icon: Users,
+                    label: "Total Students",
+                    value: students.length,
+                    footer: "Assigned in your list",
+                    colorClass: "blue-grad"
+                })}
+                {renderInsightCard({
                     icon: AlertTriangle,
                     label: "At Risk Students",
-                    value: students.filter(s => s.atRisk).length,
+                    value: students.filter(s => s.transcript?.atRisk).length,
                     footer: "Requires urgent follow-up",
                     colorClass: "orange-grad"
                 })}
                 {renderInsightCard({
                     icon: Star,
-                    label: "Average System GPA",
+                    label: "Average GPA",
                     value: averageGPA,
                     footer: "Overall student performance",
                     colorClass: "purple-grad"
                 })}
-                {renderInsightCard({
-                    icon: AlertCircle,
-                    label: "Unassigned Students",
-                    value: stats.unassignedStudents,
-                    footer: "Click to manage",
-                    colorClass: "orange-grad",
-                    onClick: () => navigate(`/staff/${role}/advising/unassigned`)
-                })}
+
             </div>
 
-            {/* --- SECTION 2: ACADEMIC & FACULTY --- */}
-            <h3 className="section-divider-title"> Academic Structure</h3>
-            <div className="charts-main-grid">
-                {/* Radar Chart for Courses */}
-                <div className="chart-container-card">
-                    <h4>Course Type Concentration</h4>
-                    <div className="chart-wrapper">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={courseTypeData}>
-                                <PolarGrid />
-                                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
-                                <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
-                                <Radar name="Courses" dataKey="A" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.5} />
-                                <Tooltip />
-                            </RadarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                {/* Staff Distribution */}
-                <div className="chart-container-card">
-                    <h4>Staff Roles Breakdown</h4>
-                    <div className="chart-wrapper">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart layout="vertical" data={staffRoleData}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                <XAxis type="number" />
-                                <YAxis dataKey="role" type="category" width={100} />
-                                <Tooltip />
-                                <Bar dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-            </div>
-
-            <div className="insights-grid-v2">
-                {renderInsightCard({
-                    icon: UserCheck,
-                    label: "Workload Alert",
-                    value: staff.filter(s => s.roles.length > 1).length,
-                    footer: "Staff with multiple roles",
-                    colorClass: "rose-grad"
-                })}
-                {renderInsightCard({
-                    icon: BookCheck,
-                    label: "Total Courses",
-                    value: courses.length,
-                    footer: "Across all levels",
-                    colorClass: "cyan-grad"
-                })}
-                {renderInsightCard({
-                    icon: ListPlus,
-                    label: "Empty Lists",
-                    value: stats.emptyLists,
-                    footer: "No students assigned",
-                    colorClass: "rose-grad"
-                })}
-            </div>
 
             <div className="sd-content-layout">
                 <main className="sd-announcements-area">
@@ -630,8 +539,10 @@ const CoordinatorDashboard = () => {
                                 <p>No announcements found in this category.</p>
                             </div>
                         ) : (
-                            <div className="sd-cards-stack-coo">
+                            <div className="sd-cards-stack">
                                 {filteredAnnouncements.map((ann) => {
+
+
                                     return (
                                         <div key={ann._id || Math.random()} className={`sd-ann-item ${ann.isPinned ? 'sd-pinned' : ''}`}>
                                             <div className="sd-ann-header-flex">
@@ -702,7 +613,51 @@ const CoordinatorDashboard = () => {
 
                 <aside className="sd-meetings-sidebar">
 
+                    {/* My Meetings Sidebar Card */}
+                    <div className="sd-glass-card sd-sidebar-card">
+                        <div className="sd-sidebar-header">
+                            <div className="sd-title-inline">
+                                <Video size={20} color="#0d9488" />
+                                <h3 className="sd-section-heading">My Meetings</h3>
+                            </div>
+                        </div>
 
+                        <div className="sd-mini-list">
+                            {loading ? (
+                                <p className="sd-loading-text">Loading...</p>
+                            ) : meetings.length === 0 ? (
+                                <div className="sd-empty-mini">
+                                    <p className="sd-empty-mini-text">No scheduled meetings.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    {meetings.slice(0, 3).map(meet => (
+                                        <div key={meet._id} className="sd-mini-card">
+                                            <div className={`sd-card-accent ${getStatusClass(meet.meetingStatus)}`}></div>
+                                            <div className="sd-mini-info">
+                                                <h3 className="sd-author-name">Meet with {meet.studentId?.studentName?.length > 20
+                                                    ? `${meet.studentId.studentName.substring(0, 12)}...`
+                                                    : meet.studentId?.studentName}</h3>
+                                                <div className="sd-mini-meta">
+                                                    <span><Calendar size={10} /> {new Date(meet.meetingDate).toLocaleDateString()}</span>
+                                                    <span><Clock size={10} /> {meet.meetingTime}</span>
+                                                </div>
+                                            </div>
+                                            <div className={`sd-mini-status ${getStatusClass(meet.meetingStatus)}`}>
+                                                {meet.meetingStatus}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {/* Fade effect indicator if more than 3 */}
+                                    {meetings.length > 3 && <div className="sd-list-fade-edge"></div>}
+                                </>
+                            )}
+                        </div>
+
+                        <button className="sd-full-btn" onClick={() => navigate("/student/meetings")}>
+                            View All Meetings {meetings.length > 3 && <span className="sd-btn-badge">+{meetings.length - 3} more</span>}
+                        </button>
+                    </div>
                     {/* Academic Requests Sidebar Card */}
                     <div className="sd-glass-card sd-sidebar-card">
                         <div className="sd-sidebar-header">
@@ -751,4 +706,4 @@ const CoordinatorDashboard = () => {
     );
 };
 
-export default CoordinatorDashboard;
+export default AdvisorDashboard;

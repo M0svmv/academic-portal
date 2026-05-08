@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import CoordinatorDashboard from "./coordinator pages/CoordinatorDashboard"
+import AdvisorDashboard from "./academicAdvisor/AdvisorDashboard"
 
 const StaffDashboard = () => {
     const { role } = useParams();
@@ -12,11 +13,11 @@ const StaffDashboard = () => {
             )}
 
             {role === "lecturer" && (
-                <p>Here you can view your courses and manage your class materials.</p>
+                <AdvisorDashboard />
             )}
 
             {role === "academic-advisor" && (
-                <p>Here you can advise students and manage academic plans.</p>
+                <AdvisorDashboard />
             )}
 
             {role === "ta" && (

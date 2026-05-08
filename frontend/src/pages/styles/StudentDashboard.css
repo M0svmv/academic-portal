@@ -145,7 +145,7 @@
 }
 
 /* --- Announcement Items --- */
-.sd-cards-stack { display: flex; flex-direction: column; gap: 1rem; max-height: 800px; overflow-y: auto; }
+.sd-cards-stack { display: flex; flex-direction: column; gap: 1rem; max-height: 700px; overflow-y: auto; }
 
 .sd-ann-item {
     padding: 1.5rem;
