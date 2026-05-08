@@ -22,6 +22,7 @@ const transcriptService = require("../../services/transcript.service");
 const MeetingService = require("../../services/meeting.service");
 const AnnouncementService = require("../../services/announcement.service");
 const ScheduleService = require("../../services/schedule.service");
+const AcademicRequestService = require("../../services/academicRequests.service");
 
 const {getSemesterPreRegValidation} = require("../../utils/enrollment.utils");
 
@@ -247,13 +248,7 @@ exports.getMySchedule = async (req, res) => {
 
 exports.getMyAcademicRequests = async (req, res) => {
   try {
-    const studentId = req.user._id;
-    const currentSemester = await Semester.findOne({ isCurrent: true });
-    const Requests = await AcademicRequest.find({ studentId, semesterId: currentSemester._id })
-      .populate("academicAdvisorId", "staffName")
-      .populate("courseId", "courseName")
-      .populate("addedCourses", "courseName")
-      .populate("droppedCourses", "courseName")
+    const Requests = await AcademicRequestService.getMyAcademicRequests(req.user._id);
       
       
     res.status(200).json({ Requests });
@@ -265,46 +260,11 @@ exports.getMyAcademicRequests = async (req, res) => {
 
 exports.makeWithdrawRequest = async (req, res) => {
   try {
-    const studentId = req.user._id;
-
-    const currentSemester = await Semester.findOne({ isCurrent: true });
-    if (!currentSemester) {
-      return res.status(404).json({ message: "Current semester not found" });
-    }
-
-    const advisorDoc = await AdvisingList.findOne({
-      "students.student": studentId,
-    }).select("advisor -_id");
-
-    if (!advisorDoc) {
-      return res.status(404).json({ message: "Advising list not found" });
-    }
-
-    const {
-      withdrawalReason,
-      writtenReason="",
-      studentSuggestion="",
-      courseId,
-    } = req.body;
-
-    if (!courseId || !withdrawalReason) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    const newRequest = await AcademicRequest.create({
-      studentId,
-      academicAdvisorId: advisorDoc.advisor,
-      semesterId: currentSemester._id,
-      requestType: "Withdrawal",
-      courseId,
-      withdrawalReason,
-      writtenReason,
-      studentSuggestion,
-    });
+    const {message, data} = await AcademicRequestService.makeWithdrawRequest(req.user._id, req.body);
 
     res.status(201).json({
-      message: "Withdrawal request submitted successfully",
-      data: newRequest,
+      message,
+      data
     });
 
   } catch (error) {
@@ -390,6 +350,7 @@ exports.makeImproveGradeRequest = async (req, res) => {
 exports.makeOverloadRequest = async (req, res) => {
   try {
     const studentId = req.user._id;
+    
 
     const currentSemester = await Semester.findOne({ isCurrent: true });
 

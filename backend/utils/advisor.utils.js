@@ -1,6 +1,6 @@
 const AdvisingList = require("../models/AdvisingList");
 
-exports.getAdvisorByStudent = async (studentId) => {
+exports.getStudentAdvisor = async (studentId) => {
   const doc = await AdvisingList.findOne({
     "students.student": studentId,
   }).select("advisor -_id");
