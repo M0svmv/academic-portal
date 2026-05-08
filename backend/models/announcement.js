@@ -85,4 +85,6 @@ const announcementSchema = new mongoose.Schema({
   timestamps: true // ممكن تخليها true لو عايز updatedAt تلقائي
 });
 
-module.exports = mongoose.model('Announcement', announcementSchema);
+module.exports =
+  mongoose.models.Announcement ||
+  mongoose.model("Announcement", announcementSchema);
