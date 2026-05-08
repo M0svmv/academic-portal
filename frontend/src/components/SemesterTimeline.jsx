@@ -5,7 +5,7 @@ import swalService from "../services/swal";
 import "./styles/SemesterTimeline.css";
 
 const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }) => {
-    // حالة المودال (مخفي/ظاهر) والبيانات اللي جواه
+
     const [editModal, setEditModal] = useState({
         show: false,
         type: "",
@@ -24,7 +24,7 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
 
     const calculateProgress = () => {
         const totalPoints = academicEvents.length;
-        const segmentWidth = 100 / (totalPoints - 1); // كل قسم يمثل 25% من الشريط
+        const segmentWidth = 100 / (totalPoints - 1); 
 
         for (let i = 0; i < totalPoints - 1; i++) {
             const currentEventDate = academicEvents[i].date;
@@ -75,13 +75,11 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
     const handleUpdate = async (e) => {
         e.preventDefault();
 
-        // 1. التحقق من المنطق
         if (new Date(editModal.dates.start) > new Date(editModal.dates.end)) {
             return swalService.error("Invalid Dates", "End date cannot be earlier than start date.");
         }
 
         try {
-            // 2. إظهار لودينج
             swalService.showLoading("Updating timeline...");
 
             const payload = {
@@ -92,10 +90,10 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
             await api.put(`/semesters/${semesterId}/${editModal.type}`, payload);
 
             setEditModal({ ...editModal, show: false });
-            // 3. رسالة نجاح سريعة
+
             await swalService.success("Timeline Updated", `The ${editModal.type} period has been updated.`);
 
-            // setEditModal({ ...editModal, show: false });
+
             if (onUpdate) onUpdate();
         } catch (err) {
             console.error("Update Error:", err);
@@ -108,12 +106,12 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
         <div className="timeline-wrapper">
             <h3>Semester Timeline</h3>
             <div className="timeline-container">
-                {/* شريط التقدم الخلفي */}
+
                 <div className="timeline-line">
                     <div className="timeline-progress" style={{ width: `${progressPercentage}%` }}></div>
                 </div>
 
-                {/* توزيع النقط بـ Space Between */}
+
                 <div className="timeline-events">
                     {academicEvents.map((event, i) => {
                         const isReached = today >= event.date;
@@ -122,7 +120,7 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
                         return (
                             <div key={i} className={`timeline-point ${isReached ? "reached" : ""} ${isCurrentActive ? "active" : ""}`}>
 
-                                {/* أيقونة التعديل تظهر فقط للأحداث القابلة للتعديل */}
+
                                 {event.key && (
                                     <button className="edit-timeline-btn" onClick={() => openEdit(event.key, event.dates)}>
                                         <Edit2 size={12} />
@@ -145,7 +143,7 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
                 </div>
             </div>
 
-            {/* مودال التعديل الداخلي */}
+
             {editModal.show && (
                 <div className="modal-overlay" style={{ zIndex: 2000 }}>
                     <div className="modal-container" style={{ width: '400px' }}>

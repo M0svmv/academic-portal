@@ -11,9 +11,8 @@ const Profile = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    // البيانات الأصلية من السيرفر (للمقارنة)
     const [originalData, setOriginalData] = useState({});
-    // البيانات الحالية في الفورم
+
     const [formData, setFormData] = useState({});
 
     const [isEditMode, setIsEditMode] = useState(false);
@@ -44,14 +43,13 @@ const Profile = () => {
         fetchUserData();
     }, [endpoint]);
 
-    // التحقق هل اليوزر غير حاجة فعلاً؟
+
     const isDirty = JSON.stringify(formData) !== JSON.stringify(originalData);
 
     const handleUpdateInfo = async (e) => {
         e.preventDefault();
         if (!isDirty) return;
 
-        // حركة حلوة: نأكد عليه قبل ما يحفظ التغييرات
         const confirmSave = await swalService.confirm(
             "Save Changes?",
             "Are you sure you want to update your profile information?",
@@ -67,9 +65,7 @@ const Profile = () => {
             setFormData(updatedData);
             setOriginalData(updatedData);
 
-            // تحديث الكوكي... (نفس الكود بتاعك)
 
-            // استخدام السيرفس بتاعتك للنجاح
             swalService.success("Updated!", "Your profile has been updated successfully.");
             setIsEditMode(false);
         } catch (error) {
@@ -109,7 +105,7 @@ const Profile = () => {
         }
 
         setSaving(true);
-        swalService.showLoading("Securing your account..."); // اللودينج بتاعك
+        swalService.showLoading("Securing your account..."); 
 
         try {
             await api.put(`${endpoint}`, {

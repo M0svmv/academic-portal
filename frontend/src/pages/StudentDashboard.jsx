@@ -31,6 +31,7 @@ const StudentDashboard = () => {
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
+
             const [annRes, meetingRes, profileRes, scheduleRes, detailsRes, requestsRes] = await Promise.all([
                 api.get("/student/me/announcements"),
                 api.get("/student/me/meetings"),
@@ -52,22 +53,22 @@ const StudentDashboard = () => {
                 const todayName = daysOfWeek[new Date().getDay()];
                 const periods = scheduleRes.data.schedule[0]?.periodsTime || [];
 
-                const todayClasses = scheduleRes.data.offerings.filter(course =>
-                    course.schedule && course.schedule.days.includes(todayName)
-                ).map(course => {
-                    const periodIndex = course.schedule.lecPeriod - 1;
-                    const timeData = periods[periodIndex];
-                    return {
-                        ...course,
-                        time: timeData ? `${timeData.startTime} - ${timeData.endTime}` : "N/A"
-                    };
-                });
-
+                const todayClasses = scheduleRes.data.offerings
+                    .filter(course => course.schedule && course.schedule.days.includes(todayName))
+                    .map(course => {
+                        const periodIndex = course.schedule.lecPeriod - 1;
+                        const timeData = periods[periodIndex];
+                        return {
+                            ...course,
+                            time: timeData ? `${timeData.startTime} - ${timeData.endTime}` : "N/A"
+                        };
+                    });
                 setTodaySchedule(todayClasses);
             }
 
         } catch (err) {
             console.error("Dashboard error:", err);
+
         } finally {
             setLoading(false);
         }
@@ -115,7 +116,6 @@ const StudentDashboard = () => {
         }
     };
 
-    // Updated Progress Calculation based on Regulation
     const getGraduationRequirements = () => {
         const regulation = details?.transcript?.regulation?.toLowerCase();
         if (regulation === "new") {
@@ -215,6 +215,28 @@ const StudentDashboard = () => {
 
     const requirements = getGraduationRequirements();
 
+    if (loading) return (
+        <div
+            className="management-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '80vh',
+                flexDirection: 'column',
+                gap: '14px'
+            }}
+        >
+            <Loader2
+                size={42}
+                style={{
+                    animation: 'spin 1s linear infinite',
+                    color: '#2563eb'
+                }}
+            />
+            <h3>Loading Your Dashboard...</h3>
+        </div>
+    );
     return (
         <div className="management-container sd-page-wrapper">
             <header className="sd-main-header">

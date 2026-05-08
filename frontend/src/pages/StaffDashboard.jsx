@@ -1,15 +1,14 @@
 import { useParams } from "react-router-dom";
+import CoordinatorDashboard from "./coordinator pages/CoordinatorDashboard"
 
 const StaffDashboard = () => {
     const { role } = useParams();
 
     return (
-        <div className="management-container">
-            <h2>{role ? role.replace("-", " ").toUpperCase() : "Staff"} Dashboard</h2>
-
+        <div>
             {/* Example Content Based on Role */}
             {role === "coordinator" && (
-                <p>Here you can manage courses, view students, and check semester history.</p>
+                <CoordinatorDashboard />
             )}
 
             {role === "lecturer" && (
