@@ -4,7 +4,7 @@ import {
     Megaphone, Calendar, User, Video,
     ArrowRight, Clock, Bell, CalendarCheck,
     ChevronDown, Filter, AlertCircle, Bookmark, Info, AlertTriangle, BookOpen, Mail, UserCheck,
-    GraduationCap, BookCheck, Activity, Award, TrendingUp, BarChart3, Users, Scale, Star, LayoutGrid, GitBranch, ListPlus,
+    GraduationCap, BookCheck, Activity, Award, TrendingUp, BarChart3, Users, Scale, Star, LayoutGrid, GitBranch, ListPlus, UserMinus,
     CalendarDays, CalendarPlus, Loader2, CheckCircle2, PieChart as PieIcon
 } from "lucide-react";
 
@@ -100,8 +100,7 @@ const AdvisorDashboard = () => {
         try {
             const res = await api.get("/academic-advisors/me/list");
             console.log("Full API Response:", res.data);
-            // بناءً على الصورة، البيانات موجودة داخل Array بداخلها Objects تحتوي على مصفوفة students
-            // نقوم بعمل flat لاستخراج كل الطلاب في قائمة واحدة لسهولة التعامل
+
             const allStudentsRaw = res.data.flatMap(item => item.students.map(s => s.student)) || [];
             setStudents(allStudentsRaw);
         } catch (err) {
@@ -109,7 +108,7 @@ const AdvisorDashboard = () => {
         }
     };
 
-    // تجهيز بيانات جراف توزيع الطلاب حسب المستوى
+
     const studentLevelData = useMemo(() => {
         return VALID_LEVELS.map(level => ({
             name: level.charAt(0).toUpperCase() + level.slice(1),
@@ -117,7 +116,6 @@ const AdvisorDashboard = () => {
         })).filter(item => item.value > 0);
     }, [students]);
 
-    // جراف توزيع Regulation (New vs Old)
     const regulationData = useMemo(() => {
         const regs = ["New", "last"];
         return regs.map(reg => ({
@@ -126,7 +124,7 @@ const AdvisorDashboard = () => {
         })).filter(item => item.value > 0);
     }, [students]);
 
-    // تجهيز بيانات جراف توزيع الـ GPA
+
     const gpaDistributionData = useMemo(() => {
         const ranges = [
             { range: '0-1', count: 0 },
@@ -485,6 +483,13 @@ const AdvisorDashboard = () => {
                     value: students.filter(s => s.transcript?.atRisk).length,
                     footer: "Requires urgent follow-up",
                     colorClass: "orange-grad"
+                })}
+                {renderInsightCard({
+                    icon: UserMinus,
+                    label: "Unregistered Students",
+                    value: students.filter(s => s.registeredCredits === 0).length,
+                    footer: "Requires follow-up",
+                    colorClass: "red-grad"
                 })}
                 {renderInsightCard({
                     icon: Star,

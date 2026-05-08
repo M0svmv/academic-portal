@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
     Users, Search, Eye, PlusCircle,
-    X, Trash2, BarChart3, AlertTriangle, BookOpen, Loader2
+    X, Trash2, BarChart3, AlertTriangle, BookOpen, Loader2,
+    UserMinus
 } from "lucide-react";
 import api from "../../services/api";
 import "./styles/AdviseStudents.css";
@@ -103,6 +104,7 @@ const AdviseStudents = () => {
     const stats = {
         total: students.length,
         atRisk: students.filter(s => s.atRisk).length,
+        unregistered: students.filter(s => s.registeredCredits === 0).length,
         avgGPA: (
             students.reduce((acc, s) => acc + s.GPA, 0) /
             (students.length || 1)
@@ -117,13 +119,27 @@ const AdviseStudents = () => {
         const matchesLevel = filterLevel === "All" || s.level === filterLevel;
         const matchesReg = filterReg === "All" || s.regulation === filterReg;
 
-        const matchesStatus =
-            filterStatus === "All" ||
-            (filterStatus === "atRisk" && s.atRisk) ||
-            (filterStatus === "good" && !s.atRisk);
+        let matchesStatus = true;
+        if (filterStatus === "atRisk") matchesStatus = s.atRisk;
+        else if (filterStatus === "good") matchesStatus = !s.atRisk;
+        else if (filterStatus === "unregistered") matchesStatus = s.registeredCredits === 0;
 
         return matchesSearch && matchesLevel && matchesReg && matchesStatus;
     });
+
+    // Helper function to define style for selected card
+    const getCardStyle = (cardStatus) => {
+        if (filterStatus === cardStatus) {
+            return {
+                cursor: 'pointer',
+                border: '2px solid #2563eb',
+                backgroundColor: '#f8fafc',
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                transform: 'translateY(-2px)'
+            };
+        }
+        return { cursor: 'pointer', border: '2px solid transparent' };
+    };
 
     if (loading) return (
         <div
@@ -159,7 +175,11 @@ const AdviseStudents = () => {
             </header>
 
             <div className="insights-grid">
-                <div className="insight-card">
+                <div
+                    className={`insight-card clickable ${filterStatus === 'All' ? 'active-card' : ''}`}
+                    onClick={() => setFilterStatus("All")}
+                    style={getCardStyle("All")}
+                >
                     <div className="insight-header">
                         <span className="insight-icon icon-blue">
                             <Users size={18} />
@@ -169,19 +189,37 @@ const AdviseStudents = () => {
                     <div className="insight-value">{stats.total}</div>
                 </div>
 
-                <div className="insight-card">
+                <div
+                    className={`insight-card clickable ${filterStatus === 'unregistered' ? 'active-card' : ''}`}
+                    onClick={() => setFilterStatus("unregistered")}
+                    style={getCardStyle("unregistered")}
+                >
                     <div className="insight-header">
-                        <span className="insight-icon icon-green">
-                            <BookOpen size={18} />
+                        <span className="insight-icon icon-red">
+                            <UserMinus size={18} color="#dc2626" />
                         </span>
-                        <span className="insight-label">Filtered Students</span>
+                        <span className="insight-label">Unregistered</span>
                     </div>
-                    <div className="insight-value">{filteredStudents.length}</div>
+                    <div className="insight-value">{stats.unregistered}</div>
+                </div>
+
+                <div
+                    className={`insight-card clickable ${filterStatus === 'atRisk' ? 'active-card' : ''}`}
+                    onClick={() => setFilterStatus("atRisk")}
+                    style={getCardStyle("atRisk")}
+                >
+                    <div className="insight-header">
+                        <span className="insight-icon icon-orange">
+                            <AlertTriangle size={18} />
+                        </span>
+                        <span className="insight-label">At Risk</span>
+                    </div>
+                    <div className="insight-value">{stats.atRisk}</div>
                 </div>
 
                 <div className="insight-card">
                     <div className="insight-header">
-                        <span className="insight-icon icon-orange">
+                        <span className="insight-icon icon-green">
                             <BarChart3 size={18} />
                         </span>
                         <span className="insight-label">Avg. GPA</span>
@@ -201,23 +239,24 @@ const AdviseStudents = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    <select className="adv-filter-select" onChange={(e) => setFilterLevel(e.target.value)}>
+                    <select className="adv-filter-select" value={filterLevel} onChange={(e) => setFilterLevel(e.target.value)}>
                         <option value="All">All Levels</option>
                         {['Freshman', 'Sophomore', 'Junior', "senior-1", "senior-2", 'Senior'].map(l => (
                             <option key={l} value={l}>{l}</option>
                         ))}
                     </select>
 
-                    <select className="adv-filter-select" onChange={(e) => setFilterReg(e.target.value)}>
+                    <select className="adv-filter-select" value={filterReg} onChange={(e) => setFilterReg(e.target.value)}>
                         <option value="All">All Regulations</option>
                         <option value="New">New</option>
                         <option value="Last">Last</option>
                     </select>
 
-                    <select className="adv-filter-select" onChange={(e) => setFilterStatus(e.target.value)}>
+                    <select className="adv-filter-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                         <option value="All">Status</option>
                         <option value="atRisk">At Risk</option>
                         <option value="good">Good Standing</option>
+                        <option value="unregistered">Unregistered</option>
                     </select>
                 </div>
             </div>
@@ -237,41 +276,53 @@ const AdviseStudents = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredStudents.map(s => (
-                            <tr key={s.id} className={s.atRisk ? "row-at-risk" : ""}>
-                                <td className="adv-student-id">#{s.id}</td>
-                                <td>{s.name}</td>
-                                <td style={{ textAlign: 'center' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                                        <span style={{ fontWeight: '600' }}>{s.GPA}</span>
-                                        {s.atRisk
-                                            ? <div className="type-badge" style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 'bold', width: 'fit-content' }}>At Risk</div>
-                                            : <div className="type-badge" style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 'bold', width: 'fit-content' }}>Good</div>
-                                        }
-                                    </div>
-                                </td>
-                                <td>
-                                    <span className={`badge-reg reg-${s.regulation?.toLowerCase() === 'new' ? 'new' : 'last'}`}>
-                                        {s.regulation}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span className={`badge-level level-${s.level?.toLowerCase()}`}>
-                                        {s.level}
-                                    </span>
-                                </td>
-                                <td>{s.registeredCredits} / {s.allowedCredits}</td>
-                                <td> {s.alerts > 0 ? s.alerts : "No Alerts"}</td>
-                                <td className="adv-actions">
-                                    <button onClick={() => navigate(`/staff/${role}/student/${s.id}`)} title="View Profile">
-                                        <Eye size={18} color="#3a86ff" />
-                                    </button>
-                                    <button onClick={() => navigate(`/staff/${role}/advisor/enroll/${s.id}`)} title="Enroll Student">
-                                        <PlusCircle size={18} color="#10b981" />
-                                    </button>
+                        {filteredStudents.length > 0 ? (
+                            filteredStudents.map(s => (
+                                <tr key={s.id} className={s.atRisk ? "row-at-risk" : ""}>
+                                    <td className="adv-student-id">#{s.id}</td>
+                                    <td>{s.name}</td>
+                                    <td style={{ textAlign: 'center' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                            <span style={{ fontWeight: '600' }}>{s.GPA}</span>
+                                            {s.atRisk
+                                                ? <div className="type-badge" style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 'bold', width: 'fit-content' }}>At Risk</div>
+                                                : <div className="type-badge" style={{ backgroundColor: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 'bold', width: 'fit-content' }}>Good</div>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span className={`badge-reg reg-${s.regulation?.toLowerCase() === 'new' ? 'new' : 'last'}`}>
+                                            {s.regulation}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span className={`badge-level level-${s.level?.toLowerCase()}`}>
+                                            {s.level}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span style={{ color: s.registeredCredits === 0 ? '#dc2626' : 'inherit', fontWeight: s.registeredCredits === 0 ? '600' : 'normal' }}>
+                                            {s.registeredCredits}
+                                        </span> / {s.allowedCredits}
+                                    </td>
+                                    <td> {s.alerts > 0 ? s.alerts : "No Alerts"}</td>
+                                    <td className="adv-actions">
+                                        <button onClick={() => navigate(`/staff/${role}/student/${s.id}`)} title="View Profile">
+                                            <Eye size={18} color="#3a86ff" />
+                                        </button>
+                                        <button onClick={() => navigate(`/staff/${role}/advisor/enroll/${s.id}`)} title="Enroll Student">
+                                            <PlusCircle size={18} color="#10b981" />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                                    No students found matching the selected criteria.
                                 </td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
             </div>

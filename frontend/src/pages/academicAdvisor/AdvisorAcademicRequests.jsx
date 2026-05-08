@@ -24,7 +24,7 @@ import {
     FileMinus,
     Zap,
     X,
-    FileText // أضفت أيقونة للتقرير
+    FileText 
     , Loader2
 } from 'lucide-react';
 import api from '../../services/api';
