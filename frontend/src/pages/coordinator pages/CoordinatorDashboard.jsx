@@ -160,7 +160,6 @@ const CoordinatorDashboard = () => {
         }));
     }, [courses]);
 
-    // تجهيز بيانات الموظفين
     const staffRoleData = useMemo(() => {
         const roles = ['admin', 'coordinator', 'academic-advisor', 'lecturer', 'ta'];
         return roles.map(r => ({
@@ -712,7 +711,7 @@ const CoordinatorDashboard = () => {
                                 </>
                             )}
                         </div>
-                        <button className="sd-full-btn" onClick={() => navigate("/student/requests")}>
+                        <button className="sd-full-btn" onClick={() => navigate("/staff/coordinator/coo-Requests")}>
                             Manage Requests {academicRequests.length > 3 && <span className="sd-btn-badge">+{academicRequests.length - 3} more</span>}
                         </button>
                     </div>
