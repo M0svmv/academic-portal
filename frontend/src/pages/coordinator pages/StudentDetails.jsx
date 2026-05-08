@@ -224,9 +224,13 @@ const StudentDetails = () => {
     };
 
     const getGradeInfo = (grade) => {
+        if (grade >= 95) return { letter: "A+", class: "safe", status: "Passed" };
         if (grade >= 90) return { letter: "A", class: "safe", status: "Passed" };
+        if (grade >= 85) return { letter: "B+", class: "safe", status: "Passed" };
         if (grade >= 80) return { letter: "B", class: "safe", status: "Passed" };
+        if (grade >= 75) return { letter: "C+", class: "safe", status: "Passed" };
         if (grade >= 70) return { letter: "C", class: "safe", status: "Passed" };
+        if (grade >= 65) return { letter: "D+", class: "safe", status: "Passed" };
         if (grade >= 60) return { letter: "D", class: "safe", status: "Passed" };
         return { letter: "F", class: "risk", status: "Failed" };
     };
@@ -342,6 +346,17 @@ const StudentDetails = () => {
                 .filter(Boolean)
         )
     ].sort();
+
+    const getGPAPoints = (grade) => {
+        if (grade >= 93) return 4.0;
+        if (grade >= 89) return 3.7;
+        if (grade >= 80) return 3.3;
+        if (grade >= 75) return 3.0;
+        if (grade >= 70) return 2.7;
+        if (grade >= 65) return 2.4;
+        if (grade >= 60) return 2.0;
+        return 0.0;
+    };
 
 
     return (
@@ -734,74 +749,104 @@ const StudentDetails = () => {
                         </div>
 
 
-                        {Object.entries(groupedCourses).map(([semester, courses]) => (
-                            <div key={semester} style={{ marginBottom: "25px" }}>
+                        {Object.entries(groupedCourses).map(([semester, courses]) => {
+                            // حساب إحصائيات الترم الحالي
+                            let semesterTotalCredits = 0;
+                            let semesterCompletedCredits = 0;
+                            let semesterWeightedPoints = 0;
 
-                                {/* عنوان السيمستر */}
-                                <div style={{
-                                    background: "#f1f5f9",
-                                    padding: "10px 15px",
-                                    borderRadius: "8px",
-                                    marginBottom: "10px",
-                                    fontWeight: "600",
-                                    color: "#1e293b"
-                                }}>
-                                    Semester: {semester}
-                                </div>
-                                <div className="table-wrapper">
-                                    <table className="modern-table dynamic-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Course Info</th>
-                                                <th>Academic Level</th>
-                                                <th>Type & Credits</th>
-                                                <th>Status & Grade</th>
-                                                <th>Regulation</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {courses.map((course, index) => {
-                                                const info = getGradeInfo(course.grade);
-                                                const courseDetails = course.courseId || {};
+                            courses.forEach(c => {
+                                const credits = c.courseId?.courseCredits || 0;
+                                semesterTotalCredits += credits;
+                                if (c.grade >= 60) {
+                                    semesterCompletedCredits += credits;
+                                }
+                                semesterWeightedPoints += (getGPAPoints(c.grade) * credits);
+                            });
 
-                                                return (
-                                                    <tr key={index}>
-                                                        <td className="course-main-td">
-                                                            <div className="course-id-cell">{courseDetails._id}</div>
-                                                            <div className="course-name-sub">{courseDetails.courseName}</div>
-                                                        </td>
-                                                        <td>
-                                                            <span className={`level-pill ${courseDetails.courseLevel}`}>
-                                                                {courseDetails.courseLevel || "N/A"}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <div className="type-tag">{courseDetails.courseType || "N/A"}</div>
-                                                            <div className="credits-sub">{courseDetails.courseCredits || 0} Credits</div>
-                                                        </td>
-                                                        <td>
-                                                            <span className={`status-pill ${info.class}`}>
-                                                                {info.status}
-                                                            </span>
-                                                            <div className="grade-display" style={{ marginTop: '5px' }}>
-                                                                {course.grade} <span className="letter-grade">({info.letter})</span>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <span className="reg-badge">
-                                                                {courseDetails.courseRegulation || "N/A"}
-                                                            </span>
-                                                        </td>
-                                                        <td className="action-cell"> <div className="action-flex"> <button className="btn-edit" onClick={() => { setEditingCourse(course); setIsEditModalOpen(true); }} title="Edit Grade" > <Edit size={16} /> </button> <button className="btn-delete" onClick={() => handleDeleteCourse(course._id)} title="Remove Course" > <Trash2 size={16} /> </button> </div> </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
+                            const semesterGPA = semesterTotalCredits > 0
+                                ? (semesterWeightedPoints / semesterTotalCredits).toFixed(2)
+                                : "0.00";
+
+                            return (
+                                <div key={semester} style={{ marginBottom: "25px" }}>
+
+                                    <div style={{
+                                        background: "#f1f5f9",
+                                        padding: "10px 15px",
+                                        borderRadius: "8px",
+                                        marginBottom: "10px",
+                                        fontWeight: "600",
+                                        color: "#1e293b",
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <span>Semester: {semester}</span>
+                                    </div>
+                                    <div className="table-wrapper">
+                                        <table className="modern-table dynamic-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Course Info</th>
+                                                    <th>Academic Level</th>
+                                                    <th>Type & Credits</th>
+                                                    <th>Status & Grade</th>
+                                                    <th>Regulation</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {courses.map((course, index) => {
+                                                    const info = getGradeInfo(course.grade);
+                                                    const courseDetails = course.courseId || {};
+
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td className="course-main-td">
+                                                                <div className="course-id-cell">{courseDetails._id}</div>
+                                                                <div className="course-name-sub">{courseDetails.courseName}</div>
+                                                            </td>
+                                                            <td>
+                                                                <span className={`level-pill ${courseDetails.courseLevel}`}>
+                                                                    {courseDetails.courseLevel || "N/A"}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <div className="type-tag">{courseDetails.courseType || "N/A"}</div>
+                                                                <div className="credits-sub">{courseDetails.courseCredits || 0} Credits</div>
+                                                            </td>
+                                                            <td>
+                                                                <span className={`status-pill ${info.class}`}>
+                                                                    {info.status}
+                                                                </span>
+                                                                <div className="grade-display" style={{ marginTop: '5px' }}>
+                                                                    {course.grade} <span className="letter-grade">({info.letter})</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <span className="reg-badge">
+                                                                    {courseDetails.courseRegulation || "N/A"}
+                                                                </span>
+                                                            </td>
+
+                                                        </tr>
+                                                    );
+                                                })}
+                                                <tr className="semester-summary-row" style={{ backgroundColor: '#f8fafc', fontWeight: 'bold' }}>
+                                                    <td colSpan="2" style={{ textAlign: 'right', color: '#64748b' }}>Semester Summary:</td>
+                                                    <td style={{ color: '#0f172a' }}>
+                                                        {semesterCompletedCredits} / {semesterTotalCredits} Hrs Done
+                                                    </td>
+                                                    <td colSpan="2" style={{ color: '#2563eb' }}>
+                                                        Semester GPA: {semesterGPA}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                 </div>
