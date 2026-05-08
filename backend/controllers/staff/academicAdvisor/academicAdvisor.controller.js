@@ -169,7 +169,6 @@ exports.getCurrentEnrollment = async (req, res) => {
   }
 };
 
-// exports.getCurrentEnrollment = async (req, res) => {
 //   try {
 //     const studentId = req.params.id;
 //     const advisingList = await AdvisingList.findOne({
