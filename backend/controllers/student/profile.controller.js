@@ -21,6 +21,9 @@ const studentService = require("../../services/student.service");
 const transcriptService = require("../../services/transcript.service");
 const {getSemesterPreRegValidation} = require("../../utils/enrollment.utils");
 
+
+
+
 //student Dashboard
 
 
@@ -103,23 +106,7 @@ exports.getStudentEnrollments = async (req, res) => {
 // Get current enrollment for the student
 exports.getCurrentEnrollment = async (req, res) => {
   try {
-    const studentId = req.user._id;
-    const currentSemester = await Semester.findOne({ isCurrent: true }).select(
-      "semesterId",
-    );
-    console.log("Current semester:", currentSemester);
-    if (!currentSemester) {
-      return res.status(404).json({ message: "Current semester not found" });
-    }
-    const currentEnrollment = await Enrollment.findOne({
-      studentId,
-      semesterId: currentSemester._id,
-    }).populate("semesterId", "semesterName")
-      .populate({ path: "courses.courseOfferingId", populate: { path: "courseId" }, select: "courseId" });
-    ;
-    if (!currentEnrollment) {
-      return res.status(404).json({ message: "Current enrollment not found" });
-    }
+    const currentEnrollment = await enrollmentService.getStudentCurrentEnrollment(req.user._id);
     res.status(200).json(currentEnrollment);
   } catch (error) {
     console.error(error);
@@ -131,57 +118,17 @@ exports.getCurrentEnrollment = async (req, res) => {
 //get available courses
 exports.getAvailableCourses = async (req, res) => {
   try {
-    const studentId = req.user._id;
-    const currentSemester = await Semester.findOne({ isCurrent: true });
-    const semesterId = currentSemester._id;
-    const transcript = await Transcript.findOne({ studentId });
-    const completedCourses = transcript.completedCourses
-  .filter(c => c.status === "passed")
-  .map(c => c.courseId.toString());
+    const data = await enrollmentService.getAvailableCourses(req.user._id);
 
-
-
-    if (transcript.GPA === 0 && transcript.completedCourses.length === 0) {
-      transcript.allowedCredits = 18;
-    } else if (transcript.GPA < 2.0) {
-      transcript.allowedCredits = 12;
-    } else if (transcript.GPA >= 3.0) {
-      transcript.allowedCredits = 21;
-    }
-
-    const offerings = await CourseOffering.find({
-      semesterId,
-      status: { $in: ["open", "proposed"] },
-    }).populate(
-      "courseId",
-      "courseName _id courseCredits courseLevel prerequisiteCourses courseType",
-    );
-
-    let availableOfferings = offerings.filter(
-      (offer) => !completedCourses.includes(offer.courseId._id.toString()),
-    );
-
-    availableOfferings = availableOfferings.filter((offer) => {
-      const prerequisitesMet = offer.courseId.prerequisiteCourses.every(
-        (prereq) => {
-          return completedCourses.includes(prereq.toString());
-        },
-      );
-      return prerequisitesMet;
-    });
-
-    console.log("Available offerings:=", availableOfferings);
-
-    res.status(200).json({
-      allowedCredits: transcript.allowedCredits,
-      availableOfferings,
-    });
+    res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ error: "Failed to retrieve available courses" });
+    res.status(error.statusCode || 500).json({
+      message: error.message,
+    });
   }
 };
 
-// Enroll in courses for the current semester
+
 
 
 // get student all details

@@ -7,7 +7,7 @@ const SemesterWork = require("../models/SemesterWork");
 
 
 const {getCurrentSemester} = require("./semester.utils");
-const {assignAllowedCredits, validateCredits, sumCredits} = require("./credits.util");
+const {assignAllowedCredits, validateCredits, sumCredits} = require("./credits.utils");
 
 const {CREDITS_LIMITS, GPA_THRESHOLDS} = require("../constants/limits.constants");
 
