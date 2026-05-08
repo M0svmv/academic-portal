@@ -372,3 +372,18 @@ exports.forceStopCurrentSemester = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
+//get current semester
+exports.getCurrentSemester = async (req, res) => {
+  try {
+    const currentSemester = await Semester.findOne({ isCurrent: true });
+    if (!currentSemester) {
+      return res.status(404).json({ message: 'Current semester not found' });
+    }
+    res.status(200).json(currentSemester);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
