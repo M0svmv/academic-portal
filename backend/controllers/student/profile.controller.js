@@ -17,7 +17,12 @@ const AcademicRequest = require("../../models/AcademicRequest");
 
 const enrollmentService = require("../../services/enrollment.service");
 const recommendationService = require("../../services/recommendations.service");
+const studentService = require("../../services/student.service");
+const transcriptService = require("../../services/transcript.service");
 const {getSemesterPreRegValidation} = require("../../utils/enrollment.utils");
+
+//student Dashboard
+
 
 // Enroll in courses for the current semester
 exports.enrollStudent = async (req, res) => {
@@ -65,24 +70,7 @@ exports.getStudentProfile = async (req, res) => {
 // Update student profile
 exports.updateStudentProfile = async (req, res) => {
   try {
-    const studentId = req.user._id;
-
-    const student = await Student.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
-    if (req.body.password) {
-      const hashedPassword = await bcrypt.hash(req.body.password, 10);
-      student.password = hashedPassword;
-    }
-    if (req.body.studentPhone) {
-      student.studentPhone = req.body.studentPhone;
-    }
-    if (req.body.studentEmail) {
-      student.studentEmail = req.body.studentEmail;
-    }
-
-    await student.save();
+    await studentService.updateProfile(req.user._id, req.body);
     res.status(200).json({ message: "Student profile updated successfully" });
   } catch (error) {
     console.error(error);
@@ -91,14 +79,8 @@ exports.updateStudentProfile = async (req, res) => {
 };
 // Get student transcript
 exports.getStudentTranscript = async (req, res) => {
-  try {
-    const studentId = req.user._id;
-    const transcript = await Transcript.findOne({ studentId: studentId })
-      .populate({ path: "completedCourses", populate: { path: "courseId" } })
-      .populate("studentId", "studentName");
-    if (!transcript) {
-      return res.status(404).json({ message: "Transcript not found" });
-    }
+  try {  
+    const transcript = await transcriptService.getTranscript(req.user._id);
     res.status(200).json(transcript);
   } catch (error) {
     console.error(error);
