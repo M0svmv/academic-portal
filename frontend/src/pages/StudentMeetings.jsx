@@ -299,7 +299,6 @@ const StudentMeetings = () => {
                 </div>
             </div>
 
-            {/* Request Modal (بقي كما هو في الكود الأصلي الخاص بك) */}
             {isModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content">
@@ -342,8 +341,8 @@ const StudentMeetings = () => {
                                 </div>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                                <button type="submit" className="btn-primary" disabled={submitting}>
+                                <button type="button" className="btn-2" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                                <button type="submit" className="btn-1" disabled={submitting}>
                                     {submitting ? <Loader2 className="animate-spin" size={18} /> : "Submit Request"}
                                 </button>
                             </div>

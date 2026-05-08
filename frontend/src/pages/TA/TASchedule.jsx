@@ -150,12 +150,12 @@ const TASchedule = () => {
                                             {currentCourses.length > 0 ? (
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', height: '100%' }}>
                                                     {currentCourses.map((course, idx) => (
-                                                        <div className="course-card-mini" key={idx}>
+                                                        <div className="course-card-mini" key={idx} style={{ position: 'relative' }}>
                                                             <div>
                                                                 <div className="course-code">#{course.courseId._id}</div>
                                                                 <div className="course-name">{course.courseId.courseName}</div>
                                                             </div>
-                                                            <div className="course-meta">
+                                                            <div className="dots-btn course-meta">
                                                                 <Clock size={10} style={{ marginRight: '4px' }} />
                                                                 <span>{course.schedule.lecLength}P</span>
                                                             </div>

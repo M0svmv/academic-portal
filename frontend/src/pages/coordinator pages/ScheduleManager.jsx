@@ -560,7 +560,7 @@ const ScheduleManager = () => {
                                                         return (
                                                             <td ref={provided.innerRef} {...provided.droppableProps}
                                                                 className={`slot ${snapshot.isDraggingOver ? 'drop-hover' : ''}`}>
-                                                                {/* --- التعديل هنا: إضافة CSS Inline لضمان الرص بجانب بعض --- */}
+                                                              
                                                                 <div className="courses-stack" style={{
                                                                     display: 'flex',
                                                                     flexWrap: 'wrap',
@@ -618,7 +618,6 @@ const ScheduleManager = () => {
 
                     <Droppable droppableId="sidebar">
                         {(provided) => (
-                            /* --- التعديل هنا: الـ Catalog أيضاً يُرص بجانب بعضه --- */
                             <div ref={provided.innerRef} {...provided.droppableProps} className="course-list" >
                                 {filteredOfferings.map((offering, index) => (
                                     <Draggable key={offering._id} draggableId={offering._id} index={index}>

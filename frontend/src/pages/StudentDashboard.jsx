@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import {
     Megaphone, Calendar, User, Video,
     ArrowRight, Clock, Bell, CalendarCheck,
-    ChevronDown, Filter, AlertCircle, Bookmark, Info, AlertTriangle, BookOpen
+    ChevronDown, Filter, AlertCircle, Bookmark, Info, AlertTriangle, BookOpen,
+    GraduationCap, BookCheck, Activity, Award, TrendingUp, BarChart3
 } from "lucide-react";
-import { CalendarDays, CalendarPlus, Loader2 } from 'lucide-react';
+import { CalendarDays, CalendarPlus, Loader2, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./styles/StudentDashboard.css";
@@ -16,9 +17,12 @@ const StudentDashboard = () => {
     const [announcements, setAnnouncements] = useState([]);
     const [filteredAnnouncements, setFilteredAnnouncements] = useState([]);
     const [meetings, setMeetings] = useState([]);
+    const [todaySchedule, setTodaySchedule] = useState([]);
+    const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [studentName, setStudentName] = useState("");
     const [activeTab, setActiveTab] = useState("all");
+    const [academicRequests, setAcademicRequests] = useState([]);
 
     useEffect(() => {
         fetchDashboardData();
@@ -27,21 +31,55 @@ const StudentDashboard = () => {
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            const [annRes, meetingRes, profileRes] = await Promise.all([
+            const [annRes, meetingRes, profileRes, scheduleRes, detailsRes, requestsRes] = await Promise.all([
                 api.get("/student/me/announcements"),
                 api.get("/student/me/meetings"),
-                api.get("/student/me/profile").catch(() => ({ data: { studentName: "Student" } }))
+                api.get("/student/me/profile").catch(() => ({ data: { studentName: "Student" } })),
+                api.get('/student/me/courses/my-schedule'),
+                api.get("/student/me/details"),
+                api.get("/student/me/academic-requests")
             ]);
 
             setAnnouncements(annRes.data);
             setFilteredAnnouncements(annRes.data);
             setMeetings(meetingRes.data);
             setStudentName(profileRes.data.studentName || profileRes.data.name || "Student");
+            setDetails(detailsRes.data);
+            setAcademicRequests(requestsRes.data.Requests || []);
+
+            if (scheduleRes.data && scheduleRes.data.offerings) {
+                const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const todayName = daysOfWeek[new Date().getDay()];
+                const periods = scheduleRes.data.schedule[0]?.periodsTime || [];
+
+                const todayClasses = scheduleRes.data.offerings.filter(course =>
+                    course.schedule && course.schedule.days.includes(todayName)
+                ).map(course => {
+                    const periodIndex = course.schedule.lecPeriod - 1;
+                    const timeData = periods[periodIndex];
+                    return {
+                        ...course,
+                        time: timeData ? `${timeData.startTime} - ${timeData.endTime}` : "N/A"
+                    };
+                });
+
+                setTodaySchedule(todayClasses);
+            }
+
         } catch (err) {
             console.error("Dashboard error:", err);
         } finally {
             setLoading(false);
         }
+    };
+
+    const getTimelineProgress = (start, end) => {
+        const now = new Date();
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        if (now < startDate) return 0;
+        if (now > endDate) return 100;
+        return ((now - startDate) / (endDate - startDate)) * 100;
     };
 
     const handleTabChange = async (tabType) => {
@@ -75,6 +113,20 @@ const StudentDashboard = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // Updated Progress Calculation based on Regulation
+    const getGraduationRequirements = () => {
+        const regulation = details?.transcript?.regulation?.toLowerCase();
+        if (regulation === "new") {
+            return { total: 165, programElective: 18, physics: 21, training: 2, project: 3 };
+        }
+        return { total: 185, programElective: 18, physics: 21, training: 2, project: 3 }; // "Last" regulation
+    };
+
+    const calculateProgress = (completed, total) => {
+        if (!total || total === 0) return 0;
+        return Math.min(Math.round((completed / total) * 100), 100);
     };
 
     const getStatusClass = (status) => {
@@ -161,48 +213,295 @@ const StudentDashboard = () => {
         { id: "academic", label: "Academic (Course/Level)" }
     ];
 
+    const requirements = getGraduationRequirements();
+
     return (
         <div className="management-container sd-page-wrapper">
-            {/* Header Section */}
             <header className="sd-main-header">
                 <div className="prereg-header">
-                    <h2 className="sd-title">Welcome back, {studentName}!</h2>
+                    <h2 className="sd-title">Welcome back, {details?.transcript?.studentId?.studentName}!</h2>
+                    <p className="sd-subtitle" >
+                        <span className={`badge level-${details?.transcript?.level}`}>{details?.transcript?.level}</span>
+                        <span className={`badge reg-${details?.transcript?.regulation?.toLowerCase()}`} style={{ marginLeft: '5px' }}>
+                            {details?.transcript?.regulation} Regulation
+                        </span>
+                        <span className="badge dept" style={{ marginLeft: '5px' }}> {details?.semester?.name || "Loading..."}</span>
+                    </p>
                 </div>
-            </header>
+            </header >
 
-            {/* Stats / Quick Insights */}
-            <div className="sd-stats-grid">
-                <div className="sd-stat-card">
-                    <div className="sd-stat-icon-wrapper sd-ann-bg"><Bell size={20} /></div>
-                    <div className="sd-stat-info">
-                        <span className="sd-stat-label">Announcements</span>
-                        <span className="sd-stat-value">{announcements.length}</span>
+            <div className="insights-grid">
+                {/* GPA Card */}
+                <div className={`insight-card ${details?.transcript?.GPA < 2 ? 'border-danger' : ''}`}>
+                    <div className="insight-header">
+                        <div className={`insight-icon ${details?.transcript?.GPA < 2 ? 'red' : 'green'}`}>
+                            <Activity size={18} />
+                        </div>
+                        <span className="insight-label">Cumulative GPA</span>
                     </div>
+                    <div className="insight-value">
+                        {details?.transcript?.GPA?.toFixed(2) || "0.00"}
+                        <span className="insight-unit" style={{ fontSize: '14px', marginLeft: '4px', color: '#94a3b8' }}>/ 4.0</span>
+                    </div>
+                    <div className="mini-progress-container" style={{ height: '6px', background: '#e2e8f0', borderRadius: '10px', marginTop: '8px' }}>
+                        <div
+                            className="progress-fill"
+                            style={{
+                                width: `${(details?.transcript?.GPA / 4) * 100}%`,
+                                backgroundColor: details?.transcript?.GPA < 2 ? '#ef4444' : '#10b981',
+                                height: '100%',
+                                borderRadius: '10px'
+                            }}
+                        ></div>
+                    </div>
+                    <div className="insight-footer">{details?.transcript?.GPA < 2 ? 'Academic Probation' : 'Good Standing'}</div>
                 </div>
-                <div className="sd-stat-card">
-                    <div className="sd-stat-icon-wrapper sd-meet-bg"><CalendarCheck size={20} /></div>
-                    <div className="sd-stat-info">
-                        <span className="sd-stat-label">Meetings</span>
-                        <span className="sd-stat-value">{meetings.length}</span>
+
+                {/* Completed Credits Card */}
+                <div className="insight-card">
+                    <div className="insight-header">
+                        <div className="insight-icon blue"><BookOpen size={18} /></div>
+                        <span className="insight-label">Completed Credits</span>
+                    </div>
+                    <div className="insight-value">
+                        {details?.transcript?.completedCredits || 0}
+                        <span className="insight-unit" style={{ fontSize: '14px', marginLeft: '4px', color: '#94a3b8' }}>Hrs</span>
+                    </div>
+                    <div className="insight-footer">Total earned credit hours</div>
+                </div>
+
+                {/* Activity Summary Card */}
+                <div className="insight-card clickable" onClick={() => setActiveTab("notifications")}>
+                    <div className="insight-header">
+                        <div className="insight-icon orange"><Bell size={18} /></div>
+                        <span className="insight-label">Activity Summary</span>
+                    </div>
+                    <div className="insight-value" style={{ display: 'flex', gap: '15px', alignItems: 'baseline' }}>
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{announcements.length}</div>
+                            <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>News</div>
+                        </div>
+                        <div style={{ textAlign: 'center', borderLeft: '1px solid #e2e8f0', paddingLeft: '15px' }}>
+                            <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{meetings.length}</div>
+                            <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Meetings</div>
+                        </div>
+                        <div style={{ textAlign: 'center', borderLeft: '1px solid #e2e8f0', paddingLeft: '15px' }}>
+                            <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{academicRequests.length}</div>
+                            <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase' }}>Reqs</div>
+                        </div>
+                    </div>
+                    <div className="insight-footer">Pending tasks & updates</div>
+                </div>
+
+                {/* Academic Alerts Card */}
+                <div className={`insight-card ${details?.transcript?.alerts > 0 ? 'border-danger' : ''}`}>
+                    <div className="insight-header">
+                        <div className={`insight-icon ${details?.transcript?.alerts > 0 ? 'red' : 'gray'}`}>
+                            {details?.transcript?.alerts > 0 ? <AlertTriangle size={18} /> : <Info size={18} />}
+                        </div>
+                        <span className="insight-label">Academic Alerts</span>
+                    </div>
+                    <div className="insight-value" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div>
+                            <span style={{ fontSize: '20px' }}>{details?.transcript?.alerts || 0}</span>
+                            <span style={{ fontSize: '12px', color: '#94a3b8' }}> Cons.</span>
+                        </div>
+                        <div style={{ borderRight: '1px solid #e2e8f0' }}></div>
+                        <div>
+                            <span style={{ fontSize: '20px' }}>{details?.transcript?.totalAlerts || 0}</span>
+                            <span style={{ fontSize: '12px', color: '#94a3b8' }}> Total</span>
+                        </div>
+                    </div>
+                    <div className="insight-footer">
+                        {details?.transcript?.alerts >= 3 ? 'Warning: Near dismissal' : 'Status: Stable'}
                     </div>
                 </div>
             </div>
+            {/* Semester Timeline Section */}
+            {!loading && details?.semester && (
+                <div className="st-container">
+                    <div className="st-glass-card-main">
+                        <div className="st-header">
+                            <div className="st-title-wrapper">
+                                {/* تم تغيير اللون للأزرق السماوي ليعبر عن الوقت والجدولة */}
+                                <Calendar className="st-icon-primary" size={20} color="#0ea5e9" />
+                                <h3 className="sd-section-heading">Semester Timeline: {details.semester.name || details.semester._id}</h3>
+                            </div>
+                        </div>
+
+                        <div className="st-milestones-grid">
+                            {Object.entries(details.semester.timeLine || {}).map(([key, dates]) => {
+                                const progress = getTimelineProgress(dates.start, dates.end);
+                                const isActive = progress > 0 && progress < 100;
+                                const isDone = progress === 100;
+
+                                const daysLeft = Math.ceil((new Date(dates.end) - new Date()) / (1000 * 60 * 60 * 24));
+
+                                return (
+                                    <div key={key} className={`st-liquid-card ${isActive ? 'is-active' : ''} ${isDone ? 'is-done' : ''}`}>
+                                        <div className="st-liquid-fill" style={{ height: `${progress}%` }} />
+
+                                        <div className="st-card-content">
+                                            <div className="st-card-header">
+                                                <span className="st-label">{key.replace(/([A-Z])/g, ' $1')}</span>
+                                                {isDone ? (
+                                                    <CheckCircle2 size={16} className="st-status-done" strokeWidth={3} />
+                                                ) : isActive ? (
+                                                    <div className="st-pulse-indicator" />
+                                                ) : null}
+                                            </div>
+
+                                            <div className="st-date-text">
+                                                {formatDate(dates.start)} — {formatDate(dates.end)}
+                                            </div>
+
+                                            {isActive && daysLeft > 0 && (
+                                                <div className="st-timer-badge">
+                                                    <Clock size={13} strokeWidth={2.5} />
+                                                    <span>{daysLeft} {daysLeft === 1 ? 'Day' : 'Days'} Left</span>
+                                                </div>
+                                            )}
+
+                                            {isDone && (
+                                                <span style={{ fontSize: '0.7rem', color: '#059669', fontWeight: '700', marginTop: '8px' }}>
+                                                    COMPLETED
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+            {
+                !loading && details && (
+                    <div className="sd-insights-section">
+                        <div className="sd-glass-card sd-insights-card">
+                            <div className="sd-section-header-flex">
+                                <div className="sd-section-title-box">
+                                    {/* لون موف (Indigo) يعبر عن الذكاء والبيانات التحليلية */}
+                                    <BarChart3 className="sd-primary-icon" size={20} color="#6366f1" />
+                                    <h3 className="sd-section-heading">Academic Insights & Progress</h3>
+                                </div>
+                            </div>
+
+                            <div className="sd-insights-grid">
+                                {/* Detailed Degree Progress with Scroll */}
+                                <div className="sd-insight-group">
+                                    <h4 className="sd-insight-subheading">Degree Progress Breakdown</h4>
+                                    <div className="sd-progress-scroll-area">
+                                        {/* Overall Progress */}
+                                        <div className="sd-progress-item">
+                                            <div className="sd-progress-label-flex">
+                                                <span>Total Credits (Graduation)</span>
+                                                <span>{details.transcript?.completedCredits} / {requirements.total}</span>
+                                            </div>
+                                            <div className="sd-progress-bar-bg">
+                                                <div
+                                                    className="sd-progress-bar-fill progress-success"
+                                                    style={{ width: `${calculateProgress(details.transcript?.completedCredits, requirements.total)}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Core Credits */}
+                                        <div className="sd-progress-item">
+                                            <div className="sd-progress-label-flex">
+                                                <span>Core Courses Progress</span>
+                                                <span>{details.transcript?.coreCompletedCredits} / 72</span>
+                                            </div>
+                                            <div className="sd-progress-bar-bg">
+                                                <div
+                                                    className="sd-progress-bar-fill"
+                                                    style={{ width: `${calculateProgress(details.transcript?.coreCompletedCredits, 72)}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Program Electives */}
+                                        <div className="sd-progress-item">
+                                            <div className="sd-progress-label-flex">
+                                                <span>Program Electives</span>
+                                                <span>{details.transcript?.electiveProgramCompletedCredits} / {requirements.programElective}</span>
+                                            </div>
+                                            <div className="sd-progress-bar-bg">
+                                                <div
+                                                    className="sd-progress-bar-fill accent-purple"
+                                                    style={{ width: `${calculateProgress(details.transcript?.electiveProgramCompletedCredits, requirements.programElective)}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Physics Credits */}
+                                        <div className="sd-progress-item">
+                                            <div className="sd-progress-label-flex">
+                                                <span>Engineering Physics</span>
+                                                <span>{details.transcript?.engPhysicsCompletedCredits} / {requirements.physics}</span>
+                                            </div>
+                                            <div className="sd-progress-bar-bg">
+                                                <div
+                                                    className="sd-progress-bar-fill accent-orange"
+                                                    style={{ width: `${calculateProgress(details.transcript?.engPhysicsCompletedCredits, requirements.physics)}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Training & Project */}
+                                        <div className="sd-dual-progress-flex">
+                                            <div className="sd-progress-item half">
+                                                <div className="sd-progress-label-flex"><span>Training</span><span>{details.transcript?.trainingCompletedCredits}/2</span></div>
+                                                <div className="sd-progress-bar-bg"><div className="sd-progress-bar-fill accent-green" style={{ width: `${calculateProgress(details.transcript?.trainingCompletedCredits, 2)}%` }}></div></div>
+                                            </div>
+                                            <div className="sd-progress-item half">
+                                                <div className="sd-progress-label-flex"><span>Grad. Project</span><span>{details.transcript?.graduationProjectCompletedCredits}/3</span></div>
+                                                <div className="sd-progress-bar-bg"><div className="sd-progress-bar-fill accent-green" style={{ width: `${calculateProgress(details.transcript?.graduationProjectCompletedCredits, 3)}%` }}></div></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Current Semester Performance */}
+                                <div className="sd-insight-group">
+                                    <h4 className="sd-insight-subheading">Current Semester Works</h4>
+                                    <div className="sd-semester-works-mini-grid">
+                                        {details.semesterWorks?.length > 0 ? (
+                                            details.semesterWorks.map((work) => (
+                                                <div key={work._id} className="sd-work-badge">
+                                                    <span className="sd-work-course-code">{work.courseId?.courseName || "Course"}</span>
+                                                    <div className="sd-work-progress-circle">
+                                                        <span className="sd-work-grade-val">{work.grade?.totalGrade || 0}%</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="sd-no-data-text">No grades recorded yet.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
 
             <div className="sd-content-layout">
-                {/* Main Content: Announcements */}
                 <main className="sd-announcements-area">
-                    <div className="sd-glass-card" style={{ padding: '20px' }}>
-                        <div className="sd-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
-                            <div className="sd-section-title-box" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <Megaphone className="sd-primary-icon" size={24} color="#3b82f6" />
-                                <h2 className="sd-section-heading" style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold' }}>Recent Announcements</h2>
+                    <div className="sd-glass-card sd-announcements-card">
+                        <div className="sd-section-header-flex">
+                            <div className="sd-section-title-box">
+                                {/* لون برتقالي محمر يعبر عن التنبيهات والإعلانات */}
+                                <Megaphone className="sd-primary-icon" size={20} color="#f43f5e" />
+                                <h3 className="sd-section-heading">Recent Announcements</h3>
                             </div>
 
                             <div className="sd-filter-dropdown-container">
-                                <div className="sd-select-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                <div className="sd-select-wrapper">
                                     <select
                                         className="sd-custom-select"
-                                        style={{ padding: '8px 35px 8px 15px', borderRadius: '8px', border: '1px solid #ddd', appearance: 'none', backgroundColor: '#fff', fontSize: '14px' }}
                                         value={activeTab}
                                         onChange={(e) => handleTabChange(e.target.value)}
                                     >
@@ -210,7 +509,7 @@ const StudentDashboard = () => {
                                             <option key={opt.id} value={opt.id}>{opt.label}</option>
                                         ))}
                                     </select>
-                                    <Filter style={{ position: 'absolute', right: '10px', pointerEvents: 'none', color: '#666' }} size={16} />
+                                    <Filter className="sd-filter-icon" size={16} />
                                 </div>
                             </div>
                         </div>
@@ -225,19 +524,12 @@ const StudentDashboard = () => {
                                 <p>No announcements found in this category.</p>
                             </div>
                         ) : (
-                            <div className="sd-cards-stack" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div className="sd-cards-stack" >
                                 {filteredAnnouncements.map((ann) => {
                                     return (
-                                        <div key={ann._id} className={`sd-ann-item ${ann.isPinned ? 'sd-pinned' : ''}`} style={{
-                                            backgroundColor: '#fff',
-                                            borderRadius: '12px',
-                                            padding: '20px',
-                                            border: '1px solid #eef2f6',
-                                            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-                                            position: 'relative'
-                                        }}>
-                                            <div className="sd-ann-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                                                <div className="sd-header-badges" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                        <div key={ann._id} className={`sd-ann-item ${ann.isPinned ? 'sd-pinned' : ''}`} >
+                                            <div className="sd-ann-header-flex">
+                                                <div className="sd-header-badges">
                                                     <span className={`sd-pill-tag ${getTagClass(ann.target)}`} style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', backgroundColor: '#e0e7ff', color: '#4338ca' }}>
                                                         {getTargetLabel(ann.target)}
                                                     </span>
@@ -246,46 +538,46 @@ const StudentDashboard = () => {
                                                         {ann.type}
                                                     </span>
                                                 </div>
-                                                <span className="sd-semester-text" style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>
+                                                <span className="sd-semester-text">
                                                     {ann.semesterId?.name || ann.semesterId}
                                                 </span>
                                             </div>
 
                                             {ann.courseId && (
-                                                <div className="sd-course-context" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#f0f9ff', color: '#0369a1', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', marginBottom: '10px' }}>
+                                                <div className="sd-course-context">
                                                     <BookOpen size={14} />
                                                     <span>{ann.courseId.courseId?.courseName || "Course Update"}</span>
                                                 </div>
                                             )}
 
-                                            <h3 className="sd-ann-title" style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b', textAlign: 'right', direction: 'rtl' }}>
+                                            <h3 className="sd-ann-title">
                                                 {ann.title}
                                             </h3>
-                                            <p className="sd-ann-content" style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#475569', lineHeight: '1.6', textAlign: 'right', direction: 'rtl' }}>
+                                            <p className="sd-ann-content">
                                                 {ann.content}
                                             </p>
 
-                                            <div className="sd-ann-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '15px', borderTop: '1px solid #f1f5f9', flexWrap: 'wrap', gap: '10px' }}>
-                                                <div className="sd-footer-dates" style={{ display: 'flex', gap: '15px' }}>
-                                                    <div className="sd-meta-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b' }}>
+                                            <div className="sd-ann-footer-flex">
+                                                <div className="sd-footer-dates">
+                                                    <div className="sd-meta-item">
                                                         <CalendarPlus size={14} style={{ color: '#3b82f6' }} />
                                                         <span>Published: {formatDate(ann.createdAt)}</span>
                                                     </div>
 
                                                     {ann.expiresAt && (
-                                                        <div className="sd-meta-item" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b' }}>
+                                                        <div className="sd-meta-item">
                                                             <Clock size={14} style={{ color: '#f59e0b' }} />
                                                             <span>Expires: {formatDate(ann.expiresAt)}</span>
                                                         </div>
                                                     )}
                                                 </div>
 
-                                                <div className="sd-footer-author" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                    <div className="sd-author-info" style={{ textAlign: 'right' }}>
-                                                        <p className="sd-author-name" style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: '#1e293b' }}>{ann.staffId?.staffName || "Admin"}</p>
-                                                        <p className="sd-author-role" style={{ margin: 0, fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>{getStaffRole(ann)}</p>
+                                                <div className="sd-footer-author">
+                                                    <div className="sd-author-info">
+                                                        <p className="sd-author-name">{ann.staffId?.staffName || "Admin"}</p>
+                                                        <p className="sd-author-role">{getStaffRole(ann)}</p>
                                                     </div>
-                                                    <div className="sd-author-avatar" style={{ width: '32px', height: '32px', backgroundColor: '#f1f5f9', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                                                    <div className="sd-author-avatar">
                                                         <User size={18} />
                                                     </div>
                                                 </div>
@@ -298,48 +590,134 @@ const StudentDashboard = () => {
                     </div>
                 </main>
 
-                {/* Sidebar: Meetings */}
                 <aside className="sd-meetings-sidebar">
-                    <div className="sd-glass-card" style={{ padding: '20px' }}>
-                        <div className="sd-sidebar-header" style={{ marginBottom: '15px' }}>
-                            <div className="sd-title-inline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Video size={20} color="#3b82f6" />
-                                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>My Meetings</h3>
+                    <div className="sd-glass-card sd-today-schedule sd-sidebar-card">
+                        <div className="sd-sidebar-header">
+                            <div className="sd-title-inline">
+                                {/* لون أصفر ذهبي (Amber) يوحي بالنشاط والحضور اليومي */}
+                                <CalendarDays size={20} color="#d97706" />
+                                <h3 className="sd-section-heading">Today's Classes</h3>
                             </div>
                         </div>
 
-                        <div className="sd-mini-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div className="sd-mini-list">
                             {loading ? (
-                                <p className="sd-loading-text">Loading...</p>
-                            ) : meetings.length === 0 ? (
-                                <div className="sd-empty-mini">
-                                    <p style={{ fontSize: '13px', color: '#94a3b8' }}>No scheduled meetings.</p>
+                                <p className="sd-loading-text">Loading Schedule...</p>
+                            ) : todaySchedule.length === 0 ? (
+                                <div className="sd-empty-schedule">
+                                    <p>No classes today. Enjoy your day!</p>
                                 </div>
                             ) : (
-                                meetings.slice(0, 4).map(meet => (
-                                    <div key={meet._id} className="sd-mini-card" style={{ display: 'flex', alignItems: 'center', padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #f1f5f9', position: 'relative' }}>
-                                        <div className={`sd-card-accent ${getStatusClass(meet.meetingStatus)}`} style={{ width: '4px', height: '70%', position: 'absolute', left: 0, borderRadius: '0 4px 4px 0' }}></div>
-                                        <div className="sd-mini-info" style={{ flex: 1, paddingLeft: '10px' }}>
-                                            <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#1e293b' }}>Meeting with Advisor</h4>
-                                            <div className="sd-mini-meta" style={{ display: 'flex', gap: '10px', fontSize: '11px', color: '#64748b' }}>
-                                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Calendar size={10} /> {new Date(meet.meetingDate).toLocaleDateString()}</span>
-                                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Clock size={10} /> {meet.meetingTime}</span>
+                                todaySchedule.map((item, idx) => (
+                                    <div key={idx} className="sd-schedule-item">
+                                        <div className="sd-course-time-box">
+                                            <div className="sd-time-badge">
+                                                <Clock size={10} />
+                                                {item.time}
                                             </div>
+                                            <span className="sd-period-tag">Period {item.schedule.lecPeriod}</span>
                                         </div>
-                                        <div className={`sd-mini-status ${getStatusClass(meet.meetingStatus)}`} style={{ fontSize: '10px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>
-                                            {meet.meetingStatus}
-                                        </div>
+                                        <h4 className="sd-course-name-sm">{item.courseId.courseName}</h4>
                                     </div>
                                 ))
                             )}
                         </div>
-                        <button className="sd-full-btn" onClick={() => navigate("/student/meetings")}>
+                        <button className="sd-full-btn sd-view-schedule-btn" onClick={() => navigate("/student/St-Schedule")}>
                             View Schedule
                         </button>
                     </div>
+
+                    {/* My Meetings Sidebar Card */}
+                    <div className="sd-glass-card sd-sidebar-card">
+                        <div className="sd-sidebar-header">
+                            <div className="sd-title-inline">
+                                {/* لون تيل (Teal) يعبر عن التواصل والاجتماعات الهادئة */}
+                                <Video size={20} color="#0d9488" />
+                                <h3 className="sd-section-heading">My Meetings</h3>
+                            </div>
+                        </div>
+
+                        <div className="sd-mini-list">
+                            {loading ? (
+                                <p className="sd-loading-text">Loading...</p>
+                            ) : meetings.length === 0 ? (
+                                <div className="sd-empty-mini">
+                                    <p className="sd-empty-mini-text">No scheduled meetings.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    {meetings.slice(0, 3).map(meet => (
+                                        <div key={meet._id} className="sd-mini-card">
+                                            <div className={`sd-card-accent ${getStatusClass(meet.meetingStatus)}`}></div>
+                                            <div className="sd-mini-info">
+                                                <h3 className="sd-author-name">Meet with Dr/ {meet.advisorId?.staffName}</h3>
+                                                <div className="sd-mini-meta">
+                                                    <span><Calendar size={10} /> {new Date(meet.meetingDate).toLocaleDateString()}</span>
+                                                    <span><Clock size={10} /> {meet.meetingTime}</span>
+                                                </div>
+                                            </div>
+                                            <div className={`sd-mini-status ${getStatusClass(meet.meetingStatus)}`}>
+                                                {meet.meetingStatus}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {/* Fade effect indicator if more than 3 */}
+                                    {meetings.length > 3 && <div className="sd-list-fade-edge"></div>}
+                                </>
+                            )}
+                        </div>
+
+                        <button className="sd-full-btn" onClick={() => navigate("/student/meetings")}>
+                            View All Meetings {meetings.length > 3 && <span className="sd-btn-badge">+{meetings.length - 3} more</span>}
+                        </button>
+                    </div>
+
+                    {/* Academic Requests Sidebar Card */}
+                    <div className="sd-glass-card sd-sidebar-card">
+                        <div className="sd-sidebar-header">
+                            <div className="sd-title-inline">
+                                {/* لون أخضر زمردي (Emerald) يعبر عن النجاح والتخرج والطلبات الرسمية */}
+                                <GraduationCap size={20} color="#059669" />
+                                <h3 className="sd-section-heading">Academic Requests</h3>
+                            </div>
+                        </div>
+                        <div className="sd-mini-list">
+                            {loading ? (
+                                <p className="sd-loading-text">Loading...</p>
+                            ) : academicRequests.length === 0 ? (
+                                <div className="sd-empty-mini">
+                                    <p className="sd-empty-mini-text">No requests found.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    {academicRequests.slice(0, 3).map(req => (
+                                        <div key={req._id} className="sd-mini-card">
+                                            <div className={`sd-card-accent ${getStatusClass(req.status)}`}></div>
+                                            <div className="sd-mini-info">
+                                                <div className="sd-request-header">
+                                                    <h3 className="sd-author-name">{req.requestType}</h3>
+                                                    <span className={`sd-status-dot ${req.status}`}></span>
+                                                </div>
+                                                <div className="sd-mini-meta">
+                                                    <p className="sd-author-role" style={{ fontSize: '11px' }}>
+                                                        {req.courseId?.courseName || req.withdrawalReason || "General Request"}
+                                                    </p>
+                                                    <span><Clock size={10} /> {formatDate(req.createdAt)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {academicRequests.length > 3 && <div className="sd-list-fade-edge"></div>}
+                                </>
+                            )}
+                        </div>
+                        <button className="sd-full-btn" onClick={() => navigate("/student/requests")}>
+                            Manage Requests {academicRequests.length > 3 && <span className="sd-btn-badge">+{academicRequests.length - 3} more</span>}
+                        </button>
+                    </div>
                 </aside>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 
