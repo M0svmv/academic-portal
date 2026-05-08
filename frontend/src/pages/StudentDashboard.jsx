@@ -616,7 +616,6 @@ const StudentDashboard = () => {
                     <div className="sd-glass-card sd-today-schedule sd-sidebar-card">
                         <div className="sd-sidebar-header">
                             <div className="sd-title-inline">
-                                {/* لون أصفر ذهبي (Amber) يوحي بالنشاط والحضور اليومي */}
                                 <CalendarDays size={20} color="#d97706" />
                                 <h3 className="sd-section-heading">Today's Classes</h3>
                             </div>

@@ -19,12 +19,12 @@ const CourseGrading = () => {
     const [originalGrades, setOriginalGrades] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // States للبحث والفلاتر
+
     const [searchTerm, setSearchTerm] = useState("");
     const [levelFilter, setLevelFilter] = useState("all");
     const [regFilter, setRegFilter] = useState("all");
 
-    // State للتحكم في الصف المفتوح (التفاصيل)
+
     const [expandedStudentId, setExpandedStudentId] = useState(null);
 
     const [showAttendanceModal, setShowAttendanceModal] = useState(false);
@@ -33,13 +33,12 @@ const CourseGrading = () => {
 
     const today = new Date().toISOString().split('T')[0];
 
-    // States للتحضير والتاريخ
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [presentStudents, setPresentStudents] = useState([]);
 
     useEffect(() => {
         loadData();
-        fetchAttendanceOnly(); // لجلب التواريخ المسجلة مسبقاً عند التحميل
+        fetchAttendanceOnly();
     }, [id]);
 
     const loadData = async () => {
@@ -50,6 +49,7 @@ const CourseGrading = () => {
             ]);
 
             setCourse(detailsRes.data.course);
+            console.log("stu per course", studentRes.data)
             setLocalGrades(studentRes.data);
             setOriginalGrades(JSON.parse(JSON.stringify(studentRes.data)));
         } catch (err) {
@@ -90,24 +90,22 @@ const CourseGrading = () => {
 
     const hasAttendanceToSave = presentStudents.length > 0;
 
-    // تشيك لو التاريخ المختار موجود فعلاً في قاعدة البيانات (تم تحضيره مسبقاً)
     const isTodayAttendanceTaken = useMemo(() => {
         return lecDates.some(d => new Date(d).toISOString().split("T")[0] === selectedDate);
     }, [lecDates, selectedDate]);
 
     const handleGradeChange = (studentId, field, value) => {
-        // 1. منع تعديل درجة الغياب يدوياً لأنها بتيجي من الباك إند
+
         if (field === 'attendanceGrade') return;
 
         const numValue = Number(value);
 
-        // 2. منع الأرقام السالبة
         if (numValue < 0) return;
 
         const schemaField = field.replace('Grade', '');
         const maxAllowed = course.gradingSchema[schemaField] || 0;
 
-        // 3. منع تخطي الدرجة النهائية
+
         if (numValue > maxAllowed) return;
 
         setLocalGrades(prev => prev.map(s =>

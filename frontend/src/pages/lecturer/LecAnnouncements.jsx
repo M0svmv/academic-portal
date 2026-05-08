@@ -66,7 +66,6 @@ const LecAnnouncements = () => {
         }
     };
 
-    // 2. Fetch Announcements
     const fetchAnnouncements = async () => {
         if (!selectedCourseId) return;
         try {
