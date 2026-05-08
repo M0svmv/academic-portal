@@ -38,22 +38,18 @@ const STATUS = require("../constants/statusCodes.constants");
 exports.enrollStudent = async (studentId, body) => {
   const { courses } = body;
 
-  // 🔹 step 1: الأساسي
   const [currentSemester, student] = await Promise.all([
     getCurrentSemester(),
     getStudentWithRules(studentId),
   ]);
 
-  // 🔹 step 2: الداتا المستقلة
   const [offerings, prerequisiteCheck] = await Promise.all([
     getOfferings(courses, currentSemester._id),
     validatePrerequisites(studentId, courses),
   ]);
 
-  // 🔹 step 3: validation
   validateCredits(offerings, student);
 
-  // 🔹 step 4: compute
   const { addedCourses, removedCourses, currentCredits } = await computeChanges(
     studentId,
     courses,
@@ -61,7 +57,6 @@ exports.enrollStudent = async (studentId, body) => {
     currentSemester._id,
   );
 
-  // 🔹 step 5: updates (ترتيب مهم)
   await updateCounters(addedCourses, removedCourses, student);
 
   await syncSemesterWork(
@@ -71,8 +66,6 @@ exports.enrollStudent = async (studentId, body) => {
     removedCourses,
     offerings,
   );
-
-  console.log(currentSemester._id);
 
   const enrollment = await saveEnrollment(
     studentId,

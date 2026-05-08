@@ -15,64 +15,10 @@ exports.getStudentAvailableCourses = async (req, res) => {
     const studentId = req.params.id;
 
     // 📌 Current semester
-    const currentSemester = await Semester.findOne({ isCurrent: true });
-    if (!currentSemester) {
-      return res.status(404).json({ message: "Current semester not found" });
-    }
-
-    const semesterId = currentSemester._id;
-
-    // 📌 Transcript
-    const transcript = await Transcript.findOne({ studentId });
-    if (!transcript) {
-      return res.status(404).json({ message: "Transcript not found" });
-    }
-
-    // ✅ IMPORTANT: only passed courses (زي التاني)
-    const completedCourses = transcript.completedCourses
-      .filter(c => c.status === "passed")
-      .map(c => c.courseId.toString());
-
-    // 🎯 Allowed credits (زي التاني)
-    if (transcript.GPA === 0 && transcript.completedCourses.length === 0) {
-      transcript.allowedCredits = 18;
-    } else if (transcript.GPA < 2.0) {
-      transcript.allowedCredits = 12;
-    } else if (transcript.GPA >= 3.0) {
-      transcript.allowedCredits = 21;
-    }
-
-    // 📚 Offerings (زودنا courseType زي التاني)
-    const offerings = await CourseOffering.find({
-      semesterId,
-      status: { $in: ["open", "proposed"] }
-    }).populate(
-      "courseId",
-      "courseName _id courseCredits courseLevel prerequisiteCourses courseType"
-    );
-
-    // ❌ remove completed courses
-    let availableOfferings = offerings.filter(
-      offer =>
-        offer.courseId &&
-        !completedCourses.includes(offer.courseId._id.toString())
-    );
-
-    // ✅ prerequisites check
-    availableOfferings = availableOfferings.filter(offer =>
-      offer.courseId.prerequisiteCourses.every(prereq =>
-        completedCourses.includes(prereq.toString())
-      )
-    );
-
-    res.status(200).json({
-      allowedCredits: transcript.allowedCredits,
-      count: availableOfferings.length,
-      availableOfferings
-    });
-
+    const data = await EnrollmentService.getAvailableCourses(studentId);
+    
+        res.status(200).json(data);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Failed to retrieve available courses" });
   }
 };
