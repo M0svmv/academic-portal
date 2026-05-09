@@ -73,21 +73,25 @@
 }
 
 
-/* --- Section Headers & Filters --- */
 .sd-section-header, .sd-section-header-flex {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    /* margin-bottom: 15px; */
     flex-wrap: wrap;
     gap: 1rem;
     padding-bottom: 15px;
 }
-
+.sd-section-heading{
+    margin: 0 !important;
+    color: #475569;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
 .sd-section-header-flex { border-bottom: 1px solid #eee; }
 
 .sd-section-title-box { display: flex; align-items: center; gap: 0.75rem; }
-.sd-section-title-box h2, .sd-section-heading { font-size: 1.25rem; font-weight: 700; margin: 0; }
+.sd-section-title-box h2 { font-size: 1.25rem; font-weight: 700; margin: 0; }
 .sd-primary-icon { color: var(--primary-blue-color); }
 
 /* Custom Select & Tabs */
@@ -576,14 +580,14 @@
     width: 100%;
 }
 
-.st-glass-card-main {
+/* .st-glass-card-main {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 24px;
     padding: 24px;
-    box-shadow: 0 15px 35px rgba(30, 41, 59, 0.05); /* Shadow واخد من لون الـ Slate */
-}
+    box-shadow: 0 15px 35px rgba(30, 41, 59, 0.05); 
+} */
 
 .st-header {
     margin-bottom: 24px;
@@ -610,8 +614,8 @@
 /* Grid Layout */
 .st-milestones-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
 }
 
 /* Individual Liquid Card */
@@ -625,6 +629,8 @@
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     display: flex;
     flex-direction: column;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            border: 1px solid #d2d2d2 !important;
 }
 
 
@@ -664,6 +670,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
 .st-card-header {
@@ -681,7 +688,7 @@
 }
 
 .st-date-text {
-    font-size: 0.95rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: #0f172a; 
     margin-top: 6px;
