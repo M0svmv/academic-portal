@@ -32,13 +32,11 @@ exports.getDepartmentCourses = async (req, res) => {
 //get advising list
 exports.getAdvisingList = async (req, res) => {
   try {
-    let currentSemester = await Semester.findOne().sort({ createdAt: -1 });
+    const currentSemester = await Semester.findOne({ isCurrent: true });
 
-    if (!currentSemester) {
-      return res.status(404).json({ message: "Current semester not found" });
-    }
-
-    const advisingList = await AdvisingList.find({ advisor: req.user._id })
+    const advisingList = await AdvisingList.find({
+      advisor: req.user._id,
+    })
       .populate("advisor", "staffName email")
       .populate({
         path: "students",
@@ -48,19 +46,36 @@ exports.getAdvisingList = async (req, res) => {
           populate: [
             {
               path: "transcript",
-              select: "GPA completedCredits level regulation alerts atRisk"
+              select:
+                "GPA completedCredits level regulation alerts atRisk",
             },
             {
               path: "enrollment",
-              match: { semesterId: currentSemester._id  },
-              select: "currentEnrolledCredits allowedCredits"
-            }
-          ]
-        }
+              match: currentSemester
+                ? { semesterId: currentSemester._id }
+                : {},
+              select:
+                "currentEnrolledCredits allowedCredits",
+            },
+          ],
+        },
       });
 
-    res.status(200).json(advisingList);
+    // لو مفيش current semester خلي enrollment default object
+    if (!currentSemester) {
+      advisingList.forEach((advisor) => {
+        advisor.students.forEach((s) => {
+          s.student.enrollment = {
+            allowedCredits: 0,
+            currentEnrolledCredits: 0,
+            registrationAvailable: false,
+            message: "No current semester",
+          };
+        });
+      });
+    }
 
+    res.status(200).json(advisingList);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
