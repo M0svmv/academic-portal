@@ -12,7 +12,7 @@ router.post('/',authMiddleware,roleCheckMiddleware('coordinator', 'admin'), seme
 // Get all semesters
 router.get('/',authMiddleware,roleCheckMiddleware('coordinator', 'admin'), semesterController.getAllSemesters);
 //get current semester
-router.get('/current',authMiddleware,roleCheckMiddleware('coordinator', 'admin', 'control-member', 'lecturer', 'ta',  'academic-advisor'),  semesterController.getCurrentSemester);
+router.get('/current',authMiddleware,roleCheckMiddleware('coordinator', 'admin', 'control-member', 'lecturer', 'ta',  'academic-advisor', 'student'),  semesterController.getCurrentSemester);
 
 // Get a semester by ID
 router.get('/:id',authMiddleware,roleCheckMiddleware('coordinator', 'admin'),  semesterController.getSemesterById);
