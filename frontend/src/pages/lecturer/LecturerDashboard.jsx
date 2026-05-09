@@ -504,7 +504,7 @@ const LecturerDashboard = () => {
                                 ))
                             )}
                         </div>
-                        <button className="sd-full-btn sd-view-schedule-btn" onClick={() => navigate("/student/St-Schedule")}>
+                        <button className="sd-full-btn sd-view-schedule-btn" onClick={() => navigate("/staff/lecturer/lec-Schedule")}>
                             View Schedule
                         </button>
                     </div>
