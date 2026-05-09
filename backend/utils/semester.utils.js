@@ -7,5 +7,8 @@ exports.getCurrentSemester = async () => {
 };
 
 exports.getLatestSemester = async () => {
-  return await Semester.findOne().sort({ endDate: -1 });
+  const semesters = await Semester.find().sort({ endDate: 1 });
+  console.log(semesters);
+  return semesters[0];
+  
 };
