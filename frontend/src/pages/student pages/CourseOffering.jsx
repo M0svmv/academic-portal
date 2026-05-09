@@ -271,8 +271,7 @@ const StudentCourseOfferingsPage = () => {
                     </div>
                     <h3>No Active Semester</h3>
                     <p>
-                        The registration system requires an active academic semester to manage courses and enrollment.
-                        Please start a new semester or activate an existing one first.
+                        The course registration period is currently closed. There is no active academic semester available at the moment. Please stay tuned for administrative announcements.
                     </p>
                 </div>
             </div>

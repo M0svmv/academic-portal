@@ -22,7 +22,7 @@ const PreRegistrationManagementPage = () => {
     const [timeLeft, setTimeLeft] = useState("");
     const semesterData = currentSemester;
 
-    // --- Effects ---
+
     useEffect(() => {
         fetchCurrentSemester();
     }, []);
