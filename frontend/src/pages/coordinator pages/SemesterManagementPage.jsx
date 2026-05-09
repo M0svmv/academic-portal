@@ -34,6 +34,7 @@ const SemesterManagementPage = () => {
             if (current) {
                 const detailRes = await api.get(`/semesters/${current._id}`);
                 setCurrentSemester(detailRes.data);
+                console.log(detailRes.data)
             } else {
                 setCurrentSemester(null);
             }
@@ -167,7 +168,7 @@ const SemesterManagementPage = () => {
                                 <td>{new Date(sem.endDate).toLocaleDateString()}</td>
                                 <td>
 
-                                    {sem.settings?.allowEnrollment  ? "Open" : "Closed"}
+                                    {sem.settings?.allowEnrollment ? "Open" : "Closed"}
 
 
                                 </td>

@@ -335,7 +335,7 @@ const EnrollmentStatsPage = () => {
                                             {off.status ? off.status.toUpperCase() : 'N/A'}
                                         </span>
                                     </td>
-                                    <td className="fetchCourse clickable-cell" onClick={() => handleViewStudents(off.courseId?._id, off._id, off.courseId?.courseName, off.instructorId, off.taId)}>
+                                    <td >
                                         {off.enrolledCount || 0}
                                     </td>
                                     <td className="text-center">
