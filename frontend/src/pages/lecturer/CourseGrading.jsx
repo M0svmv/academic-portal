@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Save, Search, TrendingUp, Award, AlertCircle,
-    Calendar, CheckSquare, Square, X, Filter, Users, Trash2, Check, Minus, FileSpreadsheet, ExternalLink
+    Calendar, CheckSquare, Square, X, Filter, Users, Trash2, Check, Minus, FileSpreadsheet, ExternalLink, Lock
     , Loader2
 } from 'lucide-react';
 import { FaArrowLeft } from "react-icons/fa";
@@ -36,9 +36,14 @@ const CourseGrading = () => {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [presentStudents, setPresentStudents] = useState([]);
 
+    // --- New States for Grading Period Logic ---
+    const [isGradingAllowed, setIsGradingAllowed] = useState(true);
+    const [gradingPeriod, setGradingPeriod] = useState(null);
+
     useEffect(() => {
         loadData();
         fetchAttendanceOnly();
+        checkGradingPeriod();
     }, [id]);
 
     const loadData = async () => {
@@ -60,6 +65,23 @@ const CourseGrading = () => {
         }
     };
 
+    const checkGradingPeriod = async () => {
+        try {
+            const res = await api.get('/semesters/current');
+            const timeline = res.data?.timeLine;
+            if (timeline?.grading) {
+                const now = new Date();
+                const start = new Date(timeline.grading.start);
+                const end = new Date(timeline.grading.end);
+
+                setGradingPeriod({ start, end });
+                setIsGradingAllowed(now >= start && now <= end);
+            }
+        } catch (err) {
+            console.error("Error checking grading period", err);
+        }
+    };
+
     const fetchAttendanceOnly = async () => {
         try {
             const res = await api.get(`/lecturers/me/courses/${id}/attendance`);
@@ -70,7 +92,6 @@ const CourseGrading = () => {
         }
     };
 
-    // Load attendance matrix for modal
     const loadAttendanceMatrix = async () => {
         try {
             swalService.showLoading("Loading Matrix...");
@@ -95,6 +116,7 @@ const CourseGrading = () => {
     }, [lecDates, selectedDate]);
 
     const handleGradeChange = (studentId, field, value) => {
+        if (!isGradingAllowed) return;
 
         if (field === 'attendanceGrade') return;
 
@@ -117,7 +139,7 @@ const CourseGrading = () => {
     };
 
     const toggleAttendance = (studentId) => {
-        if (isTodayAttendanceTaken) return;
+        if (isTodayAttendanceTaken || !isGradingAllowed) return;
         setPresentStudents(prev =>
             prev.includes(studentId)
                 ? prev.filter(id => id !== studentId)
@@ -126,6 +148,9 @@ const CourseGrading = () => {
     };
 
     const saveEverything = async () => {
+        if (!isGradingAllowed) {
+            return swalService.error("Locked", "Grading period has ended or not started yet.");
+        }
         try {
             swalService.showLoading("Saving data...");
 
@@ -144,7 +169,6 @@ const CourseGrading = () => {
             }
 
             if (hasAttendanceToSave) {
-                // تعديل بناءً على الـ API Request format الجديد
                 const attendancePayload = {
                     lecDate: selectedDate,
                     students: presentStudents
@@ -163,6 +187,7 @@ const CourseGrading = () => {
     };
 
     const deleteLecture = async (date) => {
+        if (!isGradingAllowed) return;
         const result = await swalService.confirm("Are you sure?", `This will delete all attendance records for ${new Date(date).toLocaleDateString()}`);
         if (result.isConfirmed) {
             try {
@@ -177,8 +202,8 @@ const CourseGrading = () => {
     };
 
     const updateStudentAttendance = async (studentId, lectureIndex, currentStatus) => {
+        if (!isGradingAllowed) return;
         try {
-            // status: 0 for absent, 1 for present
             await api.put(`/lecturers/me/courses/${id}/attendance/${studentId}`, {
                 lectureIndex,
                 status: currentStatus ? 0 : 1
@@ -262,7 +287,15 @@ const CourseGrading = () => {
             <header className="management-header">
                 <div className="prereg-header">
                     <button className="back-btn-round" onClick={() => navigate(-1)}><FaArrowLeft /></button>
-                    <h2>{course?.courseId?.courseName || course?.courseId}</h2>
+                    <div>
+                        <h2>{course?.courseId?.courseName || course?.courseId}</h2>
+                        {!isGradingAllowed && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#ef4444', fontSize: '12px', fontWeight: 'bold', marginTop: '4px' }}>
+                                <Lock size={12} /> Grading Window Closed
+                            </div>
+                        )}
+                    </div>
+
                 </div>
 
                 <div className="split-button-container" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -285,14 +318,14 @@ const CourseGrading = () => {
                         {isTodayAttendanceTaken && <span style={{ fontSize: '10px', color: '#ef4444', fontWeight: 'bold' }}>TAKEN</span>}
                     </div>
 
-                    <button className="btn-2" onClick={exportToCSV} >
+                    <button className="btn-2" onClick={exportToCSV} disabled={!isGradingAllowed} >
                         <FileSpreadsheet size={18} /> Export CSV
                     </button>
 
                     <button
-                        className={`btn-1 ${(!hasUnsavedChanges && !hasAttendanceToSave) ? 'btn-disabled' : ''}`}
+                        className={`btn-1 ${(!hasUnsavedChanges && !hasAttendanceToSave) || !isGradingAllowed ? 'btn-disabled' : ''}`}
                         onClick={saveEverything}
-                        disabled={!hasUnsavedChanges && !hasAttendanceToSave}
+                        disabled={(!hasUnsavedChanges && !hasAttendanceToSave) || !isGradingAllowed}
                     >
                         <Save size={18} /> {(hasUnsavedChanges || hasAttendanceToSave) ? "Save Everything" : "Up to date"}
                     </button>
@@ -320,6 +353,11 @@ const CourseGrading = () => {
                     <div className="insight-header">
                         <span className="insight-icon icon-purple"><Award size={18} /></span>
                         <span className="insight-label">Mark Distribution (Max)</span>
+                        {!isGradingAllowed && gradingPeriod && (
+                            <span style={{ fontSize: '11px', color: '#ef4444', marginLeft: 'auto', background: '#fee2e2', padding: '2px 8px', borderRadius: '5px' }}>
+                                Period: {new Date(gradingPeriod.start).toLocaleDateString()} - {new Date(gradingPeriod.end).toLocaleDateString()}
+                            </span>
+                        )}
                     </div>
                     <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
                         {Object.entries(course?.gradingSchema || {}).map(([key, val]) => (
@@ -394,11 +432,18 @@ const CourseGrading = () => {
                                         }}
                                     >
                                         <td style={{ textAlign: 'center' }}>
-                                            <button onClick={() => toggleAttendance(s.studentId._id)}
+                                            {/* <button onClick={() => toggleAttendance(s.studentId._id)}
                                                 disabled={isTodayAttendanceTaken}
                                                 style={{ background: 'none', border: 'none', cursor: isTodayAttendanceTaken ? 'not-allowed' : 'pointer' }}
                                             >
                                                 {isPresent ? <CheckSquare size={20} color="#2563eb" fill="#eff6ff" /> : <Square size={20} color="#cbd5e1" />}
+                                            </button> */}
+
+                                            <button onClick={() => toggleAttendance(s.studentId._id)}
+                                                disabled={isTodayAttendanceTaken || !isGradingAllowed}
+                                                style={{ background: 'none', border: 'none', cursor: (isTodayAttendanceTaken || !isGradingAllowed) ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                {isPresent ? <CheckSquare size={20} color={!isGradingAllowed ? "#94a3b8" : "#2563eb"} fill="#eff6ff" /> : <Square size={20} color="#cbd5e1" />}
                                             </button>
                                         </td>
                                         <td
@@ -436,17 +481,26 @@ const CourseGrading = () => {
                                                             padding: '4px',
                                                             borderRadius: '4px',
                                                             textAlign: 'center',
-                                                            border: isAttendance ? '1px solid #cbd5e1' : (isChanged ? '1px solid #f59e0b' : '1px solid #e2e8f0'),
-                                                            backgroundColor: isAttendance ? '#f1f5f9' : (isChanged ? '#fffbeb' : 'white'),
-                                                            color: isAttendance ? '#64748b' : 'var( --primary-blue-color)',
-                                                            cursor: isAttendance ? 'not-allowed' : 'text'
+                                                            border: isAttendance || !isGradingAllowed ? '1px solid #cbd5e1' : (isChanged ? '1px solid #f59e0b' : '1px solid #e2e8f0'),
+                                                            backgroundColor: isAttendance || !isGradingAllowed ? '#f1f5f9' : (isChanged ? '#fffbeb' : 'white'),
+                                                            color: isAttendance || !isGradingAllowed ? '#64748b' : 'var( --primary-blue-color)',
+                                                            cursor: isAttendance || !isGradingAllowed ? 'not-allowed' : 'text'
                                                         }}
                                                     />
                                                 </td>
                                             );
                                         })}
                                         <td style={{ textAlign: 'center' }}>
-                                            <span style={{ fontWeight: 'bold', color: '#2563eb' }}>{total}</span>
+                                            <span style={{
+                                                fontWeight: 'bold',
+                                                color: total < 30 ? '#ef4444' : '#2563eb',
+                                                background: total < 30 ? '#fee2e2' : '#dbeafe',
+                                                padding: '2px 8px',
+                                                borderRadius: '12px',
+                                                fontSize: '0.9em'
+                                            }}>
+                                                {total}
+                                            </span>
                                         </td>
                                     </tr>
 
@@ -491,7 +545,14 @@ const CourseGrading = () => {
                 </table>
             </div>
 
-            {(hasUnsavedChanges || hasAttendanceToSave) && (
+            {/* {(hasUnsavedChanges || hasAttendanceToSave) && (
+                <div className="unsaved-alert" style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', background: 'var( --primary-blue-color)', color: 'white', padding: '12px 24px', borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '15px', zIndex: 1000, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+                    <AlertCircle size={20} color="#f59e0b" />
+                    <span style={{ fontSize: '13px' }}>Unsaved {hasUnsavedChanges ? "Grades" : ""} {hasUnsavedChanges && hasAttendanceToSave ? "&" : ""} {hasAttendanceToSave ? "Attendance" : ""}</span>
+                    <button onClick={saveEverything} style={{ background: '#3b82f6', border: 'none', color: 'white', padding: '6px 18px', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer' }}>Save Changes</button>
+                </div>
+            )} */}
+            {(hasUnsavedChanges || hasAttendanceToSave) && isGradingAllowed && (
                 <div className="unsaved-alert" style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', background: 'var( --primary-blue-color)', color: 'white', padding: '12px 24px', borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '15px', zIndex: 1000, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
                     <AlertCircle size={20} color="#f59e0b" />
                     <span style={{ fontSize: '13px' }}>Unsaved {hasUnsavedChanges ? "Grades" : ""} {hasUnsavedChanges && hasAttendanceToSave ? "&" : ""} {hasAttendanceToSave ? "Attendance" : ""}</span>

@@ -14,17 +14,20 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
 
     const today = new Date();
 
+    // تم إضافة Withdrawal و Grading لترتيب الأحداث الأكاديمية
     const academicEvents = [
         { name: "Semester Start", date: new Date(startDate), isBoundary: true },
         { name: "Pre-Registration", key: "preRegistration", dates: timeLine?.preRegistration, date: new Date(timeLine?.preRegistration?.start) },
         { name: "Add / Drop", key: "addDrop", dates: timeLine?.addDrop, date: new Date(timeLine?.addDrop?.start) },
+        { name: "Withdrawal", key: "withdrawal", dates: timeLine?.withdrawal, date: new Date(timeLine?.withdrawal?.start) }, // الجديد
+        { name: "Grading", key: "grading", dates: timeLine?.grading, date: new Date(timeLine?.grading?.start) },       // الجديد
         { name: "Final Exams", key: "finalExams", dates: timeLine?.finalExams, date: new Date(timeLine?.finalExams?.start) },
         { name: "Semester End", date: new Date(endDate), isBoundary: true }
     ];
 
     const calculateProgress = () => {
         const totalPoints = academicEvents.length;
-        const segmentWidth = 100 / (totalPoints - 1); 
+        const segmentWidth = 100 / (totalPoints - 1);
 
         for (let i = 0; i < totalPoints - 1; i++) {
             const currentEventDate = academicEvents[i].date;
@@ -87,12 +90,12 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
                 end: new Date(editModal.dates.end).toISOString()
             };
 
+            // الـ URL سيعتمد على editModal.type (withdrawal أو grading الخ)
             await api.put(`/semesters/${semesterId}/${editModal.type}`, payload);
 
             setEditModal({ ...editModal, show: false });
 
             await swalService.success("Timeline Updated", `The ${editModal.type} period has been updated.`);
-
 
             if (onUpdate) onUpdate();
         } catch (err) {
@@ -111,7 +114,6 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
                     <div className="timeline-progress" style={{ width: `${progressPercentage}%` }}></div>
                 </div>
 
-
                 <div className="timeline-events">
                     {academicEvents.map((event, i) => {
                         const isReached = today >= event.date;
@@ -119,7 +121,6 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
 
                         return (
                             <div key={i} className={`timeline-point ${isReached ? "reached" : ""} ${isCurrentActive ? "active" : ""}`}>
-
 
                                 {event.key && (
                                     <button className="edit-timeline-btn" onClick={() => openEdit(event.key, event.dates)}>
@@ -142,7 +143,6 @@ const SemesterTimeline = ({ startDate, endDate, timeLine, semesterId, onUpdate }
                     })}
                 </div>
             </div>
-
 
             {editModal.show && (
                 <div className="modal-overlay" style={{ zIndex: 2000 }}>

@@ -12,8 +12,6 @@ import "./styles/StudentDashboard.css";
 
 const StudentDashboard = () => {
     const navigate = useNavigate();
-
-    // States
     const [announcements, setAnnouncements] = useState([]);
     const [filteredAnnouncements, setFilteredAnnouncements] = useState([]);
     const [meetings, setMeetings] = useState([]);
@@ -32,28 +30,46 @@ const StudentDashboard = () => {
         try {
             setLoading(true);
 
-            const [annRes, meetingRes, profileRes, scheduleRes, detailsRes, requestsRes] = await Promise.all([
+            const results = await Promise.allSettled([
                 api.get("/student/me/announcements"),
                 api.get("/student/me/meetings"),
-                api.get("/student/me/profile").catch(() => ({ data: { studentName: "Student" } })),
-                api.get('/student/me/courses/my-schedule'),
+                api.get("/student/me/profile"),
                 api.get("/student/me/details"),
-                api.get("/student/me/academic-requests")
+                api.get("/student/me/academic-requests"),
+                api.get('/student/me/courses/my-schedule').catch(err => {
+                    console.error("Schedule failed, returning empty data");
+                    return { data: { offerings: [], schedule: [] } };
+                }),
             ]);
 
-            setAnnouncements(annRes.data);
-            setFilteredAnnouncements(annRes.data);
-            setMeetings(meetingRes.data);
-            setStudentName(profileRes.data.studentName || profileRes.data.name || "Student");
-            setDetails(detailsRes.data);
-            setAcademicRequests(requestsRes.data.Requests || []);
+            const [annRes, meetingRes, profileRes, detailsRes, requestsRes, scheduleRes] = results;
 
-            if (scheduleRes.data && scheduleRes.data.offerings) {
+
+            if (annRes.status === 'fulfilled') {
+                setAnnouncements(annRes.value.data);
+                setFilteredAnnouncements(annRes.value.data);
+            }
+
+            if (meetingRes.status === 'fulfilled') setMeetings(meetingRes.value.data);
+
+            if (profileRes.status === 'fulfilled') {
+                setStudentName(profileRes.value.data.studentName || "Student");
+            }
+
+            if (detailsRes.status === 'fulfilled') setDetails(detailsRes.value.data);
+
+            if (requestsRes.status === 'fulfilled') {
+                setAcademicRequests(requestsRes.value.data.Requests || []);
+            }
+
+            // معالجة الجدول (حتى لو رجع 500 مش هيضرب الكود)
+            if (scheduleRes.status === 'fulfilled' && scheduleRes.value.data?.offerings) {
+                const data = scheduleRes.value.data;
                 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                 const todayName = daysOfWeek[new Date().getDay()];
-                const periods = scheduleRes.data.schedule[0]?.periodsTime || [];
+                const periods = data.schedule[0]?.periodsTime || [];
 
-                const todayClasses = scheduleRes.data.offerings
+                const todayClasses = data.offerings
                     .filter(course => course.schedule && course.schedule.days.includes(todayName))
                     .map(course => {
                         const periodIndex = course.schedule.lecPeriod - 1;
@@ -64,11 +80,13 @@ const StudentDashboard = () => {
                         };
                     });
                 setTodaySchedule(todayClasses);
+            } else {
+                console.warn("Schedule data failed to load or is empty");
+                setTodaySchedule([]);
             }
 
         } catch (err) {
-            console.error("Dashboard error:", err);
-
+            console.error("Critical Dashboard error:", err);
         } finally {
             setLoading(false);
         }
@@ -242,6 +260,7 @@ const StudentDashboard = () => {
             <header className="sd-main-header">
                 <div className="prereg-header">
                     <h2 className="sd-title">Welcome back, {details?.transcript?.studentId?.studentName}!</h2>
+
                     <p className="sd-subtitle" >
                         <span className={`badge level-${details?.transcript?.level}`}>{details?.transcript?.level}</span>
                         <span className={`badge reg-${details?.transcript?.regulation?.toLowerCase()}`} style={{ marginLeft: '5px' }}>
@@ -250,6 +269,13 @@ const StudentDashboard = () => {
                         <span className="badge dept" style={{ marginLeft: '5px' }}> {details?.semester?.name || "Loading..."}</span>
                     </p>
                 </div>
+                {/* إضافة اسم المرشد هنا */}
+                {details?.advisor && (
+                    <span className="badge advisor-badge" style={{ backgroundColor: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' }}>
+                        <User size={12} style={{ marginRight: '4px' }} />
+                        Advisor: Dr/ {details.advisor.staffName}
+                    </span>
+                )}
             </header >
 
             <div className="insights-grid">
@@ -536,14 +562,10 @@ const StudentDashboard = () => {
                             </div>
                         </div>
 
-                        {loading ? (
-                            <div className="sd-loading-state">
-                                <div className="sd-custom-spinner"></div>
-                                <p>Updating feed...</p>
-                            </div>
-                        ) : filteredAnnouncements.length === 0 ? (
-                            <div className="sd-empty-state">
-                                <p>No announcements found in this category.</p>
+                        {filteredAnnouncements.length === 0 ? (
+                            <div className="sd-empty-state" style={{ padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.4)', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                                <Megaphone size={32} style={{ color: '#94a3b8', marginBottom: '10px' }} />
+                                <p style={{ color: '#64748b', fontWeight: '500' }}>No announcements for this course yet.</p>
                             </div>
                         ) : (
                             <div className="sd-cards-stack" >

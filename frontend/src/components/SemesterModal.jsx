@@ -6,7 +6,7 @@ import swalService from "../services/swal";
 
 const SemesterModal = ({ show, onClose, onSuccess }) => {
     const currentYear = new Date().getFullYear();
-    const years = [currentYear - 1, currentYear, currentYear + 1, currentYear + 2];
+    const years = [currentYear - 1, currentYear, currentYear, currentYear + 1, currentYear + 2];
 
     // --- States ---
     const [term, setTerm] = useState("Fall");
@@ -14,9 +14,11 @@ const SemesterModal = ({ show, onClose, onSuccess }) => {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
 
-    // Timeline States (Pre-Reg, Add/Drop, Finals)
+    // Timeline States (Pre-Reg, Add/Drop, Withdrawal, Grading, Finals)
     const [preReg, setPreReg] = useState({ start: "", end: "" });
     const [addDrop, setAddDrop] = useState({ start: "", end: "" });
+    const [withdrawal, setWithdrawal] = useState({ start: "", end: "" }); // الجديد
+    const [grading, setGrading] = useState({ start: "", end: "" });       // الجديد
     const [finalExams, setFinalExams] = useState({ start: "", end: "" });
 
     // --- Helpers ---
@@ -36,18 +38,26 @@ const SemesterModal = ({ show, onClose, onSuccess }) => {
             const aStart = addDays(pEnd, 1);
             const aEnd = addDays(aStart, 7);
 
+            // منطق تلقائي مقترح للفترات الجديدة (يمكن للمستخدم تعديلها يدوياً)
+            const wStart = addDays(aEnd, 1);
+            const wEnd = addDays(wStart, 30); // شهر للانسحاب
+
             const fStart = addDays(startDate, 100);
             const fEnd = addDays(fStart, 10);
 
+            const gStart = addDays(fStart, -7); // رصد الدرجات يبدأ قبل الفاينال بأسبوع
+            const gEnd = fEnd;
+
             setPreReg({ start: pStart, end: pEnd });
             setAddDrop({ start: aStart, end: aEnd });
+            setWithdrawal({ start: wStart, end: wEnd });
+            setGrading({ start: gStart, end: gEnd });
             setFinalExams({ start: fStart, end: fEnd });
             setEndDate(addDays(fEnd, 2));
         }
     }, [startDate]);
 
     if (!show) return null;
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -66,6 +76,14 @@ const SemesterModal = ({ show, onClose, onSuccess }) => {
                 addDrop: {
                     start: new Date(addDrop.start).toISOString(),
                     end: new Date(addDrop.end).toISOString()
+                },
+                withdrawal: {
+                    start: new Date(withdrawal.start).toISOString(),
+                    end: new Date(withdrawal.end).toISOString()
+                },
+                grading: {
+                    start: new Date(grading.start).toISOString(),
+                    end: new Date(grading.end).toISOString()
                 },
                 finalExams: {
                     start: new Date(finalExams.start).toISOString(),
@@ -86,7 +104,7 @@ const SemesterModal = ({ show, onClose, onSuccess }) => {
             await swalService.success("Congratulations!", "Semester Created Successfully! 🚀");
 
             onSuccess(res.data);
-            onClose(); 
+            onClose();
         } catch (err) {
             console.error(err);
             const errorMessage = err.response?.data?.message || "Error creating semester";
@@ -153,6 +171,26 @@ const SemesterModal = ({ show, onClose, onSuccess }) => {
                                     </div>
                                 </div>
 
+                                {/* Withdrawal Period - جديد */}
+                                <div className="timeline-item">
+                                    <label>Course Withdrawal Period</label>
+                                    <div className="date-range-inputs">
+                                        <input type="date" value={withdrawal.start} onChange={(e) => setWithdrawal({ ...withdrawal, start: e.target.value })} required />
+                                        <span>to</span>
+                                        <input type="date" value={withdrawal.end} onChange={(e) => setWithdrawal({ ...withdrawal, end: e.target.value })} required />
+                                    </div>
+                                </div>
+
+                                {/* Grading Period - جديد */}
+                                <div className="timeline-item">
+                                    <label>Mid-Term & Grading Period</label>
+                                    <div className="date-range-inputs">
+                                        <input type="date" value={grading.start} onChange={(e) => setGrading({ ...grading, start: e.target.value })} required />
+                                        <span>to</span>
+                                        <input type="date" value={grading.end} onChange={(e) => setGrading({ ...grading, end: e.target.value })} required />
+                                    </div>
+                                </div>
+
                                 {/* Final Exams */}
                                 <div className="timeline-item">
                                     <label>Final Exams Period</label>
@@ -171,7 +209,7 @@ const SemesterModal = ({ show, onClose, onSuccess }) => {
                         </div>
 
                         <div className="modal-footer">
-                            <button className="cancel-btn " type="button" onClick={onClose}>Cancel</button>
+                            <button className="cancel-btn" type="button" onClick={onClose}>Cancel</button>
                             <button className="create-btn" type="submit">
                                 Launch Semester
                             </button>

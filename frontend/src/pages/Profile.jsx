@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Cookies from "js-cookie";
 import { User, Mail, Phone, Lock, Save, ShieldCheck, RefreshCw, Edit2, X, Loader2 } from 'lucide-react';
 import api from '../services/api';
@@ -8,14 +9,16 @@ import "./styles/Profile.css";
 
 const Profile = () => {
     const userType = Cookies.get("userType");
+    const location = useLocation();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
     const [originalData, setOriginalData] = useState({});
-
     const [formData, setFormData] = useState({});
-
     const [isEditMode, setIsEditMode] = useState(false);
+
+    // --- حالة جديدة لتحديد ما إذا كانت البيانات ناقصة فعلياً ---
+    const [isDataIncomplete, setIsDataIncomplete] = useState(false);
 
     const [passwordData, setPasswordData] = useState({
         newPassword: '',
@@ -32,8 +35,20 @@ const Profile = () => {
         const fetchUserData = async () => {
             try {
                 const response = await api.get(endpoint);
-                setFormData(response.data);
-                setOriginalData(response.data);
+                const data = response.data;
+                setFormData(data);
+                setOriginalData(data);
+
+                const hasMissingInfo = !data[emailKey] || !data[phoneKey];
+                setIsDataIncomplete(hasMissingInfo);
+
+                if (location.state?.forceEdit || hasMissingInfo) {
+                    setIsEditMode(true);
+                    swalService.info(
+                        "Information Required",
+                        "Please complete your profile details (Email and Phone) to continue."
+                    );
+                }
             } catch (error) {
                 console.error("Error fetching profile:", error);
             } finally {
@@ -41,13 +56,19 @@ const Profile = () => {
             }
         };
         fetchUserData();
-    }, [endpoint]);
+    }, [endpoint, location.state, emailKey, phoneKey]);
 
 
     const isDirty = JSON.stringify(formData) !== JSON.stringify(originalData);
 
     const handleUpdateInfo = async (e) => {
         e.preventDefault();
+
+        if (!formData[emailKey] || !formData[phoneKey]) {
+            swalService.error("Missing Info", "Email and Phone number are required.");
+            return;
+        }
+
         if (!isDirty) return;
 
         const confirmSave = await swalService.confirm(
@@ -59,21 +80,27 @@ const Profile = () => {
 
         setSaving(true);
         try {
+            // نرسل الـ formData المعدلة للـ API
             const response = await api.put(endpoint, formData);
-            const updatedData = (response.data && !response.data.message) ? response.data : formData;
 
-            setFormData(updatedData);
-            setOriginalData(updatedData);
+            // تصحيح: نعتمد على formData الحالية لو الـ API مرجعش الـ Object كامل
+            const updatedDataFromApi = (response.data && response.data[emailKey]) ? response.data : formData;
 
+            setFormData(updatedDataFromApi);
+            setOriginalData(updatedDataFromApi);
+
+            setIsDataIncomplete(false);
 
             swalService.success("Updated!", "Your profile has been updated successfully.");
             setIsEditMode(false);
         } catch (error) {
+            console.error("Update error:", error);
             swalService.error("Update Failed", "We couldn't update your info. Please try again.");
         } finally {
             setSaving(false);
         }
     };
+
     const getPasswordStrength = (password) => {
         let points = 0;
         if (password.length > 8) points++;
@@ -82,14 +109,15 @@ const Profile = () => {
         if (/[^A-Za-z0-9]/.test(password)) points++;
 
         const levels = [
-            { label: "Very Weak", color: "#ef4444", width: "25%" }, // Red
-            { label: "Weak", color: "#fb923c", width: "50%" },      // Orange
-            { label: "Strong", color: "#facc15", width: "75%" },    // Yellow
-            { label: "Very Strong", color: "#22c55e", width: "100%" } // Green
+            { label: "Very Weak", color: "#ef4444", width: "25%" },
+            { label: "Weak", color: "#fb923c", width: "50%" },
+            { label: "Strong", color: "#facc15", width: "75%" },
+            { label: "Very Strong", color: "#22c55e", width: "100%" }
         ];
 
         return password ? levels[points - 1] || levels[0] : null;
     };
+
     const handlePasswordChange = async (e) => {
         e.preventDefault();
         const strength = getPasswordStrength(passwordData.newPassword);
@@ -105,7 +133,7 @@ const Profile = () => {
         }
 
         setSaving(true);
-        swalService.showLoading("Securing your account..."); 
+        swalService.showLoading("Securing your account...");
 
         try {
             await api.put(`${endpoint}`, {
@@ -123,6 +151,11 @@ const Profile = () => {
     };
 
     const cancelEdit = async () => {
+        if (isDataIncomplete) {
+            swalService.error("Action Prohibited", "You must fill in your email and phone before you can exit edit mode.");
+            return;
+        }
+
         if (isDirty) {
             const result = await swalService.confirm(
                 "Discard Changes?",
@@ -164,12 +197,11 @@ const Profile = () => {
         <div className="management-container profile-page">
             <header className="management-header">
                 <div className="prereg-header">
-                    <h2>Account Settings</h2>
+                    <h2>Account Settings {isDataIncomplete && <span style={{ color: '#ef4444', fontSize: '14px', marginLeft: '10px' }}>(Information Required)</span>}</h2>
                 </div>
             </header>
 
             <div className="profile-grid">
-
                 {/* كارد المعلومات الشخصية */}
                 <div className="profile-page-insight-card">
                     <div className="insight-header">
@@ -177,7 +209,8 @@ const Profile = () => {
                             <span className="insight-icon icon-blue"><User size={20} /></span>
                             <span className="insight-label">Personal Information</span>
                         </div>
-                        {!isEditMode && (
+                        {/* إخفاء زرار التعديل إذا كنا بالفعل في وضع الإجبار أو التعديل */}
+                        {!isEditMode && !isDataIncomplete && (
                             <button className="btn-edit-toggle" onClick={() => setIsEditMode(true)}>
                                 <Edit2 size={14} /> Edit Profile
                             </button>
@@ -208,6 +241,8 @@ const Profile = () => {
                                 value={formData[emailKey] || ""}
                                 readOnly={!isEditMode}
                                 onChange={(e) => setFormData({ ...formData, [emailKey]: e.target.value })}
+                                required
+                                placeholder="Required for notifications"
                             />
                         </div>
 
@@ -218,6 +253,8 @@ const Profile = () => {
                                 value={formData[phoneKey] || ""}
                                 readOnly={!isEditMode}
                                 onChange={(e) => setFormData({ ...formData, [phoneKey]: e.target.value })}
+                                required
+                                placeholder="Required for contact"
                             />
                         </div>
 
@@ -227,9 +264,13 @@ const Profile = () => {
                                     {saving ? <RefreshCw className="spin" size={16} /> : <Save size={16} />}
                                     <span>Save Changes</span>
                                 </button>
-                                <button type="button" className="main-add-btn-profile btn-cancel" onClick={cancelEdit}>
-                                    Cancel
-                                </button>
+
+                                {/* إخفاء زرار الـ Cancel تماماً لو البيانات ناقصة */}
+                                {!isDataIncomplete && (
+                                    <button type="button" className="main-add-btn-profile btn-cancel" onClick={cancelEdit}>
+                                        Cancel
+                                    </button>
+                                )}
                             </div>
                         )}
                     </form>
@@ -254,13 +295,13 @@ const Profile = () => {
                                 onClick={() => setShowPassSection(true)}
                                 className="btn-edit-toggle"
                                 style={{ margin: '0 auto', padding: '10px 20px' }}
+                                disabled={isDataIncomplete} // تعطيل تغيير الباسورد حتى تكتمل البيانات الأساسية
                             >
                                 Change Account Password
                             </button>
                         </div>
                     ) : (
                         <form onSubmit={handlePasswordChange} className="profile-form-layout">
-
                             <div className="form-group">
                                 <label>New Password</label>
                                 <input
@@ -271,7 +312,6 @@ const Profile = () => {
                                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                                 />
 
-                                {/* الـ Strength Meter */}
                                 {passwordData.newPassword && (
                                     <div className="password-strength-wrapper">
                                         <div className="strength-bar-container">

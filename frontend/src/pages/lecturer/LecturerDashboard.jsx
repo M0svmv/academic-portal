@@ -387,7 +387,6 @@ const LecturerDashboard = () => {
                     <div className="chart-wrapper">
                         <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={courses.map(c => ({
-                                // نرسل الاسم الكامل للبيانات حتى يظهر في الـ Tooltip
                                 fullName: c.courseId?.courseName || "N/A",
                                 name: c.courseId?.courseCode || c.courseId?.courseName.substring(0, 5) || "N/A",
                                 credits: c.courseId?.courseCredits || 0

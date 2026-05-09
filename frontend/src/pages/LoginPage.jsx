@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Lock, Eye, EyeOff } from "lucide-react"; // استخدام لوسيد ريأكت
+import { User, Lock, Eye, EyeOff } from "lucide-react";
 import Cookies from "js-cookie";
 import api from "../services/api";
 import "./styles/LoginPage.css";
+import swalService from "../services/swal"; // استدعاء السيرفيس للتنبيه
 
 const LoginPage = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false); // حالة إظهار الباسورد
+    const [showPassword, setShowPassword] = useState(false);
     const [roleType, setRoleType] = useState("student");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -38,9 +39,20 @@ const LoginPage = () => {
 
             Cookies.set("currentUser", JSON.stringify(user), { expires: 1 });
 
+            // --- منطق فحص البيانات الناقصة ---
+            const email = roleType === "student" ? user.studentEmail : user.email;
+            const phone = roleType === "student" ? user.studentPhone : user.phone;
+
+            const isDataMissing = !email || !phone || email.trim() === "" || phone.trim() === "";
+
             if (roleType === "student") {
                 Cookies.set("userType", "student", { expires: 1 });
-                navigate("/student/dashboard", { replace: true });
+                if (isDataMissing) {
+                    // توجيه للبروفايل مع بعت معلومة إن الداتا ناقصة
+                    navigate("/student/profile", { state: { forceEdit: true }, replace: true });
+                } else {
+                    navigate("/student/dashboard", { replace: true });
+                }
             } else {
                 const roles = user.roles || [];
                 if (roles.length === 0) {
@@ -50,7 +62,13 @@ const LoginPage = () => {
                 const firstRole = roles[0];
                 Cookies.set("activeRole", firstRole, { expires: 1 });
                 Cookies.set("userType", "staff", { expires: 1 });
-                navigate(`/staff/${firstRole}/dashboard`, { replace: true });
+
+                if (isDataMissing) {
+                    // توجيه لبروفايل الموظف مع بعت معلومة إن الداتا ناقصة
+                    navigate("/staff/profile", { state: { forceEdit: true }, replace: true });
+                } else {
+                    navigate(`/staff/${firstRole}/dashboard`, { replace: true });
+                }
             }
         } catch (err) {
             console.error("Login error:", err);
