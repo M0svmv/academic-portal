@@ -21,9 +21,18 @@ import {
     CalendarDays,
     BellRing,
     MessagesSquare,
-    FileText,    // أيقونة جديدة للطلبات
-    Layers,      // أيقونة إضافية محتملة
-    Clock        // أيقونة للسجل التاريخي
+    FileText,
+    Layers,
+    Clock,
+    // أيقونات جديدة لتحسين الشكل
+    GitPullRequestDraft,
+    MonitorCheck,
+    GanttChart,
+    UserRoundCheck,
+    Contact2,
+    CalendarRange,
+    Settings2,
+    Trophy
 } from "lucide-react";
 
 const iconSize = 20;
@@ -58,7 +67,7 @@ export const menuConfig = {
         {
             name: "Requests",
             path: "/student/St-Requests",
-            icon: <FileText size={iconSize} />
+            icon: <GitPullRequestDraft size={iconSize} />
         },
     ],
 
@@ -91,12 +100,12 @@ export const menuConfig = {
         {
             name: "Staff Management",
             path: "/staff/coordinator/ece-staff",
-            icon: <Briefcase size={iconSize} />
+            icon: <Contact2 size={iconSize} />
         },
         {
             name: "Advising Management",
             path: "/staff/coordinator/Advising-management",
-            icon: <UserCheck size={iconSize} />
+            icon: <UserRoundCheck size={iconSize} />
         },
         {
             name: "Anouncements",
@@ -106,15 +115,13 @@ export const menuConfig = {
         {
             name: "Schedule",
             path: "/staff/coordinator/ScheduleManager",
-            icon: <CalendarDays size={iconSize} />
+            icon: <CalendarRange size={iconSize} />
         },
         {
             name: "Requests",
             path: "/staff/coordinator/coo-Requests",
-            icon: <FileText size={iconSize} />
+            icon: <GitPullRequestDraft size={iconSize} />
         },
-
-
     ],
 
     lecturer: [
@@ -164,7 +171,7 @@ export const menuConfig = {
         {
             name: "Requests",
             path: "/staff/academic-advisor/Adv-Requests",
-            icon: <FileText size={iconSize} />
+            icon: <GitPullRequestDraft size={iconSize} />
         },
     ],
 
@@ -205,7 +212,7 @@ export const menuConfig = {
         {
             name: "System Settings",
             path: "/staff/admin/settings",
-            icon: <Settings size={iconSize} />
+            icon: <Settings2 size={iconSize} />
         }
     ],
 
@@ -213,12 +220,12 @@ export const menuConfig = {
         {
             name: "Dashboard",
             path: "/staff/control/dashboard",
-            icon: <LayoutDashboard size={iconSize} />
+            icon: <MonitorCheck size={iconSize} />
         },
         {
             name: "Results Management",
             path: "/staff/control-member/results",
-            icon: <ClipboardCheck size={iconSize} />
+            icon: <Trophy size={iconSize} />
         },
         // {
         //     name: "Grades Audit",
