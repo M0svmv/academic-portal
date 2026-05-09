@@ -329,6 +329,7 @@ const AdvisingDetails = () => {
                                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                                                 <button
                                                     className="btn-view"
+                                                    onClick={() => navigate(`/staff/${role}/students/${item.student?._id}`)}
                                                     title="View Profile"
 
                                                 >
