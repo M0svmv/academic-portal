@@ -320,7 +320,6 @@ const ScheduleManager = () => {
                 title={offering.courseId?.courseName}
                 onMouseLeave={() => setActiveMenu(null)}
             >
-                {/* الجزء العلوي (Badges & Menu) */}
                 {isInsideGrid && (<div className="card-top-badges">
                     <div className="left-badges">
                         {offering.enrolledCount !== undefined && (
@@ -385,7 +384,6 @@ const ScheduleManager = () => {
                     )}
                 </div>
 
-                {/* التفاصيل الأساسية فقط */}
                 <div className="course-details-wrapper">
 
                     {isInsideGrid && (
@@ -457,7 +455,6 @@ const ScheduleManager = () => {
         );
     };
 
-    // Sidebar search filter
     const filteredOfferings = offerings
         .filter(o => !o.schedule?.days?.length)
         .filter(o =>

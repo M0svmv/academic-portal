@@ -138,7 +138,7 @@ const TASchedule = () => {
                     <tbody>
                         {daysOfWeek.map(day => (
                             <tr key={day}>
-                                <td className="day-cell">{day}</td>
+                                <td className="day-name">{day}</td>
                                 {[...Array(6)].map((_, i) => {
                                     const currentCourses = courses?.filter(o =>
                                         o.schedule?.days?.includes(day) &&
