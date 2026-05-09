@@ -33,15 +33,13 @@ const LecturerDashboard = () => {
 
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
-    // --- Logic for Insights & Charts ---
+
     const processedStats = useMemo(() => {
         const levels = {};
         const regs = {};
 
-        // الإصلاح هنا: نعتمد على بيانات الكورسات لأنها تحتوي على المستوى واللائحة
         if (courses && courses.length > 0) {
             courses.forEach(c => {
-                // إذا كان المستخدم يختار كورس معين، نحسب بيانات هذا الكورس فقط في الـ Pie Charts
                 if (statsCourseFilter === "all" || c._id === statsCourseFilter) {
                     const lvl = c.courseId?.courseLevel || "Unknown";
                     const reg = c.courseId?.courseRegulation || "Other";
