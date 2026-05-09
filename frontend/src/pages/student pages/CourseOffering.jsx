@@ -11,9 +11,10 @@ import {
     FaAward,
     FaMedal,
     FaTrophy,
-    FaClock
+    FaClock,
+    FaCalendarTimes
 } from "react-icons/fa";
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, CalendarX } from 'lucide-react';
 import "../styles/StudentOfferings.css";
 import {
     Trash2, X, Sparkles, Star, Plus
@@ -36,7 +37,6 @@ const StudentCourseOfferingsPage = () => {
     const [timeLeft, setTimeLeft] = useState("");
     const [studentRegulation, setStudentRegulation] = useState("New");
 
-
     const levels = useMemo(() => {
         const allLevels = ["Freshman", "Sophomore", "Junior", "senior-1", "senior-2", "Senior"];
         if (studentRegulation === "New") {
@@ -47,17 +47,27 @@ const StudentCourseOfferingsPage = () => {
     }, [studentRegulation]);
 
     useEffect(() => {
-        fetchData();
-        fetchRecommendations();
-        fetchStudentDetails();
+        // استدعاء الفانكشن الجديدة للتحقق من الترم أولاً
+        const init = async () => {
+            setLoading(true);
+            const hasSemester = await fetchCurrentSemester();
+            if (hasSemester) {
+                await Promise.all([
+                    fetchData(),
+                    fetchRecommendations(),
+                    fetchStudentDetails()
+                ]);
+            }
+            setLoading(false);
+        };
+        init();
     }, []);
 
     useEffect(() => {
-        if (!loading) {
+        if (!loading && semesterData) {
             localStorage.setItem("courseDraft", JSON.stringify(draftEnrolled));
         }
-    }, [draftEnrolled, loading]);
-
+    }, [draftEnrolled, loading, semesterData]);
 
     useEffect(() => {
         const preRegEnd = semesterData?.timeLine?.preRegistration?.end;
@@ -91,11 +101,26 @@ const StudentCourseOfferingsPage = () => {
         return draftIds !== originalIds;
     }, [draftEnrolled, enrolledCourses, loading]);
 
+    // الفانكشن المطلوبة للتحقق من وجود ترم دراسي
+    const fetchCurrentSemester = async () => {
+        try {
+            const res = await api.get("/semesters/current");
+            if (res.data) {
+                setSemesterData(res.data);
+                return true;
+            }
+            return false;
+        } catch (err) {
+            console.error("Error fetching current semester:", err);
+            return false;
+        }
+    };
+
     const fetchStudentDetails = async () => {
         try {
             const res = await api.get("/student/me/details");
-            setSemesterData(res.data.semester);
-            console.log(res.data.semester)
+            // هنا نحدث بيانات الترم من تفاصيل الطالب أيضاً لضمان الدقة
+            if (res.data.semester) setSemesterData(res.data.semester);
             setStudentRegulation(res.data.transcript?.regulation || "New");
         } catch (err) {
             console.error("Error fetching student details:", err);
@@ -103,7 +128,6 @@ const StudentCourseOfferingsPage = () => {
     };
 
     const fetchData = async () => {
-        setLoading(true);
         try {
             const availableRes = await api.get("/student/me/available-courses");
             setAvailableCourses(availableRes.data.availableOfferings || []);
@@ -120,8 +144,6 @@ const StudentCourseOfferingsPage = () => {
             setDraftEnrolled(currentIds);
         } catch (err) {
             console.error(err);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -211,7 +233,6 @@ const StudentCourseOfferingsPage = () => {
         };
     };
 
-
     if (loading) return (
         <div
             className="management-container"
@@ -235,11 +256,36 @@ const StudentCourseOfferingsPage = () => {
         </div>
     );
 
+    if (!semesterData) {
+        return (
+            <div className="management-container student-offerings-container">
+                <div className="prereg-header">
+                    <div>
+                        <h2>Pre-registration Enrollment</h2>
+                        <p className="semester-label error">No Active Semesters</p>
+                    </div>
+                </div>
+                <div className="no-semester-card">
+                    <div className="no-semester-icon">
+                        <CalendarX size={80} strokeWidth={1.5} />
+                    </div>
+                    <h3>No Active Semester</h3>
+                    <p>
+                        The registration system requires an active academic semester to manage courses and enrollment.
+                        Please start a new semester or activate an existing one first.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+
+
+
     return (
         <div className="management-container student-offerings-container">
             <div className="registration-status-bar">
                 {semesterData?.settings?.allowEnrollment && timeLeft !== "No Time" ? (
-                    /* الحالة الأولى: التسجيل مفتوح والوقت لسه مخلصش */
                     <div className="premium-status-alert open">
                         <div className="status-icon-container">
                             <FaClock className="pulse-icon" />
@@ -250,7 +296,6 @@ const StudentCourseOfferingsPage = () => {
                         </div>
                     </div>
                 ) : timeLeft === "No Time" ? (
-                    /* الحالة الثانية: الوقت انتهى تماماً */
                     <div className="premium-status-alert closed">
                         <div className="status-icon-container">
                             <AlertTriangle className="pulse-icon" />
@@ -261,7 +306,6 @@ const StudentCourseOfferingsPage = () => {
                         </div>
                     </div>
                 ) : (
-                    /* الحالة الثالثة: التسجيل مقفول يدوياً (Paused) والوقت لسه فيه */
                     <div className="premium-status-alert closed">
                         <div className="status-icon-container">
                             <AlertTriangle className="pulse-icon" />
@@ -292,8 +336,6 @@ const StudentCourseOfferingsPage = () => {
                     <div className="progress-fill" style={{ width: `${Math.min((currentTotalCredits / allowedCredits) * 100, 100)}%` }}></div>
                 </div>
             </div>
-
-
 
             <div className="section">
                 <h3>Available Courses ({activeTab})</h3>

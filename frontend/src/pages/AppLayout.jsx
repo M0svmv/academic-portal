@@ -2,10 +2,10 @@ import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import swalService from '../services/swal';
-import { FiLogOut, FiMenu, FiChevronLeft, FiSettings, FiAlertTriangle } from "react-icons/fi"; // أضفت أيقونة التنبيه
+import { FiLogOut, FiMenu, FiChevronLeft, FiSettings, FiAlertTriangle } from "react-icons/fi";
 import { ChevronLeft, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { menuConfig } from "../config/menuConfig";
-import api from "../services/api"; // تأكدي من مسار الـ api عندك
+import api from "../services/api";
 import "./styles/AppLayout.css";
 
 
@@ -50,15 +50,23 @@ const AppLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [activeRole, setActiveRole] = useState(initialRole);
-    const [currentSemester, setCurrentSemester] = useState(null); // حالة الترم الحالي
+    const [currentSemester, setCurrentSemester] = useState(null);
+    const [isSemesterLoading, setIsSemesterLoading] = useState(true);
 
     const fetchAllSemester = async () => {
         try {
+            setIsSemesterLoading(true);
             const res = await api.get("/semesters/current");
-            setCurrentSemester(res.data);
+            if (res.data && Object.keys(res.data).length > 0) {
+                setCurrentSemester(res.data);
+            } else {
+                setCurrentSemester(null);
+            }
         } catch (err) {
             console.error(err);
-            setCurrentSemester(null); // في حال حدث خطأ نعتبره غير موجود
+            setCurrentSemester(null);
+        } finally {
+            setIsSemesterLoading(false);
         }
     };
 
@@ -97,8 +105,18 @@ const AppLayout = () => {
         ? menuConfig.student
         : menuConfig[activeRole] || [];
 
+
     useEffect(() => {
-        fetchAllSemester(); // جلب بيانات الترم عند تحميل الكومبوننت
+        fetchAllSemester();
+        const handleSemesterUpdate = () => {
+            fetchAllSemester();
+        };
+
+        window.addEventListener("semesterUpdated", handleSemesterUpdate);
+
+        return () => {
+            window.removeEventListener("semesterUpdated", handleSemesterUpdate);
+        };
     }, []);
 
     useEffect(() => {
@@ -185,8 +203,8 @@ const AppLayout = () => {
 
             {/* Main Content */}
             <div className="main-content">
-                {/* Semester Warning Alert */}
-                {!currentSemester && (
+
+                {!isSemesterLoading && (!currentSemester || !currentSemester._id) && (
                     <div className="semester-warning-alert">
                         <FiAlertTriangle className="warning-icon" />
                         <div className="warning-text-nosem">

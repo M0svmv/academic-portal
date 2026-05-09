@@ -3,13 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 import swalService from "../../services/swal";
 import "../styles/PreRegistrationManagementPage.css";
-import { Search, Play, Square, BarChart3, Clock, AlertTriangle, Loader2 } from 'lucide-react';
+import { Search, Play, Square, BarChart3, Clock, AlertTriangle, Loader2, CalendarX } from 'lucide-react';
 
 const PreRegistrationManagementPage = () => {
     const navigate = useNavigate();
     const { role } = useParams();
 
-    // --- States ---
     const [currentSemester, setCurrentSemester] = useState(null);
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -20,7 +19,6 @@ const PreRegistrationManagementPage = () => {
     const [allowEnrollment, setAllowEnrollment] = useState(false);
     const [updatingCourseId, setUpdatingCourseId] = useState(null);
 
-    // حل مشكلة المتغيرات غير المعرفة
     const [timeLeft, setTimeLeft] = useState("");
     const semesterData = currentSemester;
 
@@ -89,9 +87,9 @@ const PreRegistrationManagementPage = () => {
         return () => clearInterval(timer);
     }, [allowEnrollment, currentSemester]);
 
-    // --- Functions ---
     const fetchCurrentSemester = async () => {
         try {
+            setLoading(true);
             const res = await api.get("/semesters");
             const current = res.data.find(s => s.isCurrent);
             if (current) {
@@ -196,7 +194,6 @@ const PreRegistrationManagementPage = () => {
             swalService.showLoading("Opening Portal...");
             await api.put(`/semesters/${currentSemester._id}/startPreRegistration`);
             setAllowEnrollment(true);
-            // تحديث كائن السمستر لضمان تحديث البار فوراً
             setCurrentSemester(prev => ({
                 ...prev,
                 settings: { ...prev.settings, allowEnrollment: true }
@@ -211,7 +208,6 @@ const PreRegistrationManagementPage = () => {
         try {
             await api.put(`/semesters/${currentSemester._id}/stopPreRegistration`);
             setAllowEnrollment(false);
-            // تحديث كائن السمستر لضمان تحديث البار فوراً
             setCurrentSemester(prev => ({
                 ...prev,
                 settings: { ...prev.settings, allowEnrollment: false }
@@ -263,6 +259,36 @@ const PreRegistrationManagementPage = () => {
             <h3>Loading Registration System...</h3>
         </div>
     );
+
+    if (!currentSemester) {
+        return (
+            <div className="management-container prereg-container">
+                <div className="prereg-header">
+                    <div>
+                        <h2>Pre-Registration Management</h2>
+                        <p className="semester-label error">No Active Semester Found</p>
+                    </div>
+                </div>
+
+                <div className="no-semester-card">
+                    <div className="no-semester-icon">
+                        <CalendarX size={80} strokeWidth={1.5} />
+                    </div>
+                    <h3>No Active Semester</h3>
+                    <p>
+                        The registration system requires an active academic semester to manage courses and enrollment.
+                        Please start a new semester or activate an existing one first.
+                    </p>
+                    <button
+                        className="btn-1"
+                        onClick={() => navigate(`/staff/${role}/semester-manage`)}
+                    >
+                        Go to Semester Management
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
 
     return (
@@ -323,7 +349,7 @@ const PreRegistrationManagementPage = () => {
                 )}
             </div>
 
-            <div className={`registration-content ${!currentSemester ? 'disabled-overlay' : ''}`}>
+            <div className="registration-content">
                 <div className="table-controls">
                     <div className="search-in-prereg">
                         <Search size={22} color="#9ca3af" />

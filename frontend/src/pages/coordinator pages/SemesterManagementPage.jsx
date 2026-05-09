@@ -13,6 +13,11 @@ const SemesterManagementPage = () => {
     const [timeLeft, setTimeLeft] = useState("");
     const semesterData = currentSemester;
 
+    // دالة إرسال الحدث لتحديث الـ Layout (الأب)
+    const notifySemesterChange = () => {
+        window.dispatchEvent(new Event("semesterUpdated"));
+    };
+
     useEffect(() => {
         fetchAllSemesters();
     }, []);
@@ -34,10 +39,13 @@ const SemesterManagementPage = () => {
             if (current) {
                 const detailRes = await api.get(`/semesters/${current._id}`);
                 setCurrentSemester(detailRes.data);
-                console.log(detailRes.data)
+                console.log(detailRes.data);
             } else {
                 setCurrentSemester(null);
             }
+
+            // إرسال الإشارة بعد استلام وتحديث البيانات بنجاح
+            notifySemesterChange();
         } catch (err) {
             console.error(err);
         } finally {
@@ -83,7 +91,8 @@ const SemesterManagementPage = () => {
         try {
             await api.put(`/semesters/${currentSemester._id}/forceStop`);
             swalService.success("Archived", "Semester closed successfully.");
-            fetchAllSemesters();
+            // جلب البيانات مجدداً هو ما سيطلق notifySemesterChange ليعرف الأب أن الأليرت يجب أن يظهر
+            await fetchAllSemesters();
         } catch (err) {
             swalService.error("Error", "Failed to stop semester.");
         }
@@ -100,7 +109,7 @@ const SemesterManagementPage = () => {
         try {
             await api.delete(`/semesters/${id}`);
             swalService.success("Deleted", "Semester deleted successfully.");
-            fetchAllSemesters();
+            await fetchAllSemesters();
         } catch (err) {
             swalService.error("Error", "Failed to delete semester.");
         }
