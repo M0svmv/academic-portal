@@ -158,7 +158,10 @@ exports.requestMeeting = async (req, res) => {
 //get meetings
 exports.getMyMeetings = async (req, res) => {
   try {
-    const currentSemester = await Semester.findOne({ isCurrent: true });
+    let currentSemester = await Semester.findOne({ isCurrent: true });
+    if (!currentSemester) {
+      currentSemester = await Semester.findOne().sort({ createdAt: -1 });
+    }
     const meetings = await Meeting.find({ studentId: req.user._id,semesterId: currentSemester._id }).populate("advisorId", "staffName");
     
     res.status(200).json(meetings);

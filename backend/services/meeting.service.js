@@ -6,19 +6,25 @@ const {
   validateMeetingRequest,
 } = require("../utils/meeting.utils");
 
-const { getCurrentSemester } = require("../utils/semester.utils");
+const { getCurrentSemester,getLatestSemester } = require("../utils/semester.utils");
 
 exports.requestMeeting = async (studentId, meetingData) => {
 
-  const [advisor, currentSemester]= await Promise.all([
+  let [advisor, currentSemester]= await Promise.all([
     AdvisingList.findOne({
     "students.student": studentId,
   }).select("advisor -_id"), getCurrentSemester()
   ])
 
-  if (!advisor || !currentSemester) {
+ if (!currentSemester) {
+    currentSemester = await getLatestSemester();
+   
+    
+  }
+
+  if (!advisor ) {
     const error = new Error(
-      "Advisor or current semester not found"
+      "Advisor not found"
     );
     error.statusCode = 404;
     throw error;
