@@ -8,7 +8,6 @@ exports.getCurrentSemester = async () => {
 
 exports.getLatestSemester = async () => {
   const semesters = await Semester.find().sort({ endDate: 1 });
-  console.log(semesters);
   return semesters[0];
   
 };
