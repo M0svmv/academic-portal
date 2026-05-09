@@ -35,7 +35,13 @@ router.put('/:id/startPreRegistration',authMiddleware,roleCheckMiddleware('coord
 //addDrop timeline
 router.put('/:id/addDrop',authMiddleware,roleCheckMiddleware('coordinator', 'admin'),  semesterController.addDropTimeline);
 
-//start addDrop timeline
+//grading timeline
+router.put('/:id/grading',authMiddleware,roleCheckMiddleware('coordinator', 'admin'),  semesterController.gradingTimeline);
+
+//withdrawal timeline
+router.put('/:id/withdrawal',authMiddleware,roleCheckMiddleware('coordinator', 'admin'),  semesterController.withdrawalTimeline);
+
+//finalExams timeline
 router.put('/:id/finalExams',authMiddleware,roleCheckMiddleware('coordinator', 'admin'),  semesterController.finalExamsTimeline);
 
 //stop preRegistration timeline

@@ -116,6 +116,14 @@ exports.createSemester = async (req, res) => {
         start: req.body.timeLine.addDrop.start,
         end: req.body.timeLine.addDrop.end
        },
+      withdrawal: {
+        start: req.body.timeLine.withdrawal.start,
+        end: req.body.timeLine.withdrawal.end
+      },
+      grading: {
+        start: req.body.timeLine.grading.start,
+        end: req.body.timeLine.grading.end
+      },
       finalExams: {
         start: req.body.timeLine.finalExams.start,
         end: req.body.timeLine.finalExams.end
@@ -258,6 +266,37 @@ exports.finalExamsTimeline = async (req, res) => {
   }
 };
 
+exports.gradingTimeline = async (req, res) => {
+  try {
+    const currentSemester = await Semester.findOne({ isCurrent: true });
+
+    if (!currentSemester) {
+      return res.status(404).json({ message: 'Current semester not found' });
+    }
+    currentSemester.timeLine.grading.start = req.body.start;
+    currentSemester.timeLine.grading.end = req.body.end;
+    await currentSemester.save();
+    res.status(200).json(currentSemester);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+exports.withdrawalTimeline = async (req, res) => {
+  try {
+    const currentSemester = await Semester.findOne({ isCurrent: true });
+
+    if (!currentSemester) {
+      return res.status(404).json({ message: 'Current semester not found' });
+    }
+    currentSemester.timeLine.withdrawal.start = req.body.start;
+    currentSemester.timeLine.withdrawal.end = req.body.end;
+    await currentSemester.save();
+    res.status(200).json(currentSemester);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
 //stop preRegistration timeline
 exports.stopPreRegistrationTimeline = async (req, res) => {
   try {
@@ -305,10 +344,6 @@ exports.forceStopCurrentSemester = async (req, res) => {
     const semesterWorks = await SemesterWork.find({
       semesterId: currentSemester._id
     });
-
-    // if (!semesterWorks || semesterWorks.length === 0) {
-    //   return res.status(400).json({ message: 'No semester works found to transfer' });
-    // }
 
     const bulkOps = [];
     const studentIds = new Set(); // 🔥 نجمع الطلاب

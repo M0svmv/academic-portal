@@ -66,7 +66,7 @@ exports.gradeStudents = async (req, res) => {
     const semester = await Semester.findOne({ isCurrent: true });
     const semesterId = semester._id;
 
-    if (now>=semester.timeLine.finalExams.start && now<=semester.endDate) {
+    if (now < semester.timeLine.grading.start || now > semester.timeLine.grading.end) {
       return res.status(400).json({ message: "Grading is closed for this semester" });
     }
 
