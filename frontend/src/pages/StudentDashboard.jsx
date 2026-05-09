@@ -564,7 +564,7 @@ const StudentDashboard = () => {
                         {filteredAnnouncements.length === 0 ? (
                             <div className="sd-empty-state" style={{ padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.4)', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
                                 <Megaphone size={32} style={{ color: '#94a3b8', marginBottom: '10px' }} />
-                                <p style={{ color: '#64748b', fontWeight: '500' }}>No announcements for this course yet.</p>
+                                <p style={{ color: '#64748b', fontWeight: '500' }}>No announcements for this category yet.</p>
                             </div>
                         ) : (
                             <div className="sd-cards-stack" >
