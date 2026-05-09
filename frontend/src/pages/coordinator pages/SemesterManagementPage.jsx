@@ -3,7 +3,7 @@ import api from "../../services/api";
 import swalService from "../../services/swal";
 import SemesterModal from "../../components/SemesterModal";
 import SemesterTimeline from "../../components/SemesterTimeline";
-import { AlertTriangle, Plus, CheckCircle2, History, Loader2 } from 'lucide-react';
+import { AlertTriangle, Plus, CheckCircle2, History, Loader2, Trash2 } from 'lucide-react';
 
 const SemesterManagementPage = () => {
     const [semesters, setSemesters] = useState([]);
@@ -89,7 +89,22 @@ const SemesterManagementPage = () => {
         }
     };
 
-
+    const handleDeleteSemester = async (id, name) => {
+        const result = await swalService.confirm(
+            "DELETE SEMESTER",
+            `Are you sure you want to delete ${name}? This action cannot be undone.`,
+            "Yes, Delete",
+            "error"
+        );
+        if (!result.isConfirmed) return;
+        try {
+            await api.delete(`/semesters/${id}`);
+            swalService.success("Deleted", "Semester deleted successfully.");
+            fetchAllSemesters();
+        } catch (err) {
+            swalService.error("Error", "Failed to delete semester.");
+        }
+    };
 
     if (loading) return (
         <div
@@ -152,6 +167,7 @@ const SemesterManagementPage = () => {
                             <th>Start Date</th>
                             <th>End Date</th>
                             <th>Registration Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -167,10 +183,23 @@ const SemesterManagementPage = () => {
                                 <td>{new Date(sem.startDate).toLocaleDateString()}</td>
                                 <td>{new Date(sem.endDate).toLocaleDateString()}</td>
                                 <td>
-
-                                    {sem.settings?.allowEnrollment ? "Open" : "Closed"}
-
-
+                                    {(sem.isCurrent && sem.settings?.allowEnrollment) ? "Open" : "Closed"}
+                                </td>
+                                <td>
+                                    <button
+                                        onClick={() => handleDeleteSemester(sem._id, sem.name)}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            color: '#ef4444',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center'
+                                        }}
+                                        title="Delete Semester"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
                                 </td>
                             </tr>
                         ))}
