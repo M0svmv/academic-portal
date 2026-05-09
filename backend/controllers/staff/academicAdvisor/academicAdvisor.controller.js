@@ -32,7 +32,7 @@ exports.getDepartmentCourses = async (req, res) => {
 //get advising list
 exports.getAdvisingList = async (req, res) => {
   try {
-    let currentSemester = await Semester.findOne({ status:"active"});
+    let currentSemester = await Semester.findOne().sort({ createdAt: -1 });
 
     if (!currentSemester) {
       return res.status(404).json({ message: "Current semester not found" });
