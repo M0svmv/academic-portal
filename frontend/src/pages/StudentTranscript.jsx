@@ -503,7 +503,7 @@ const StudentTranscript = () => {
                 <div className="data-section">
                     <div className="section-title-bar">
                         <h3>Semester Works</h3>
-                        <span className="badge dept">{semester?.name}</span>
+                        <span className="badge dept">{semester?.name || "No semester opened"}</span>
                     </div>
                     <div className="table-responsive table-wrapper">
                         <table className="modern-table">

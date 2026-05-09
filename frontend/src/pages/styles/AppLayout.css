@@ -69,7 +69,7 @@
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    z-index: 1000; /* عشان يفضل فوق أي محتوى */
+    z-index: 1000; 
     box-shadow: 4px 0 10px rgba(0,0,0,0.1);
 }
 
@@ -80,12 +80,12 @@
 .collapse-btn:hover {
     background: var(--sidebar-active-bg);
     color: white;
-    transform: scale(1.1); /* تكبير خفيف عند الهوفر */
+    transform: scale(1.1);
 }
 
-/* تعديل بسيط للسايدبار لما يتقفل عشان الزرار ميتداراش */
+
 .sidebar.collapsed .collapse-btn {
-    right: 20px; /* يفضل في مكانه بالظبط */
+    right: 20px; 
 }
 
 /* Navigation Menu */
@@ -216,7 +216,7 @@
 .student-badge {
     margin-top: 4px;
     font-size: 11px;
-    color: #10b981; /* Green color for students */
+    color: #10b981;
     font-weight: 600;
 }
 
@@ -286,7 +286,7 @@
     display: none;
 }
 
-/* Mobile Responsiveness */
+
 @media (max-width: 900px) {
     .sidebar {
         position: fixed;
@@ -308,4 +308,41 @@
         border-radius: 10px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
+}
+
+.semester-warning-alert {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #856404;
+    padding: 30px 20px 0 20px;
+    margin-bottom: -20px;
+    border-radius: 8px;
+    gap: 12px;
+    animation: slideDown 0.3s ease-out;
+}
+
+.warning-icon {
+    color: #f59f00;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.warning-text {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.warning-text-nosem {
+    color: #b91c1c;
+    background: #fef2f2;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    border: 1px solid #fee2e2;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }

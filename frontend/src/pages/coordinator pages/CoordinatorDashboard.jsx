@@ -392,7 +392,7 @@ const CoordinatorDashboard = () => {
                 <div className="prereg-header">
                     <h2 >Welcome back, {profileData?.staffName}!</h2>
                     <p className="sd-subtitle">
-                        <span className="badge dept" style={{ marginLeft: '5px' }}> {currentSemester?.name || "Loading..."}</span>
+                        <span className="badge dept" style={{ marginLeft: '5px' }}> {currentSemester?.name || "No semester opened"}</span>
                     </p>
                 </div>
             </header>

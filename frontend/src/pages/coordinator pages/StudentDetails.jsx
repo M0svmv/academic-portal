@@ -615,7 +615,7 @@ const StudentDetails = () => {
                         <h3>Current Semester Works</h3>
 
                         <div className="right-sind" style={{ display: 'flex', gap: '5px' }}>
-                            <span className="badge dept">{semester?._id}</span>
+                            <span className="badge dept">{semester?._id || "No semester opened"}</span>
                             <button
                                 className="enroll-btn-icon"
                                 onClick={() => navigate(`/staff/${role}/coordinator/enroll/${data.transcript.studentId?._id}`)}
@@ -629,7 +629,7 @@ const StudentDetails = () => {
                             >
                                 <FaPlus size={18} color="#10b981" />
                             </button>
-                            {/* زر فتح الجدول الدراسي */}
+
                             <button className="btn-1" onClick={() => setIsScheduleModalOpen(true)}>
                                 <FaCalendarAlt size={16} /> View Study Schedule
                             </button>

@@ -358,7 +358,7 @@ const AdvisorDashboard = () => {
                 <div className="prereg-header">
                     <h2 >Welcome back, {profileData?.staffName}!</h2>
                     <p className="sd-subtitle">
-                        <span className="badge dept" style={{ marginLeft: '5px' }}> {currentSemester?.name || "Loading..."}</span>
+                        <span className="badge dept" style={{ marginLeft: '5px' }}> {currentSemester?.name || "No semester opened"}</span>
                     </p>
                 </div>
             </header>
@@ -589,7 +589,6 @@ const AdvisorDashboard = () => {
 
                                                 <div className="sd-footer-author">
                                                     <div className="sd-author-info">
-                                                        {/* التأكد من عرض اسم الموظف بشكل صحيح */}
                                                         <p className="sd-author-name">
                                                             {ann.staffId?.staffName || (typeof ann.staffId === 'string' ? ann.staffId : "Admin")}
                                                         </p>
@@ -645,13 +644,12 @@ const AdvisorDashboard = () => {
                                             </div>
                                         </div>
                                     ))}
-                                    {/* Fade effect indicator if more than 3 */}
                                     {meetings.length > 3 && <div className="sd-list-fade-edge"></div>}
                                 </>
                             )}
                         </div>
 
-                        <button className="sd-full-btn" onClick={() => navigate("/student/meetings")}>
+                        <button className="sd-full-btn" onClick={() => navigate("/staff/academic-advisor/ad-meetings")}>
                             View All Meetings {meetings.length > 3 && <span className="sd-btn-badge">+{meetings.length - 3} more</span>}
                         </button>
                     </div>
@@ -692,7 +690,7 @@ const AdvisorDashboard = () => {
                                 </>
                             )}
                         </div>
-                        <button className="sd-full-btn" onClick={() => navigate("/staff/coordinator/coo-Requests")}>
+                        <button className="sd-full-btn" onClick={() => navigate("/staff/academic-advisor/Adv-Requests")}>
                             Manage Requests {academicRequests.length > 3 && <span className="sd-btn-badge">+{academicRequests.length - 3} more</span>}
                         </button>
                     </div>

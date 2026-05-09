@@ -538,7 +538,6 @@ const AdvisedStudentDetails = () => {
                 <div className="data-section">
                     <div className="section-title-bar">
                         <h3>Current Semester Works</h3>
-                        {/* زر فتح الجدول الدراسي */}
                         <button className="btn-1" onClick={() => setIsScheduleModalOpen(true)}>
                             <FaCalendarAlt size={16} /> View Study Schedule
                         </button>
@@ -581,8 +580,6 @@ const AdvisedStudentDetails = () => {
                                             <tr key={work._id}>
                                                 <td className="course-id-cell">{work.courseId?._id}</td>
                                                 <td>{work.courseId?.courseName}</td>
-
-                                                {/* تفاصيل الدرجات منفصلة */}
                                                 <td>{g.midTermGrade ?? 0}</td>
                                                 <td>{g.labGrade ?? 0}</td>
                                                 <td>{g.practicalGrade ?? 0}</td>

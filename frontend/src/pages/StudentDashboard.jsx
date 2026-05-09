@@ -266,10 +266,9 @@ const StudentDashboard = () => {
                         <span className={`badge reg-${details?.transcript?.regulation?.toLowerCase()}`} style={{ marginLeft: '5px' }}>
                             {details?.transcript?.regulation} Regulation
                         </span>
-                        <span className="badge dept" style={{ marginLeft: '5px' }}> {details?.semester?.name || "Loading..."}</span>
+                        <span className="badge dept" style={{ marginLeft: '5px' }}> {details?.semester?.name || "No semester opened"}</span>
                     </p>
                 </div>
-                {/* إضافة اسم المرشد هنا */}
                 {details?.advisor && (
                     <span className="badge advisor-badge" style={{ backgroundColor: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' }}>
                         <User size={12} style={{ marginRight: '4px' }} />

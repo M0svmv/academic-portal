@@ -196,7 +196,7 @@ const ControlDashboard = () => {
                 <div className="prereg-header">
                     <h2>Welcome back, {profileData?.staffName || 'User'}!</h2>
                     <p className="sd-subtitle">
-                        <span className="badge dept" style={{ marginLeft: '5px' }}> {currentSemester?.name || "Academic Year"}</span>
+                        <span className="badge dept" style={{ marginLeft: '5px' }}> {currentSemester?.name || "No semester opened"}</span>
                     </p>
                 </div>
             </header>

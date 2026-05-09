@@ -2,9 +2,10 @@ import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import swalService from '../services/swal';
-import { FiLogOut, FiMenu, FiChevronLeft, FiSettings, } from "react-icons/fi";
+import { FiLogOut, FiMenu, FiChevronLeft, FiSettings, FiAlertTriangle } from "react-icons/fi"; // أضفت أيقونة التنبيه
 import { ChevronLeft, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { menuConfig } from "../config/menuConfig";
+import api from "../services/api"; // تأكدي من مسار الـ api عندك
 import "./styles/AppLayout.css";
 
 
@@ -49,6 +50,17 @@ const AppLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [activeRole, setActiveRole] = useState(initialRole);
+    const [currentSemester, setCurrentSemester] = useState(null); // حالة الترم الحالي
+
+    const fetchAllSemester = async () => {
+        try {
+            const res = await api.get("/semesters/current");
+            setCurrentSemester(res.data);
+        } catch (err) {
+            console.error(err);
+            setCurrentSemester(null); // في حال حدث خطأ نعتبره غير موجود
+        }
+    };
 
     const logout = async () => {
         const result = await swalService.confirm(
@@ -66,6 +78,7 @@ const AppLayout = () => {
             navigate("/login");
         }
     };
+
     const handleRoleChange = (newRole) => {
         setActiveRole(newRole);
         const roleMenuItems = menuConfig[newRole];
@@ -83,6 +96,10 @@ const AppLayout = () => {
     const menuItems = userType === "student"
         ? menuConfig.student
         : menuConfig[activeRole] || [];
+
+    useEffect(() => {
+        fetchAllSemester(); // جلب بيانات الترم عند تحميل الكومبوننت
+    }, []);
 
     useEffect(() => {
         if (userType === "staff" && activeRole) {
@@ -168,6 +185,16 @@ const AppLayout = () => {
 
             {/* Main Content */}
             <div className="main-content">
+                {/* Semester Warning Alert */}
+                {!currentSemester && (
+                    <div className="semester-warning-alert">
+                        <FiAlertTriangle className="warning-icon" />
+                        <div className="warning-text-nosem">
+                            <strong>Attention:</strong> The new academic semester hasn't started yet. Most functionalities may be limited or disabled.
+                        </div>
+                    </div>
+                )}
+
                 <Outlet />
             </div>
         </div>
