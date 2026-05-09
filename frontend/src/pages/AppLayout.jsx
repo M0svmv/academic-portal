@@ -206,9 +206,10 @@ const AppLayout = () => {
 
                 {!isSemesterLoading && (!currentSemester || !currentSemester._id) && (
                     <div className="semester-warning-alert">
-                        <FiAlertTriangle className="warning-icon" />
-                        <div className="warning-text-nosem">
+                        <div className="alert-box">
+                            <FiAlertTriangle className="warning-icon" />
                             <strong>Attention:</strong> The new academic semester hasn't started yet. Most functionalities may be limited or disabled.
+
                         </div>
                     </div>
                 )}
