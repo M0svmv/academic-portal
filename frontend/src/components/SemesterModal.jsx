@@ -29,24 +29,25 @@ const SemesterModal = ({ show, onClose, onSuccess }) => {
         return date.toISOString().split('T')[0];
     };
 
-    // --- Auto-fill Logic ---
+
     useEffect(() => {
         if (startDate) {
+
             const pStart = startDate;
-            const pEnd = addDays(startDate, 14);
+            const pEnd = addDays(startDate, 7);
 
             const aStart = addDays(pEnd, 1);
             const aEnd = addDays(aStart, 7);
 
-            // منطق تلقائي مقترح للفترات الجديدة (يمكن للمستخدم تعديلها يدوياً)
+            // 3. Withdrawal: 
             const wStart = addDays(aEnd, 1);
-            const wEnd = addDays(wStart, 30); // شهر للانسحاب
+            const wEnd = addDays(startDate, 70);
 
             const fStart = addDays(startDate, 100);
             const fEnd = addDays(fStart, 10);
 
-            const gStart = addDays(fStart, -7); // رصد الدرجات يبدأ قبل الفاينال بأسبوع
-            const gEnd = fEnd;
+            const gStart = aStart;
+            const gEnd = addDays(fStart, -1);
 
             setPreReg({ start: pStart, end: pEnd });
             setAddDrop({ start: aStart, end: aEnd });

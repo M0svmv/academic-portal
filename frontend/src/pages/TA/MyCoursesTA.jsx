@@ -13,20 +13,25 @@ import {
     ChevronUp,
     Info,
     Layout
-    , Loader2
+    , Loader2,
+    AlertCircle,
+
+    Filter,
+    Inbox
 } from 'lucide-react';
 import api from "../../services/api";
 import '../styles/ProgramCourses.css';
 import './LecturerStyle.css';
-
+const COURSE_REGULATION = ["New", "Last"];
 const MyCoursesTA = () => {
     const { role } = useParams();
+    const [loading, setLoading] = useState(true);
     const [courses, setCourses] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [showSchemaModal, setShowSchemaModal] = useState(false);
     const navigate = useNavigate();
-
+    const [filterRegulation, setFilterRegulation] = useState("");
     const [expandedCourseId, setExpandedCourseId] = useState(null);
     const [courseDetails, setCourseDetails] = useState(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
@@ -47,11 +52,14 @@ const MyCoursesTA = () => {
     }, []);
 
     const fetchCourses = async () => {
+        setLoading(true);
         try {
             const res = await api.get("/tas/me/courses");
             setCourses(res.data);
         } catch (err) {
             console.error("Error fetching TA courses", err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -65,7 +73,6 @@ const MyCoursesTA = () => {
         setExpandedCourseId(courseId);
         setLoadingDetails(true);
         try {
-            // جلب تفاصيل الكورس بناءً على الـ API الخاص بالـ TA
             const res = await api.get(`/tas/me/courses/${courseId}`);
             setCourseDetails(res.data.course);
         } catch (err) {
@@ -105,12 +112,12 @@ const MyCoursesTA = () => {
         }
     };
 
-    const filteredCourses = courses.filter(c =>
-        c.courseId?._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.courseId?.courseName?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredCourses = courses.filter(c => {
+        const matchesSearch = c.courseId?._id?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesRegulation = filterRegulation === "" || c.courseId?.courseRegulation === filterRegulation;
+        return matchesSearch && matchesRegulation;
+    });
 
-    // حساب الإحصائيات مع دعم الفلترة للكارد الثاني
     const getStats = () => {
         let enrollmentCount = 0;
         if (statsCourseFilter === "all") {
@@ -176,7 +183,6 @@ const MyCoursesTA = () => {
                     </div>
                 </div>
 
-                {/* كارد 3: Academic Load (المعدل حسب طلبك) */}
                 <div className="insight-card">
                     <div className="insight-header">
                         <span className="insight-icon icon-purple"><GraduationCap size={18} /></span>
@@ -191,15 +197,32 @@ const MyCoursesTA = () => {
                 </div>
             </div>
 
-            <div className="filters-wrapper">
-                <Search size={22} color="#9ca3af" />
-                <input
-                    className="search-input"
-                    type="text"
-                    placeholder="Search by Course ID or Name..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            <div className="table-controls" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+                    <Search size={22} color="#9ca3af" style={{ position: 'absolute', left: '12px' }} />
+                    <input
+                        className="search-input"
+                        type="text"
+                        placeholder="Search by Course ID..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ paddingLeft: '45px', width: '100%' }}
+                    />
+                </div>
+
+                <div className="regulation-filter-container" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', padding: '0 12px', borderRadius: '12px', border: '1.5px solid #e2e8f0', height: '48px' }}>
+                    <Filter size={18} color="#64748b" />
+                    <select
+                        value={filterRegulation}
+                        onChange={e => setFilterRegulation(e.target.value)}
+                        style={{ border: 'none', outline: 'none', color: '#1e293b', fontWeight: '500', cursor: 'pointer', background: 'transparent' }}
+                    >
+                        <option value="">All Regulations</option>
+                        {COURSE_REGULATION.map(r => (
+                            <option key={r} value={r}>{r} Regulation</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className="table-wrapper">
@@ -208,102 +231,153 @@ const MyCoursesTA = () => {
                         <tr>
                             <th>Course ID</th>
                             <th>Course Name</th>
+                            <th>Course Regulation</th>
                             <th>Semester</th>
                             <th style={{ textAlign: 'center' }}>Enrollment</th>
                             <th style={{ textAlign: 'center' }}>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredCourses.map(course => (
-                            <React.Fragment key={course._id}>
-                                <tr className={expandedCourseId === course._id ? 'selected-row' : ''}>
-                                    <td className="course-id-cell">
-                                        <div
-                                            onClick={() => toggleCourseDetails(course._id)}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                cursor: 'pointer',
-                                                color: '#2563eb',
-                                                fontWeight: '700'
-                                            }}
-                                        >
-                                            {expandedCourseId === course._id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                            {course.courseId?._id}
+                        {loading ? (
+                            <tr>
+                                <td colSpan="6">
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px', gap: '12px' }}>
+                                        <Loader2 size={32} className="animate-spin" color="#2563eb" />
+                                        <span style={{ color: '#64748b', fontWeight: '500' }}>Loading courses data...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : courses.length === 0 ? (
+                            <tr>
+                                <td colSpan="6">
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px', gap: '15px' }}>
+                                        <div style={{ background: '#f1f5f9', padding: '20px', borderRadius: '50%' }}>
+                                            <Inbox size={40} color="#94a3b8" />
                                         </div>
-                                    </td>
-                                    <td style={{ fontWeight: '500' }}> {course.courseId?.courseName}</td>
-                                    <td style={{ textTransform: 'capitalize' }}>
-                                        {course.semesterId ? course.semesterId.replace('-', ' ') : 'N/A'}
-                                    </td>
-                                    <td style={{ textAlign: 'center' }}>
-                                        <span className="type-badge" style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
-                                            {course.enrolledCount || 0} Students
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div className="action-btns">
+                                        <div style={{ textAlign: 'center' }}>
+                                            <h3 style={{ color: '#1e293b', marginBottom: '4px' }}>No Courses Assigned</h3>
+                                            <p style={{ color: '#64748b' }}>You don't have any courses assigned to you for this semester yet.</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : filteredCourses.length === 0 ? (
+                            <tr>
+                                <td colSpan="6">
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '50px', gap: '15px' }}>
+                                        <AlertCircle size={40} color="#f59e0b" />
+                                        <div style={{ textAlign: 'center' }}>
+                                            <h3 style={{ color: '#1e293b', marginBottom: '4px' }}>No Results Found</h3>
+
                                             <button
-                                                className="btn-icon"
-                                                title="Grading"
-                                                onClick={() => navigate(`/staff/${role}/ta-grading/${course._id}/${course.courseId?._id}`)}
+                                                onClick={() => { setSearchTerm(""); setFilterRegulation(""); }}
+                                                style={{ marginTop: '10px', color: '#2563eb', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
                                             >
-                                                <Users size={18} color='#62b986' />
+                                                Clear all filters
                                             </button>
                                         </div>
-                                    </td>
-                                </tr>
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : (
+                            filteredCourses.map(course => (
+                                <React.Fragment key={course._id}>
+                                    <tr className={expandedCourseId === course._id ? 'selected-row' : ''}>
+                                        <td className="course-id-cell">
+                                            <div
+                                                onClick={() => toggleCourseDetails(course._id)}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px',
+                                                    cursor: 'pointer',
+                                                    color: '#2563eb',
+                                                    fontWeight: '700'
+                                                }}
+                                            >
+                                                {expandedCourseId === course._id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                                {course.courseId?._id}
+                                            </div>
+                                        </td>
+                                        <td style={{ fontWeight: '500' }}> {course.courseId?.courseName}</td>
+                                        <td style={{ fontWeight: '500' }}> {course.courseId?.courseRegulation}</td>
+                                        <td style={{ textTransform: 'capitalize' }}>
+                                            {course.semesterId ? course.semesterId.replace('-', ' ') : 'N/A'}
+                                        </td>
+                                        <td style={{ textAlign: 'center' }}>
+                                            <span className="type-badge" style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
+                                                {course.enrolledCount || 0} Students
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="action-btns">
+                                                <button className="btn-icon btn-edit" title="Settings" onClick={() => handleOpenSchema(course)}>
+                                                    <Settings size={18} color='#6486ee' />
+                                                </button>
+                                                <button
+                                                    className="btn-icon"
+                                                    onClick={() => navigate(`/staff/${role}/grading/${course._id}/${course.courseId?._id}`)}
+                                                >
+                                                    <Users size={18} color='#62b986' />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
 
-                                {expandedCourseId === course._id && (
-                                    <tr className="details-expanded-row">
-                                        <td colSpan="6">
-                                            {loadingDetails ? (
-                                                <div className="details-loader">Fetching course data...</div>
-                                            ) : (
-                                                <div className="course-details-container">
-                                                    <div className="details-grid">
-                                                        <div className="details-col">
-                                                            <h4 className="details-title"><Info size={16} /> Course Info</h4>
-                                                            <div className="details-info-list">
-                                                                <div className="info-item"><span>Credits:</span> <strong>{courseDetails?.courseId?.courseCredits}</strong></div>
-                                                                <div className="info-item"><span>Level:</span> <strong className="capitalize">{courseDetails?.courseId?.courseLevel}</strong></div>
-                                                                <div className="info-item"><span>Type:</span> <strong className="capitalize">{courseDetails?.courseId?.courseType}</strong></div>
-                                                                <div className="info-item"><span>Regulation:</span> <strong>{courseDetails?.courseId?.courseRegulation}</strong></div>
+                                    {/* Expanded Details Row */}
+                                    {expandedCourseId === course._id && (
+                                        <tr className="details-expanded-row">
+                                            <td colSpan="6">
+                                                {loadingDetails ? (
+                                                    <div className="details-loader">Fetching course data...</div>
+                                                ) : (
+                                                    <div className="course-details-container">
+                                                        <div className="details-grid">
+                                                            {/* Section 1: Basic Stats */}
+                                                            <div className="details-col">
+                                                                <h4 className="details-title"><Info size={16} /> Course Info</h4>
+                                                                <div className="details-info-list">
+                                                                    <div className="info-item"><span>Credits:</span> <strong>{courseDetails?.courseId?.courseCredits}</strong></div>
+                                                                    <div className="info-item"><span>Level:</span> <strong className="capitalize">{courseDetails?.courseId?.courseLevel}</strong></div>
+                                                                    <div className="info-item"><span>Type:</span> <strong className="capitalize">{courseDetails?.courseId?.courseType}</strong></div>
+                                                                    <div className="info-item"><span>Regulation:</span> <strong>{courseDetails?.courseId?.courseRegulation}</strong></div>
+                                                                </div>
                                                             </div>
-                                                        </div>
 
-                                                        <div className="details-col">
-                                                            <h4 className="details-title"><Layout size={16} /> Grading Schema</h4>
-                                                            <div className="schema-visualizer">
-                                                                {courseDetails?.gradingSchema && Object.entries(courseDetails.gradingSchema).map(([key, val]) => (
-                                                                    key !== '_id' && key !== '__v' && (
-                                                                        <div key={key} className="schema-pill">
-                                                                            <span className="pill-key">{key.replace(/([A-Z])/g, ' $1')}</span>
-                                                                            <span className="pill-val">{val}</span>
-                                                                        </div>
-                                                                    )
-                                                                ))}
+                                                            {/* Section 2: Grading Schema */}
+                                                            <div className="details-col">
+                                                                <h4 className="details-title"><Layout size={16} /> Grading Schema</h4>
+                                                                <div className="schema-visualizer">
+                                                                    {courseDetails?.gradingSchema && Object.entries(courseDetails.gradingSchema).map(([key, val]) => (
+                                                                        key !== '_id' && key !== '__v' && (
+                                                                            <div key={key} className="schema-pill">
+                                                                                <span className="pill-key">{key.replace(/([A-Z])/g, ' $1')}</span>
+                                                                                <span className="pill-val">{val}</span>
+                                                                            </div>
+                                                                        )
+                                                                    ))}
+                                                                </div>
                                                             </div>
-                                                        </div>
 
-                                                        <div className="details-col">
-                                                            <h4 className="details-title"><GraduationCap size={16} /> TA Assignment</h4>
-                                                            <div className="details-info-list">
-                                                                <div className="info-item"><span>Instructor ID:</span> <strong>{courseDetails?.instructorId}</strong></div>
-                                                                <div className="info-item"><span>Your TA ID:</span> <strong>{courseDetails?.taId}</strong></div>
-                                                                <div className="info-item"><span>Labs Scheduled:</span> <strong>{courseDetails?.labNum}</strong></div>
-                                                                <div className="info-item"><span>Students Enrolled:</span> <strong>{courseDetails?.enrolledCount}</strong></div>
+                                                            {/* Section 3: Academic Setup */}
+                                                            <div className="details-col">
+                                                                <h4 className="details-title"><GraduationCap size={16} /> Academic Setup</h4>
+                                                                <div className="details-info-list">
+                                                                    <div className="info-item"><span>Instructor ID:</span> <strong>{courseDetails?.instructorId}</strong></div>
+                                                                    <div className="info-item"><span>Lec / Lab:</span> <strong>{courseDetails?.lecNum} / {courseDetails?.labNum}</strong></div>
+                                                                    <div className="info-item"><span>Enrolled:</span> <strong>{courseDetails?.enrolledCount}</strong></div>
+                                                                    <div className="info-item"><span>Graduates:</span> <strong>{courseDetails?.graduatesEnrolledCount}</strong></div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                )}
-                            </React.Fragment>
-                        ))}
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )}
+                                </React.Fragment>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>

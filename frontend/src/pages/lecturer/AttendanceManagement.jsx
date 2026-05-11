@@ -130,7 +130,7 @@ const AttendanceManagement = () => {
     );
 
     return (
-        <div className="management-container">
+        <div className="management-container management-container-att">
             <header className="management-header">
                 <div className="prereg-header">
                     <button className="back-btn-round" onClick={() => navigate(-1)}>

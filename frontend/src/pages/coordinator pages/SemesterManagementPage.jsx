@@ -13,7 +13,6 @@ const SemesterManagementPage = () => {
     const [timeLeft, setTimeLeft] = useState("");
     const semesterData = currentSemester;
 
-    // دالة إرسال الحدث لتحديث الـ Layout (الأب)
     const notifySemesterChange = () => {
         window.dispatchEvent(new Event("semesterUpdated"));
     };
@@ -151,8 +150,8 @@ const SemesterManagementPage = () => {
 
             {currentSemester && (
                 <div className="current-semester-card" >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3>Current Active Semester: <span style={{ color: '#365ca0' }}>{currentSemester.name}</span></h3>
+                    <div className="current-semester-current" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3>Current Semester: <span style={{ color: '#365ca0' }}>{currentSemester.name}</span></h3>
                         <button className="close-semester-btn" onClick={handleForceStop}>
                             <AlertTriangle size={16} /> Force Stop Semester
                         </button>

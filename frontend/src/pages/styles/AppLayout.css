@@ -324,6 +324,7 @@
 
 .alert-box{
     display: flex;
+
     gap: 10px;
         background-color: #fff9db; 
     border: 1px solid #ffe066;
@@ -332,6 +333,12 @@
     padding: 10px 15px;
     border-radius: 20px;
 
+}
+
+.alert-box .title{
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .warning-icon {
@@ -357,4 +364,109 @@
 @keyframes slideDown {
     from { transform: translateY(-10px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
+}
+
+/* ============================================================
+   AppLayout — Mobile Responsive Patch
+   • Hamburger → animated X when sidebar is open
+   • Sidebar slide-in: faster (0.22s) + smoother easing
+   • Overlay: subtle fade
+   • main-content: padding-top on mobile so content clears toggle btn
+   ============================================================ */
+
+/* ── Sidebar transition speed ────────────────────────────── */
+.sidebar {
+    transition: left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Overlay ─────────────────────────────────────────────── */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 99;
+    animation: fadeOverlay 0.22s ease forwards;
+}
+
+@keyframes fadeOverlay {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── Mobile toggle button ────────────────────────────────── */
+@media (max-width: 900px) {
+
+    .alert-box {
+flex-direction: column;
+justify-content: center;
+align-items: center;
+    }
+    .mobile-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 1001;           /* above sidebar overlay */
+        width: 42px;
+        height: 42px;
+        background: #1e293b;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+        cursor: pointer;
+        padding: 0;
+        transition: background 0.2s;
+    }
+
+    .mobile-toggle:hover {
+        background: #273548;
+    }
+
+    /* ── Hamburger icon made of 3 spans ──────────────────── */
+    .hamburger-icon {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .hamburger-icon span {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background: #f1f5f9;
+        border-radius: 2px;
+        transform-origin: center;
+        transition: transform 0.25s ease, opacity 0.2s ease, width 0.2s ease;
+    }
+
+    /* — X state when sidebar is open — */
+    .hamburger-icon.is-open span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    .hamburger-icon.is-open span:nth-child(2) {
+        opacity: 0;
+        width: 0;
+    }
+
+    .hamburger-icon.is-open span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* ── Give main content breathing room under toggle btn ── */
+    .main-content {
+        padding-top: 68px;
+    }
+
+    /* ── Semester warning nudge down slightly on mobile ───── */
+    .semester-warning-alert {
+        padding-top: 0;
+        margin-bottom: 0;
+    }
 }

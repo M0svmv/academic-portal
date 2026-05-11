@@ -250,8 +250,11 @@ const AdvisingAnnouncements = () => {
 
             {/* List Display */}
             {loading ? (
-                <div className="loading-state">Loading...</div>
-            ) : filteredData.length > 0 ? (
+                <div className="loading-state">
+                    <div className="loader"></div>
+                    <p>Loading announcements...</p>
+                </div>
+            ) : (
                 layout === "table" ? (
                     <div className="table-wrapper">
                         <table className="advising-table">
@@ -266,73 +269,92 @@ const AdvisingAnnouncements = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData.map(ann => (
-                                    <tr key={ann._id} onClick={() => setViewingAnn(ann)} style={{ cursor: 'pointer' }}>
-                                        <td className="content-cell" style={{ fontWeight: '550' }}>{ann.title}</td>
-                                        <td><span className={`badge-type ${ann.type}`}>{ann.type}</span></td>
-                                        <td className="content-cell">{ann.content}</td>
-                                        <td>{ann.expiresAt ? new Date(ann.expiresAt).toLocaleDateString() : "Permanent"}</td>
-                                        <td>
-                                            {ann.target === "specificStudents" ? (
-
-                                                <span className="badge-stu">
-                                                    <Users size={12} style={{ marginRight: '4px' }} />
-                                                    {ann.targetIds?.length} Students
-                                                </span>
-                                            ) : (
-                                                <span className="badge-all">All Students</span>
-                                            )}
-                                        </td>
-                                        <td onClick={(e) => e.stopPropagation()}>
-                                            <div className="action-btns" >
-                                                {/* <button onClick={() => setViewingAnn(ann)} className="btn-view" title="View Details"><Eye size={18} /></button> */}
-                                                <button onClick={() => handleEdit(ann)} className="btn-edit"><Edit3 size={18} /></button>
-                                                <button onClick={() => handleDelete(ann._id)} className="btn-delete"><Trash2 size={18} /></button>
+                                {filteredData.length > 0 ? (
+                                    filteredData.map(ann => (
+                                        <tr key={ann._id} onClick={() => setViewingAnn(ann)} style={{ cursor: 'pointer' }}>
+                                            <td className="content-cell" style={{ fontWeight: '550' }}>{ann.title}</td>
+                                            <td><span className={`badge-type ${ann.type}`}>{ann.type}</span></td>
+                                            <td className="content-cell">{ann.content}</td>
+                                            <td>{ann.expiresAt ? new Date(ann.expiresAt).toLocaleDateString() : "Permanent"}</td>
+                                            <td>
+                                                {ann.target === "specificStudents" ? (
+                                                    <span className="badge-stu">
+                                                        <Users size={12} style={{ marginRight: '4px' }} />
+                                                        {ann.targetIds?.length} Students
+                                                    </span>
+                                                ) : (
+                                                    <span className="badge-all">All Students</span>
+                                                )}
+                                            </td>
+                                            <td onClick={(e) => e.stopPropagation()}>
+                                                <div className="action-btns" >
+                                                    <button onClick={() => handleEdit(ann)} className="btn-edit"><Edit3 size={18} /></button>
+                                                    <button onClick={() => handleDelete(ann._id)} className="btn-delete"><Trash2 size={18} /></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="6">
+                                            <div className="no-data-inside-table">
+                                                <Megaphone size={40} strokeWidth={1.5} />
+                                                <p>No announcements match your criteria.</p>
+                                                {searchTerm || typeFilter !== "all" ?
+                                                    <button className="text-btn" onClick={() => { setSearchTerm(""); setTypeFilter("all"); setTargetFilter("all"); setDateFilter(""); }}>Clear filters</button>
+                                                    : null
+                                                }
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     </div>
                 ) : (
                     <div className="announcements-grid">
-                        {filteredData.map(ann => (
-                            <div key={ann._id} className={`announcement-card border-${ann.type}`} onClick={() => setViewingAnn(ann)} style={{ cursor: 'pointer' }}>
-                                <div className="card-top">
-                                    <span className={`badge-type ${ann.type}`}>{ann.type}</span>
-                                    <div className="action-btns" onClick={(e) => e.stopPropagation()}>
-                                        <button className="btn-edit" onClick={() => handleEdit(ann)}><Edit3 size={16} /></button>
-                                        <button onClick={() => handleDelete(ann._id)} className="btn-delete"><Trash2 size={16} /></button>
+                        {filteredData.length > 0 ? (
+                            filteredData.map(ann => (
+                                <div key={ann._id} className={`announcement-card border-${ann.type}`} onClick={() => setViewingAnn(ann)} style={{ cursor: 'pointer' }}>
+                                    <div className="card-top">
+                                        <span className={`badge-type ${ann.type}`}>{ann.type}</span>
+                                        <div className="action-btns" onClick={(e) => e.stopPropagation()}>
+                                            <button className="btn-edit" onClick={() => handleEdit(ann)}><Edit3 size={16} /></button>
+                                            <button onClick={() => handleDelete(ann._id)} className="btn-delete"><Trash2 size={16} /></button>
+                                        </div>
+                                    </div>
+
+                                    <h3 className="card-title">{ann.title}</h3>
+                                    <p className="card-content">{ann.content}</p>
+
+                                    <div className="card-meta-info">
+                                        <div className="meta-row">
+                                            <Calendar size={14} />
+                                            <span>Expires: {ann.expiresAt ? new Date(ann.expiresAt).toLocaleDateString() : "No Expiry"}</span>
+                                        </div>
+                                        <div className="meta-row">
+                                            <Users size={14} />
+                                            {ann.target === "specificStudents" ? (
+                                                <span className="badge-stu">{ann.targetIds?.length} Selected Students</span>
+                                            ) : (
+                                                <span className="badge-all">All Students</span>
+                                            )}
+                                        </div>
+                                        <div className="meta-row" style={{ marginTop: '4px', fontWeight: '500' }}>
+                                            <span className="date-text">Created: {new Date(ann.createdAt).toLocaleDateString()}</span>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <h3 className="card-title">{ann.title}</h3>
-                                <p className="card-content">{ann.content}</p>
-
-                                <div className="card-meta-info">
-                                    <div className="meta-row">
-                                        <Calendar size={14} />
-                                        <span>Expires: {ann.expiresAt ? new Date(ann.expiresAt).toLocaleDateString() : "No Expiry"}</span>
-                                    </div>
-                                    <div className="meta-row">
-                                        <Users size={14} />
-                                        {ann.target === "specificStudents" ? (
-                                            <span className="badge-stu">{ann.targetIds?.length} Selected Students</span>
-                                        ) : (
-                                            <span className="badge-all">ِAll Students</span>
-                                        )}
-                                    </div>
-                                    <div className="meta-row" style={{ marginTop: '4px', fontWeight: '500' }}>
-                                        <span className="date-text">Created: {new Date(ann.createdAt).toLocaleDateString()}</span>
-                                    </div>
-                                </div>
+                            ))
+                        ) : (
+                            <div className="no-data-grid">
+                                <Megaphone size={48} strokeWidth={1} />
+                                <h3>No announcements found</h3>
+                                <p>Try adjusting your filters or create a new announcement to get started.</p>
                             </div>
-                        ))}
+                        )}
                     </div>
                 )
-            ) : (
-                <div className="no-data">No announcements match your criteria.</div>
             )}
 
             {/* Form Modal */}

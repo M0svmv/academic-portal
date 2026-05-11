@@ -1,8 +1,4 @@
-/* .transcript-container{
-    padding:0 30px;
-}
 
-/* HEADER */
 
 .transcript-header{
     display:flex;
@@ -15,7 +11,7 @@
     font-size:26px;
 }
 
-/* DOWNLOAD BUTTON */
+
 
 .download-btn{
     background:var( --primary-blue-color);
@@ -31,7 +27,7 @@
     background:var( --primary-blue-color);
 }
 
-/* STUDENT BASIC */
+
 
 .student-basic{
     margin-bottom:25px;
@@ -45,7 +41,6 @@
     color:#64748b;
 }
 
-/* SUMMARY */
 
 .summary-grid{
     display:grid;
@@ -73,36 +68,8 @@
     font-weight:600;
 }
 
-/* TABLE */
 
-.table-wrapper{
-    background:white;
-    border-radius:10px;
-    overflow:hidden;
-    box-shadow:0 3px 12px rgba(0,0,0,0.05);
-}
 
-.transcript-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-.transcript-table th{
-    background:var( --primary-blue-color);
-    color:white;
-    padding:12px 25px;
-    text-align:left;
-    font-weight: 600;
-}
-
-.transcript-table td{
-    padding:12px;
-    border-bottom:1px solid #eee;
-} */
-
-/* .transcript-table tr:hover{
-    background:#f1f5f9;
-} */
 
 .grade{
     font-weight:600;
@@ -149,7 +116,7 @@
     opacity: 0.9;
 }
 
-/* Dashboard Grid */
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -157,7 +124,7 @@
     margin-bottom: 24px;
 }
 
-/* Base Card Style */
+
 .dash-card {
     background: #fff;
     border: 1px solid #f1f5f9;
@@ -168,11 +135,11 @@
     flex-direction: column;
     justify-content: space-between;
     position: relative;
-    overflow: hidden;
+    /* overflow: hidden; */
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* State Variants */
+
 .dash-card.border-danger {
     border-color: #fee2e2;
 }
@@ -190,7 +157,7 @@
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
 }
 
-/* Headers & Labels */
+
 .card-header-flex {
     display: flex;
     justify-content: space-between;
@@ -207,7 +174,7 @@
     margin: 0;
 }
 
-/* Indicators & Values */
+
 .status-indicator {
     width: 8px;
     height: 8px;
@@ -241,13 +208,13 @@
     color: #94a3b8;
 }
 
-/* Progress Bar */
+
 .mini-progress-container {
     width: 100%;
     height: 6px;
     background-color: #f1f5f9;
     border-radius: 10px;
-    overflow: hidden;
+    /* overflow: hidden; */
     margin-top: auto;
 }
 
@@ -257,7 +224,6 @@
     transition: width 0.5s ease-in-out;
 }
 
-/* Select Styling */
 .card-select {
     padding: 4px 8px;
     border-radius: 6px;
@@ -271,7 +237,6 @@
     transition: border-color 0.15s ease;
 }
 
-/* Alert Section Specifics */
 .alerts-stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -313,4 +278,212 @@
     border-radius: 6px;
     font-weight: 500;
     line-height: 1.4;
+}
+
+
+@media (max-width: 1024px) {
+  .details-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .academic-profile-card {
+    width: 100%;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filter-search-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-search-row .search-box {
+    flex: 1 1 100%;   /* full width on its own line */
+  }
+
+  .filter-search-row .filter-dropdown {
+    flex: 1 1 calc(33% - 8px);
+  }
+}
+
+/* ── 768px ── tablet portrait / large mobile ─────────────── */
+@media (max-width: 768px) {
+  /* Header */
+  .student-main-info h2 {
+    font-size: 18px;
+  }
+
+  .id-tags {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .status-container {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Dashboard cards → 2 per row still fine at 768 */
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .big-val {
+    font-size: 26px;
+  }
+
+  /* Section title bar */
+  .section-title-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+ 
+
+  /* Semester summary row — compress */
+  .semester-summary-row td {
+    font-size: 12px;
+    padding: 8px 6px;
+  }
+
+  /* Filters */
+  .filter-search-row .filter-dropdown {
+    flex: 1 1 calc(50% - 8px);
+  }
+}
+
+/* ── 600px ── ─────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  /* Cards → 1 column */
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .dash-card {
+    padding: 14px;
+  }
+
+  /* Alerts inner grid → keep 2-col but shrink */
+  .alerts-stats-grid {
+    gap: 8px;
+  }
+
+  .stat-box.bordered {
+    padding-left: 10px;
+  }
+
+  /* Filters → all full width */
+  .filter-search-row {
+    flex-direction: column;
+  }
+
+  .filter-search-row .filter-dropdown,
+  .filter-search-row .search-box {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  /* Section title */
+  .section-title-bar h3 {
+    font-size: 15px;
+  }
+
+
+}
+
+/* ── 480px ── ─────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .management-container {
+    padding: 0 12px;
+  }
+
+  .student-main-info h2 {
+    font-size: 16px;
+  }
+
+  .big-val {
+    font-size: 22px;
+  }
+
+  .card-label {
+    font-size: 11px;
+  }
+
+  /* Semester header bar */
+  .semester-header-bar {         /* the inline-styled div — target via class if you add one */
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  /* Alert policy box */
+  .alert-policy-box {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+
+  /* Advisor card */
+  .advisor-info-row {
+    gap: 8px;
+  }
+
+  .advisor-contact-minimal span {
+    font-size: 12px;
+  }
+
+  /* Tables — tighter cell padding */
+  .modern-table th,
+  .modern-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  /* Grade pills / status pills */
+  .grade-pill,
+  .status-pill,
+  .level-pill,
+  .reg-badge,
+  .type-tag {
+    font-size: 11px;
+    padding: 3px 7px;
+  }
+}
+
+/* ── 360px ── smallest supported ─────────────────────────── */
+@media (max-width: 360px) {
+  .management-container {
+    padding: 0 8px;
+  }
+
+  .id-badge {
+    font-size: 11px;
+    padding: 3px 7px;
+  }
+
+  .big-val {
+    font-size: 20px;
+  }
+
+  /* Alerts grid → stack */
+  .alerts-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-box.bordered {
+    border-left: none;
+    border-top: 1px solid #f1f5f9;
+    padding-left: 0;
+    padding-top: 10px;
+  }
+
+  .modern-table th,
+  .modern-table td {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
 }

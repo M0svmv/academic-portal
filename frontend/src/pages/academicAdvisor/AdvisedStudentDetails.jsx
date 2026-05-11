@@ -193,14 +193,17 @@ const AdvisedStudentDetails = () => {
     };
 
     const getGradeInfo = (grade) => {
-        if (grade >= 95) return { letter: "A+", class: "safe", status: "Passed" };
-        if (grade >= 90) return { letter: "A", class: "safe", status: "Passed" };
-        if (grade >= 85) return { letter: "B+", class: "safe", status: "Passed" };
+        if (grade >= 97) return { letter: "A+", class: "safe", status: "Passed" };
+        if (grade >= 93) return { letter: "A", class: "safe", status: "Passed" };
+        if (grade >= 89) return { letter: "A-", class: "safe", status: "Passed" };
+        if (grade >= 84) return { letter: "B+", class: "safe", status: "Passed" };
         if (grade >= 80) return { letter: "B", class: "safe", status: "Passed" };
-        if (grade >= 75) return { letter: "C+", class: "safe", status: "Passed" };
+        if (grade >= 76) return { letter: "B-", class: "safe", status: "Passed" };
+        if (grade >= 73) return { letter: "C+", class: "safe", status: "Passed" };
         if (grade >= 70) return { letter: "C", class: "safe", status: "Passed" };
-        if (grade >= 65) return { letter: "D+", class: "safe", status: "Passed" };
-        if (grade >= 60) return { letter: "D", class: "safe", status: "Passed" };
+        if (grade >= 67) return { letter: "C-", class: "warning", status: "Passed" }; // تقدير مقبول منخفض
+        if (grade >= 64) return { letter: "D+", class: "warning", status: "Passed" };
+        if (grade >= 60) return { letter: "D", class: "warning", status: "Passed" };
         return { letter: "F", class: "risk", status: "Failed" };
     };
 
@@ -295,14 +298,17 @@ const AdvisedStudentDetails = () => {
     ].sort();
 
     const getGPAPoints = (grade) => {
-        if (grade >= 93) return 4.0;
-        if (grade >= 89) return 3.7;
-        if (grade >= 80) return 3.3;
-        if (grade >= 75) return 3.0;
-        if (grade >= 70) return 2.7;
-        if (grade >= 65) return 2.4;
-        if (grade >= 60) return 2.0;
-        return 0.0;
+        if (grade >= 93) return 4.00; // A+ and A
+        if (grade >= 89) return 3.70; // A-
+        if (grade >= 84) return 3.30; // B+
+        if (grade >= 80) return 3.00; // B
+        if (grade >= 76) return 2.70; // B-
+        if (grade >= 73) return 2.30; // C+
+        if (grade >= 70) return 2.00; // C
+        if (grade >= 67) return 1.70; // C-
+        if (grade >= 64) return 1.30; // D+
+        if (grade >= 60) return 1.00; // D
+        return 0.00; // F
     };
 
     return (
@@ -314,13 +320,15 @@ const AdvisedStudentDetails = () => {
                         <h2>{transcript.studentId?.studentName}</h2>
                         <div className="id-tags">
                             <span className="id-badge">ID: {transcript.studentId?._id}</span>
-
+                            <span className="id-badge">@{transcript.studentId?.username}</span>
                         </div>
                         <div className="status-container">
                             <span className={`badge ${transcript.atRisk ? 'risk' : 'safe'}`}>{transcript.atRisk ? "At Risk" : "Good Standing"}</span>
-                            <span className="badge dept">{transcript.department}</span>
+                            {/* <span className="badge dept">{transcript.department}</span> */}
                             <span className={`badge level-${transcript.level}`}>{transcript.level}</span>
-                            <span className="badge-select">Regulation: {transcript.regulation}</span>
+                            <span className="reg-badge">{transcript.regulation} Regulation</span>
+
+
                         </div>
                     </div>
                 </div>
@@ -335,61 +343,28 @@ const AdvisedStudentDetails = () => {
                 </div>
             </div>
 
-            <div className="dashboard-grid" style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                gap: '20px',
-                marginBottom: '24px'
-            }}>
+            <div className="dashboard-grid">
                 {/* GPA Card */}
-                <div className={`dash-card primary ${transcript.GPA < 2 ? 'border-danger' : ''}`} style={{
-                    background: '#fff',
-                    border: transcript.GPA < 2 ? '1px solid #fee2e2' : '1px solid #f1f5f9',
-                    borderRadius: '12px',
-                    padding: '20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    position: 'relative',
-                    overflow: 'hidden'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <label style={{ fontSize: '13px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cumulative GPA</label>
-                        <span style={{
-                            width: '8px',
-                            height: '8px',
-                            borderRadius: '50%',
-                            backgroundColor: transcript.GPA < 2 ? '#ef4444' : '#10b981'
-                        }}></span>
+                <div className={`dash-card ${transcript.GPA < 2 ? 'border-danger' : ''}`}>
+                    <div className="card-header-flex">
+                        <label className="card-label">Cumulative GPA</label>
+                        <span
+                            className="status-indicator"
+                            style={{ backgroundColor: transcript.GPA < 2 ? '#ef4444' : '#10b981' }}
+                        ></span>
                     </div>
-                    <div className="gpa-display" style={{ display: 'flex', alignItems: 'baseline', gap: '4px', margin: '12px 0 16px 0' }}>
-                        <span className={`gpa-value ${transcript.GPA < 2 ? 'text-danger' : ''}`} style={{
-                            fontSize: '32px',
-                            fontWeight: '800',
-                            color: transcript.GPA < 2 ? '#ef4444' : '#1e293b',
-                            lineHeight: '1'
-                        }}>
+                    <div className="value-group">
+                        <span className={`big-val ${transcript.GPA < 2 ? 'text-danger' : ''}`}>
                             {transcript.GPA?.toFixed(2)}
                         </span>
-                        <span className="gpa-max" style={{ fontSize: '14px', fontWeight: '500', color: '#94a3b8' }}>/ 4.0</span>
+                        <span className="val-unit">/ 4.0</span>
                     </div>
-                    <div className="mini-progress-bar" style={{
-                        width: '100%',
-                        height: '6px',
-                        backgroundColor: '#f1f5f9',
-                        borderRadius: '10px',
-                        overflow: 'hidden',
-                        marginTop: 'auto'
-                    }}>
+                    <div className="mini-progress-container">
                         <div
-                            className="fill"
+                            className="progress-fill"
                             style={{
                                 width: `${(transcript.GPA / 4) * 100}%`,
-                                height: '100%',
-                                borderRadius: '10px',
                                 backgroundColor: transcript.GPA < 2 ? '#ef4444' : '#10b981',
-                                transition: 'width 0.5s ease-in-out'
                             }}
                         ></div>
                     </div>
@@ -397,78 +372,34 @@ const AdvisedStudentDetails = () => {
 
                 {/* Failing Courses Card */}
                 <div
-                    className={`dash-card alert-card ${failedCount > 0 ? 'border-danger' : ''}`}
+                    className={`dash-card alert-card ${failedCount > 0 ? 'border-danger active-alert' : ''}`}
                     onClick={() => setStatusFilter("failed")}
-                    style={{
-                        background: failedCount > 0 ? '#fffcfc' : '#fff',
-                        border: failedCount > 0 ? '1px solid #fee2e2' : '1px solid #f1f5f9',
-                        borderRadius: '12px',
-                        padding: '20px',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)';
-                    }}
                 >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <label style={{ fontSize: '13px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Failing Courses</label>
-                        <AlertTriangle size={18} className={failedCount > 0 ? "text-warn" : "text-muted"} style={{ color: failedCount > 0 ? '#f59e0b' : '#94a3b8' }} />
+                    <div className="card-header-flex">
+                        <label className="card-label">Failing Courses</label>
+                        <AlertTriangle
+                            size={18}
+                            style={{ color: failedCount > 0 ? '#f59e0b' : '#94a3b8' }}
+                        />
                     </div>
-                    <div className="value-group" style={{ display: 'flex', gap: '8px', alignItems: 'center', margin: '12px 0 16px 0' }}>
-                        <span className="big-val" style={{ fontSize: '32px', fontWeight: '800', color: failedCount > 0 ? '#ef4444' : '#1e293b', lineHeight: '1' }}>{failedCount}</span>
+                    <div className="value-group">
+                        <span className="big-val" style={{ color: failedCount > 0 ? '#ef4444' : '#1e293b' }}>
+                            {failedCount}
+                        </span>
                     </div>
-                    <p className="sub-info" style={{
-                        margin: 0,
-                        fontSize: '11px',
-                        fontWeight: '600',
-                        color: failedCount > 0 ? '#ef4444' : '#64748b',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                    }}>
+                    <p className="sub-info" style={{ color: failedCount > 0 ? '#ef4444' : '#64748b', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                         {failedCount > 0 ? "● Requires Immediate Action" : "All courses passed"}
                     </p>
                 </div>
 
                 {/* Done Credits Card */}
-                <div className="dash-card" style={{
-                    background: '#fff',
-                    border: '1px solid #f1f5f9',
-                    borderRadius: '12px',
-                    padding: '20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between'
-                }}>
-                    <div className="card-header-flex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <label style={{ fontSize: '13px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Done Credits</label>
+                <div className="dash-card">
+                    <div className="card-header-flex">
+                        <label className="card-label">Done Credits</label>
                         <select
                             className="card-select"
                             value={creditType}
                             onChange={(e) => setCreditType(e.target.value)}
-                            style={{
-                                padding: '4px 8px',
-                                borderRadius: '6px',
-                                border: '1px solid #cbd5e1',
-                                fontSize: '11px',
-                                fontWeight: '600',
-                                color: '#475569',
-                                backgroundColor: '#f8fafc',
-                                cursor: 'pointer',
-                                outline: 'none',
-                                transition: 'border-color 0.15s ease'
-                            }}
                         >
                             {Object.entries(CREDIT_MAP).map(([shortKey, info]) => (
                                 <option key={shortKey} value={shortKey}>
@@ -477,64 +408,48 @@ const AdvisedStudentDetails = () => {
                             ))}
                         </select>
                     </div>
-                    <div className="value-group" style={{ display: 'flex', alignItems: 'baseline', gap: '6px', margin: '12px 0 16px 0' }}>
-                        <span className="big-val" style={{ fontSize: '32px', fontWeight: '800', color: '#1e293b', lineHeight: '1' }}>{getDisplayCredits()}</span>
-                        <span className="unit" style={{ fontSize: '14px', fontWeight: '600', color: '#64748b' }}>Hrs</span>
+                    <div className="value-group">
+                        <span className="big-val">{getDisplayCredits()}</span>
+                        <span className="val-unit" style={{ fontWeight: '600', color: '#64748b' }}>Hrs</span>
                     </div>
-                    <p className="sub-info" style={{ margin: 0, fontSize: '11px', color: '#94a3b8', fontWeight: '500' }}>From total curriculum requirements</p>
+                    <p className="sub-info" style={{ color: '#94a3b8', fontWeight: '500' }}>
+                        From total curriculum requirements
+                    </p>
                 </div>
 
                 {/* Academic Alerts Card */}
-                <div className="dash-card academic-alerts-card" style={{
-                    background: '#fff',
-                    border: '1px solid #f1f5f9',
-                    borderRadius: '12px',
-                    padding: '20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.04)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between'
-                }}>
-                    <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                        <label style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Academic Alerts</label>
+                <div className="dash-card">
+                    <div className="card-header-flex" style={{ marginBottom: '12px' }}>
+                        <label className="card-label">Academic Alerts</label>
                         {transcript.alerts > 0 ? (
-                            <AlertTriangle className="text-warn" size={18} style={{ color: '#ef4444' }} />
+                            <AlertTriangle size={18} style={{ color: '#ef4444' }} />
                         ) : (
-                            <Info className="text-muted" size={18} style={{ color: '#94a3b8' }} />
+                            <Info size={18} style={{ color: '#94a3b8' }} />
                         )}
                     </div>
 
-                    <div className="alerts-stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
+                    <div className="alerts-stats-grid">
                         <div className="stat-box">
-                            <span className="stat-label" style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: '600', marginBottom: '4px', textTransform: 'uppercase' }}>Consecutive</span>
-                            <span className="big-val" style={{ fontSize: '24px', fontWeight: '700', color: transcript.alerts >= 3 ? '#ef4444' : '#1e293b' }}>
-                                {transcript.alerts} <span style={{ fontSize: '14px', fontWeight: '500', color: '#94a3b8' }}>/ 4</span>
+                            <span className="stat-label">Consecutive</span>
+                            <span className="big-val" style={{ fontSize: '24px', color: transcript.alerts >= 3 ? '#ef4444' : '#1e293b' }}>
+                                {transcript.alerts} <span className="val-unit">/ 4</span>
                             </span>
                         </div>
-                        <div className="stat-box" style={{ borderLeft: '1px solid #f1f5f9', paddingLeft: '16px' }}>
-                            <span className="stat-label" style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: '600', marginBottom: '4px', textTransform: 'uppercase' }}>Total</span>
-                            <span className="big-val" style={{ fontSize: '24px', fontWeight: '700', color: transcript.totalAlerts >= 5 ? '#ef4444' : '#1e293b' }}>
-                                {transcript.totalAlerts} <span style={{ fontSize: '14px', fontWeight: '500', color: '#94a3b8' }}>/ 6</span>
+                        <div className="stat-box bordered">
+                            <span className="stat-label">Total</span>
+                            <span className="big-val" style={{ fontSize: '24px', color: transcript.totalAlerts >= 5 ? '#ef4444' : '#1e293b' }}>
+                                {transcript.totalAlerts} <span className="val-unit">/ 6</span>
                             </span>
                         </div>
                     </div>
 
-                    <p className="sub-info" style={{
-                        margin: 0,
-                        fontSize: '11px',
-                        color: '#ef4444',
-                        backgroundColor: '#fef2f2',
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        fontWeight: '500',
-                        lineHeight: '1.4'
-                    }}>
+                    <p className="alert-policy-box">
                         Dismissal policy: 6 total alerts or 4 consecutive will lead to expulsion.
                     </p>
                 </div>
             </div>
 
-            <div className="details-content-sections">
+            <div >
                 <div className="data-section">
                     <div className="section-title-bar">
                         <h3>Current Semester Works</h3>

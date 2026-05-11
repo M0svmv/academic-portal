@@ -891,3 +891,66 @@ color: #0f172a; margin: 0; }
 
 .close-x-btn { width: 45px; height: 45px;background: #f1f5f9; border: none; border-radius: 50%; padding: 8px; cursor: pointer; color: #64748b; transition: 0.2s; }
 .close-x-btn:hover { background: #fee2e2; color: #ef4444; }
+
+/* --- تعديلات الشاشات المتوسطة (Tablets) --- */
+@media (max-width: 1024px) {
+    .insights-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .insight-value {
+        /* تصغير الـ 1.75rem ليتناسب مع التابلت */
+        font-size: 1.5rem !important; 
+    }
+}
+
+/* --- تعديلات الموبايل (Mobile) --- */
+@media (max-width: 600px) {
+    .insights-grid {
+        grid-template-columns: 1fr; /* كارت واحد في الصف */
+        gap: 12px;
+    }
+
+    .insight-card {
+        padding: 15px;
+        min-height: auto; /* ترك الارتفاع يتحدد حسب المحتوى */
+    }
+
+    /* تصغير العناوين والخطوط */
+    .insight-label, .insight-card select {
+        font-size: 0.85rem !important;
+    }
+
+    .insight-value {
+        font-size: 1.35rem !important; /* تصغير الرقم الكبير */
+        margin-top: 8px !important;
+    }
+
+    .insight-footer {
+        font-size: 0.75rem !important;
+        margin-top: 8px !important;
+    }
+
+    /* تحسين شكل الـ Header في الموبايل */
+    .insight-header {
+        gap: 6px !important;
+    }
+
+    /* تقليل حجم الأيقونات لتعطي مساحة للنص */
+    .insight-icon svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* تأثير النقر للموبايل */
+    .insight-card:active {
+        background-color: #f1f5f9;
+        transform: scale(0.98);
+    }
+}
+
+/* تنظيف شكل الـ Active Filter */
+.active-filter {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}

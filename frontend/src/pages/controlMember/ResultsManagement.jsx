@@ -208,7 +208,7 @@ const ResultsManagement = () => {
     );
 
     return (
-        <div className="management-container">
+        <div className="management-container management-container-att">
             <header className="management-header">
                 <div className="prereg-header">
                     <button className="back-btn-round" onClick={() => navigate(-1)}><FaArrowLeft /></button>
@@ -386,7 +386,7 @@ const ResultsManagement = () => {
                                         <td style={{ textAlign: 'center' }}>
                                             <span style={{
                                                 fontWeight: 'bold',
-                                                color: total < 50 ? '#ef4444' : '#2563eb',
+                                                color: total < 60 ? '#ef4444' : '#2563eb',
                                                 fontSize: '1.1em'
                                             }}>
                                                 {total}

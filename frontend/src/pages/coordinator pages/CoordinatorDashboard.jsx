@@ -633,7 +633,7 @@ const CoordinatorDashboard = () => {
                                                     </span>
                                                 </div>
                                                 <span className="sd-semester-text">
-                                                    {/* حل مشكلة إذا كان السيمستر Object أو String مباشرة كما في الصورة */}
+                                                    
                                                     {typeof ann.semesterId === 'object' ? ann.semesterId?.name : ann.semesterId}
                                                 </span>
                                             </div>
@@ -669,7 +669,7 @@ const CoordinatorDashboard = () => {
 
                                                 <div className="sd-footer-author">
                                                     <div className="sd-author-info">
-                                                        {/* التأكد من عرض اسم الموظف بشكل صحيح */}
+                                                        
                                                         <p className="sd-author-name">
                                                             {ann.staffId?.staffName || (typeof ann.staffId === 'string' ? ann.staffId : "Admin")}
                                                         </p>

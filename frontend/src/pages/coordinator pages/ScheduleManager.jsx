@@ -492,6 +492,18 @@ const ScheduleManager = () => {
 
     return (
         <div className="management-container schedule-container ">
+            {/* Mobile Warning Overlay */}
+            <div className="mobile-responsive-warning">
+                <div className="warning-content">
+                    <div className="warning-icon">
+                        <EyeOff size={48} />
+                    </div>
+                    <h2>Screen Too Small</h2>
+                    <p>We apologize, managing academic schedules requires a larger workspace for accurate drag-and-drop functionality.</p>
+                    <p className="highlight">Please use a desktop or a tablet with a wider screen (minimum 1024px).</p>
+                    <button className="btn-2" onClick={() => navigate(-1)}>Go Back</button>
+                </div>
+            </div>
             <DragDropContext onDragEnd={onDragEnd}>
 
                 <main className="schedule-main">
@@ -557,7 +569,7 @@ const ScheduleManager = () => {
                                                         return (
                                                             <td ref={provided.innerRef} {...provided.droppableProps}
                                                                 className={`slot ${snapshot.isDraggingOver ? 'drop-hover' : ''}`}>
-                                                              
+
                                                                 <div className="courses-stack" style={{
                                                                     display: 'flex',
                                                                     flexWrap: 'wrap',

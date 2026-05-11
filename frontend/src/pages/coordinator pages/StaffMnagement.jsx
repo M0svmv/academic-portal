@@ -47,10 +47,8 @@ const StaffManagement = () => {
 
     useEffect(() => { fetchStaff(); }, []);
 
-    // ربط اختيار قائمة كارد الإداريين بفلتر الجدول الرئيسي
     const handleRoleViewChange = (val) => {
         setRoleView(val);
-        // إلغاء تفعيل الفلاتر الأخرى لتجنب التضارب
         setShowIncompleteOnly(false);
         setShowMultiRoleOnly(false);
         setTeachingView('all');
@@ -66,10 +64,9 @@ const StaffManagement = () => {
         }
     };
 
-    // ربط اختيار قائمة كارد التعليميين بفلتر الجدول الرئيسي
+
     const handleTeachingViewChange = (val) => {
         setTeachingView(val);
-        // إلغاء تفعيل الفلاتر الأخرى لتجنب التضارب
         setShowIncompleteOnly(false);
         setShowMultiRoleOnly(false);
         setRoleView('all');

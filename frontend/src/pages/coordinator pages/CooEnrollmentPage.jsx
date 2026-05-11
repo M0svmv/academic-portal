@@ -224,7 +224,8 @@ const CooEnrollmentPage = () => {
     );
 
     return (
-        <div className="management-container">
+        <div className="management-container student-offerings-container">
+
             <div className="prereg-header header">
                 <div className="header-left">
                     <button className="back-btn-round" onClick={() => navigate(-1)}><FaArrowLeft /></button>
@@ -234,7 +235,7 @@ const CooEnrollmentPage = () => {
                 </div>
                 <div>
                     {isDirty ? (
-                        <div className="status-alert warning"><FaExclamationTriangle /> Unsaved changes</div>
+                        <div className="status-alert warning"><FaExclamationTriangle /> Unsaved Changes</div>
                     ) : (
                         <div className="status-alert success"><FaCheckCircle /> Everything is up to date</div>
                     )}
@@ -268,7 +269,7 @@ const CooEnrollmentPage = () => {
             <div className={`credit-info-card ${isLimitReached ? "limit-reached" : ""}`}>
                 <div className="credit-text">
                     <FaInfoCircle />
-                    <span>Credit Progress: <strong>{currentTotalCredits}</strong> / {allowedCredits}</span>
+                    <span>Credits: <strong>{currentTotalCredits}</strong> / {allowedCredits}</span>
                 </div>
                 <div className="progress-bar">
                     <div className="progress-fill" style={{ width: `${Math.min((currentTotalCredits / allowedCredits) * 100, 100)}%` }}></div>

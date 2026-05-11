@@ -371,7 +371,7 @@
 .advisor-info-row {
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    /* justify-content: space-between; */
     align-items: center;
     gap: 12px;
     /* margin-bottom: 12px; */
@@ -611,4 +611,254 @@ background-color: #e8f4fd; color: #2b6cb0;
     background-color: #fee2e2;
     color: #ef4444;
     border: 1px solid #fecaca;
+}
+
+
+/* ===== Responsive — CourseStudentsPage ===== */
+
+/* ── Tablet: 768px وأقل ── */
+@media (max-width: 768px) {
+
+  /* Container */
+  .student-details-wrapper {
+    padding: 0 1rem !important;
+  }
+
+  /* Header: العنوان والأزرار فوق بعض */
+  .details-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 1.2rem;
+  }
+
+  /* الأزرار (Export / Assign) تتحول لـ row ملفوف */
+  .details-header > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .details-header > div:last-child .btn-1,
+  .details-header > div:last-child .btn-2 {
+    flex: 1 1 calc(50% - 8px);
+    justify-content: center;
+    font-size: 0.8rem;
+    padding: 8px 10px;
+  }
+
+  /* Header Left */
+  .header-left {
+    gap: 10px;
+  }
+
+  .student-main-info h2 {
+    font-size: 1.1rem !important;
+  }
+
+  /* Staff assignment bar: فوق بعض */
+  .staff-assignment-overview {
+    flex-direction: column !important;
+    gap: 0;
+    padding: 6px !important;
+  }
+
+  .staff-assignment-overview > div {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 10px 12px !important;
+  }
+
+  .staff-assignment-overview > div:last-child {
+    border-bottom: none;
+  }
+
+  /* Insight cards: عمودين */
+  .insight-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    margin-top: 14px !important;
+  }
+
+  .insight-card {
+    padding: 12px;
+  }
+
+  .insight-value {
+    font-size: 1.1rem;
+  }
+
+  /* Filters row: فوق بعض */
+  .table-controls {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .drop-filters-group {
+    width: 100%;
+  }
+
+  .drop-filters-group .filter-dropdown {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* الجدول: scrollable */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modern-table {
+    min-width: 700px;
+    font-size: 0.8rem;
+  }
+
+  .modern-table th,
+  .modern-table td {
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+
+  /* id-tags */
+  .id-tags {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  /* Modal */
+  .modal-content {
+    width: 95% !important;
+    max-width: 95% !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* ── Mobile: 480px وأقل ── */
+@media (max-width: 480px) {
+
+  .student-details-wrapper {
+    padding: 0 0.6rem !important;
+  }
+
+  /* Header */
+  .student-main-info h2 {
+    font-size: 0.98rem !important;
+  }
+
+  .id-badge {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+  }
+
+  /* الأزرار: كل زرار يأخذ عرض كامل */
+  .details-header > div:last-child .btn-1,
+  .details-header > div:last-child .btn-2 {
+    flex: 1 1 100%;
+    font-size: 0.78rem;
+    padding: 9px 10px;
+  }
+
+  /* Staff bar */
+  .staff-assignment-overview > div span {
+    font-size: 0.82rem;
+  }
+
+  .staff-assignment-overview > div span:first-child {
+    font-size: 0.65rem;
+  }
+
+  /* Insight cards: عمود واحد */
+  .insight-cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .insight-card .advisor-info-row {
+    gap: 10px;
+  }
+
+  .insight-card h6 {
+    font-size: 0.7rem !important;
+    margin-bottom: 3px !important;
+  }
+
+  .insight-value {
+    font-size: 1rem;
+  }
+
+  /* الجدول */
+  .modern-table {
+    min-width: 580px;
+    font-size: 0.75rem;
+  }
+
+  .modern-table th,
+  .modern-table td {
+    padding: 7px 8px;
+  }
+
+  /* Status badge */
+  .status-badge {
+    font-size: 0.65rem;
+    padding: 2px 7px;
+  }
+
+  /* Back button */
+  .back-btn-round {
+    width: 34px;
+    height: 34px;
+  }
+
+  /* data-section margin */
+  .data-section {
+    margin-top: 16px !important;
+  }
+
+  /* Modal على موبايل */
+  .modal-content {
+    border-radius: 10px !important;
+  }
+
+  .modal-content .modal-header {
+    padding: 14px 16px !important;
+  }
+
+  .modal-content .modal-body {
+    padding: 16px !important;
+  }
+
+  .modal-content .modal-footer {
+    padding: 12px 16px !important;
+    flex-direction: column-reverse;
+  }
+
+  .modal-content .modal-footer button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Table controls layout ── */
+.table-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+
+.table-controls .search-box {
+  flex: 1;
+  min-width: 180px;
+}
+
+.table-controls .drop-filters-group {
+  flex-shrink: 0;
 }

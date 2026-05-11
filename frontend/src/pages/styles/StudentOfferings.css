@@ -523,3 +523,188 @@ button {
     50% { transform: scale(1.1); opacity: 0.7; }
     100% { transform: scale(1); opacity: 1; }
 }
+
+/* ===== Responsive — Student Offerings ===== */
+
+/* Tablet: 768px وأقل */
+@media (max-width: 768px) {
+  .student-offerings-container {
+    padding: 0 1rem !important;
+  }
+
+  .prereg-header.header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .prereg-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .credit-info-card {
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+
+  .credit-text {
+    font-size: 0.95rem;
+  }
+
+  .credit-text strong {
+    font-size: 1.2rem;
+  }
+
+  .tabs-navigation {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px;
+  }
+
+  .tab-item {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+  }
+
+  .premium-status-alert {
+    padding: 10px 16px;
+    gap: 14px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+
+  .status-icon-container {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+  }
+
+  .status-content .label {
+    font-size: 0.75rem;
+  }
+
+  .status-content .timer {
+    font-size: 0.9rem;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+  }
+
+  .offerings-table {
+    min-width: 480px;
+    font-size: 0.82rem;
+  }
+
+  .offerings-table th,
+  .offerings-table td {
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+
+  .recommendation-table {
+    min-width: 520px;
+  }
+
+  .save-btn {
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px;
+    font-size: 0.95rem;
+  }
+
+  .status-alert {
+    font-size: 0.78rem;
+    padding: 8px 12px;
+  }
+
+  .section {
+    margin-top: 20px;
+  }
+
+  .section h3 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+}
+
+/* Mobile: 480px وأقل */
+@media (max-width: 480px) {
+  .student-offerings-container {
+    padding: 0 0.6rem !important;
+  }
+
+  .prereg-header h2 {
+    font-size: 1rem;
+  }
+
+  .credit-text {
+    font-size: 0.85rem;
+  }
+
+  .credit-text strong {
+    font-size: 1.05rem;
+  }
+
+  .tab-item {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
+  .offerings-table {
+    min-width: 420px;
+    font-size: 0.78rem;
+  }
+
+  .offerings-table th,
+  .offerings-table td {
+    padding: 7px 8px;
+  }
+
+  .status-badge {
+    font-size: 0.68rem;
+    padding: 3px 8px;
+  }
+
+  .premium-status-alert {
+    padding: 8px 12px;
+    gap: 10px;
+  }
+
+  .status-icon-container {
+    width: 32px;
+    height: 32px;
+  }
+
+  .status-content .timer {
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  .recommendations-section {
+    padding: 1rem;
+  }
+
+  .section-title-with-icon h3 {
+    font-size: 0.95rem;
+  }
+
+  .no-semester-card {
+    padding: 20px 14px;
+  }
+
+  .no-semester-icon svg {
+    width: 56px;
+    height: 56px;
+  }
+
+  .no-semester-card h3 {
+    font-size: 1rem;
+  }
+
+  .no-semester-card p {
+    font-size: 0.85rem;
+  }
+}

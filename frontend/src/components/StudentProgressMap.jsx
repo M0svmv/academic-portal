@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
     ReactFlow,
     Background,
@@ -15,7 +15,8 @@ import {
     AlertCircle,
     Clock,
     Lock
-    , Loader2
+    , Loader2,
+    MonitorOff
 } from 'lucide-react';
 
 const STATUS_STYLES = {
@@ -49,6 +50,16 @@ const getLayoutedElements = (nodes, edges) => {
 };
 
 const StudentProgressMapModal = ({ isOpen, onClose, allCourses = [], studentData }) => {
+    // State to track screen size for better experience
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const { nodes, edges } = useMemo(() => {
 
@@ -180,32 +191,59 @@ const StudentProgressMapModal = ({ isOpen, onClose, allCourses = [], studentData
 
                 <div className="tree-header">
                     <h2 className="title-text">
-                        Student Progress:
                         <span className="highlight">
                             {studentData?.transcript?.studentId?.studentName || 'Student'}
                         </span>
                     </h2>
 
-                    <div className="tree-legend">
-                        {Object.entries(STATUS_STYLES).map(([key, s]) => (
-                            <div key={key} className="legend-chip">
-                                <span
-                                    className="chip-dot"
-                                    style={{ backgroundColor: s.border }}
-                                ></span>
-                                {s.label}
-                            </div>
-                        ))}
-                    </div>
+                    {!isMobile && (
+                        <div className="tree-legend">
+                            {Object.entries(STATUS_STYLES).map(([key, s]) => (
+                                <div key={key} className="legend-chip">
+                                    <span
+                                        className="chip-dot"
+                                        style={{ backgroundColor: s.border }}
+                                    ></span>
+                                    {s.label}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     <button onClick={onClose}><X /></button>
                 </div>
 
                 <div className="flow-wrapper">
-                    <ReactFlow nodes={nodes} edges={edges} fitView>
-                        <Background />
-                        <Controls />
-                    </ReactFlow>
+                    {isMobile ? (
+                        <div className="mobile-warning-container" style={{
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '40px',
+                            textAlign: 'center',
+                            color: '#64748b'
+                        }}>
+                            <div style={{
+                                background: '#f1f5f9',
+                                padding: '20px',
+                                borderRadius: '50%',
+                                marginBottom: '20px'
+                            }}>
+                                <MonitorOff size={48} strokeWidth={1.5} />
+                            </div>
+                            <h3 style={{ color: '#1e293b', marginBottom: '10px' }}>Desktop View Recommended</h3>
+                            <p style={{ maxWidth: '300px', lineHeight: '1.6', fontSize: '0.95rem' }}>
+                                The academic progress map is highly detailed and requires a larger screen for the best experience. Please switch to a tablet or desktop.
+                            </p>
+                        </div>
+                    ) : (
+                        <ReactFlow nodes={nodes} edges={edges} fitView>
+                            <Background />
+                            <Controls />
+                        </ReactFlow>
+                    )}
                 </div>
 
             </div>

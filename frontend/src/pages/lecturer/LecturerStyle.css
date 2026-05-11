@@ -1,10 +1,9 @@
-
+/* 
 .selected-row td {
     background-color: #f1f5f9;
     border-bottom: none;
 }
 
-/* الصف الممتد */
 .details-expanded-row td {
     padding: 0 !important;
     background-color: #f8fafc;
@@ -12,7 +11,6 @@
 }
 
 .course-details-container {
-    /* padding: 10px; */
     animation: fadeIn 0.3s ease-in-out;
 }
 
@@ -22,7 +20,6 @@
     gap: 30px;
     background: white;
     padding: 20px;
-    /* border-radius: 12px; */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
@@ -49,7 +46,7 @@
     color: #0f172a;
 }
 
-/* توزيع الدرجات بشكل Pills */
+
 .schema-visualizer {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -89,4 +86,155 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-.capitalize { text-transform: capitalize; }
+.capitalize { text-transform: capitalize; } */
+
+
+
+/* ---- Small Tablet / Large Mobile (600px - 767px) ---- */
+@media (max-width: 767px) {
+    .management-container {
+        padding: 14px;
+    }
+     .management-container-att .prereg-header{
+        flex-direction: row !important;
+    }
+
+    .management-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .split-button-container {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+.header-actions{
+    width: 100%;
+    
+    flex-direction: column;
+}
+    /* Date picker + buttons stack nicely */
+    .split-button-container > * {
+        flex-shrink: 0;
+    }
+
+    .insights-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .insights-grid .insight-card:last-child {
+        grid-column: span 1;
+    }
+
+    /* Grading schema pills: wrap */
+    .insights-grid .insight-card:last-child > div:last-child {
+        flex-wrap: wrap;
+    }
+
+    .filters-wrapper {
+        gap: 8px;
+        padding: 8px 10px;
+    }
+
+    .drop-filters,
+    .filter-group {
+        width: 100%;
+    }
+
+    .drop-filters select,
+    .filter-group select {
+        width: 100%;
+    }
+
+    /* Compact table columns */
+    .management-table th,
+    .management-table td {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+
+    .management-table input[type="number"] {
+        width: 38px !important;
+        font-size: 12px;
+    }
+
+    /* Expanded student row */
+    td > div[style*="justifyContent: space-between"] {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 12px;
+        padding: 12px 16px !important;
+    }
+
+    td > div > div[style*="display: flex"][style*="gap: 30px"] {
+        flex-wrap: wrap;
+        gap: 12px !important;
+    }
+}
+
+/* ---- Mobile (max 599px) ---- */
+@media (max-width: 599px) {
+    .management-container {
+        padding: 10px 8px;
+    }
+
+    .prereg-header h2 {
+        font-size: 15px;
+    }
+
+
+    /* Date input full-width */
+    .split-button-container > div:first-child {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+
+
+    .insight-value {
+        font-size: 22px;
+    }
+
+    /* Table: hide bonus column on tiny screens */
+    .management-table th:nth-child(7),
+    .management-table td:nth-child(7) {
+        display: none;
+    }
+
+    .management-table input[type="number"] {
+        width: 32px !important;
+        padding: 2px !important;
+    }
+
+    /* Unsaved changes bar */
+    .unsaved-alert {
+        width: 90% !important;
+        padding: 10px 14px !important;
+        font-size: 12px;
+        flex-direction: column;
+        gap: 8px !important;
+        text-align: center;
+        border-radius: 16px !important;
+    }
+}
+
+/* ---- Attendance Modal Responsive ---- */
+@media (max-width: 767px) {
+    .modal-card {
+        width: 99% !important;
+        max-height: 95vh !important;
+        border-radius: 12px;
+    }
+
+    .modal-head {
+        padding: 14px 16px !important;
+    }
+
+    .modal-head h3 {
+        font-size: 15px;
+    }
+}

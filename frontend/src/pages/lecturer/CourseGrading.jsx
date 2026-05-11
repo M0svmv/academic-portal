@@ -9,7 +9,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import api from "../../services/api";
 import swalService from "../../services/swal";
 import '../styles/ProgramCourses.css';
-
+import './LecturerStyle.css';
 const CourseGrading = () => {
     const { role } = useParams();
     const { id, courseId } = useParams();
@@ -283,7 +283,7 @@ const CourseGrading = () => {
     );
 
     return (
-        <div className="management-container">
+        <div className="management-container management-container-att">
             <header className="management-header">
                 <div className="prereg-header">
                     <button className="back-btn-round" onClick={() => navigate(-1)}><FaArrowLeft /></button>

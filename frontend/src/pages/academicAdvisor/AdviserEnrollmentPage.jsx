@@ -131,14 +131,13 @@ const AdviserEnrollmentPage = () => {
     }, [semesterData]);
 
 
-    // 2. Persist Draft to LocalStorage
     useEffect(() => {
         if (!loading) {
             localStorage.setItem(`draft_${studentId}`, JSON.stringify(draftEnrolled));
         }
     }, [draftEnrolled, loading, studentId]);
 
-    // 3. Logic: Is Dirty & Credit Calculation
+
     const isDirty = useMemo(() => {
         if (loading) return false;
         const draftIds = [...draftEnrolled].sort().join(",");

@@ -129,26 +129,32 @@ const StudentTranscript = () => {
     };
 
     const getGradeInfo = (grade) => {
-        if (grade >= 95) return { letter: "A+", class: "safe", status: "Passed" };
-        if (grade >= 90) return { letter: "A", class: "safe", status: "Passed" };
-        if (grade >= 85) return { letter: "B+", class: "safe", status: "Passed" };
+        if (grade >= 97) return { letter: "A+", class: "safe", status: "Passed" };
+        if (grade >= 93) return { letter: "A", class: "safe", status: "Passed" };
+        if (grade >= 89) return { letter: "A-", class: "safe", status: "Passed" };
+        if (grade >= 84) return { letter: "B+", class: "safe", status: "Passed" };
         if (grade >= 80) return { letter: "B", class: "safe", status: "Passed" };
-        if (grade >= 75) return { letter: "C+", class: "safe", status: "Passed" };
+        if (grade >= 76) return { letter: "B-", class: "safe", status: "Passed" };
+        if (grade >= 73) return { letter: "C+", class: "safe", status: "Passed" };
         if (grade >= 70) return { letter: "C", class: "safe", status: "Passed" };
-        if (grade >= 65) return { letter: "D+", class: "safe", status: "Passed" };
-        if (grade >= 60) return { letter: "D", class: "safe", status: "Passed" };
+        if (grade >= 67) return { letter: "C-", class: "warning", status: "Passed" }; // تقدير مقبول منخفض
+        if (grade >= 64) return { letter: "D+", class: "warning", status: "Passed" };
+        if (grade >= 60) return { letter: "D", class: "warning", status: "Passed" };
         return { letter: "F", class: "risk", status: "Failed" };
     };
 
     const getGPAPoints = (grade) => {
-        if (grade >= 93) return 4.0;
-        if (grade >= 89) return 3.7;
-        if (grade >= 80) return 3.3;
-        if (grade >= 75) return 3.0;
-        if (grade >= 70) return 2.7;
-        if (grade >= 65) return 2.4;
-        if (grade >= 60) return 2.0;
-        return 0.0;
+        if (grade >= 93) return 4.00; // A+ and A
+        if (grade >= 89) return 3.70; // A-
+        if (grade >= 84) return 3.30; // B+
+        if (grade >= 80) return 3.00; // B
+        if (grade >= 76) return 2.70; // B-
+        if (grade >= 73) return 2.30; // C+
+        if (grade >= 70) return 2.00; // C
+        if (grade >= 67) return 1.70; // C-
+        if (grade >= 64) return 1.30; // D+
+        if (grade >= 60) return 1.00; // D
+        return 0.00; // F
     };
 
     const handleExportPDF = async () => {
@@ -499,13 +505,13 @@ const StudentTranscript = () => {
                 </div>
             </div>
 
-            <div className="details-content-sections">
+            <div >
                 <div className="data-section">
                     <div className="section-title-bar">
                         <h3>Semester Works</h3>
                         <span className="badge dept">{semester?.name || "No semester opened"}</span>
                     </div>
-                    <div className="table-responsive table-wrapper">
+                    <div className="table-wrapper">
                         <table className="modern-table">
                             <thead>
                                 <tr>
@@ -567,7 +573,7 @@ const StudentTranscript = () => {
                     </div>
                 </div>
 
-                <div className="data-section" style={{ marginTop: '2rem' }}>
+                <div className="data-section" >
                     <div className="section-title-bar">
                         <h3>Academic Transcript</h3>
                         <button className="btn-1" onClick={() => setIsMapModalOpen(true)}>

@@ -2,8 +2,8 @@ import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import swalService from '../services/swal';
-import { FiLogOut, FiMenu, FiChevronLeft, FiSettings, FiAlertTriangle } from "react-icons/fi";
-import { ChevronLeft, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { FiLogOut, FiSettings, FiAlertTriangle } from "react-icons/fi";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { menuConfig } from "../config/menuConfig";
 import api from "../services/api";
 import "./styles/AppLayout.css";
@@ -11,31 +11,31 @@ import "./styles/AppLayout.css";
 
 const roleColors = {
     admin: {
-        bg: "rgba(136, 132, 216, 0.12)",   // #8884d8
+        bg: "rgba(136, 132, 216, 0.12)",
         color: "#6c63c9"
     },
     student: {
-        bg: "rgba(130, 202, 157, 0.12)",   // #82ca9d
+        bg: "rgba(130, 202, 157, 0.12)",
         color: "#4caf7d"
     },
     coordinator: {
-        bg: "rgba(255, 198, 88, 0.15)",    // #ffc658
+        bg: "rgba(255, 198, 88, 0.15)",
         color: "#d4a537"
     },
     lecturer: {
-        bg: "rgba(255, 128, 66, 0.12)",    // #ff8042
+        bg: "rgba(255, 128, 66, 0.12)",
         color: "#e66a2c"
     },
     ta: {
-        bg: "rgba(141, 209, 225, 0.12)",   // #8dd1e1
+        bg: "rgba(141, 209, 225, 0.12)",
         color: "#4aa3b5"
     },
     "academic-advisor": {
-        bg: "rgba(162, 143, 208, 0.12)",   // #a28fd0
+        bg: "rgba(162, 143, 208, 0.12)",
         color: "#7b6bb8"
     },
     "control-member": {
-        bg: "rgba(93, 138, 201, 0.12)",      // Slate-700
+        bg: "rgba(93, 138, 201, 0.12)",
         color: "#2b7df1"
     }
 };
@@ -100,23 +100,15 @@ const AppLayout = () => {
         );
     };
 
-
     const menuItems = userType === "student"
         ? menuConfig.student
         : menuConfig[activeRole] || [];
 
-
     useEffect(() => {
         fetchAllSemester();
-        const handleSemesterUpdate = () => {
-            fetchAllSemester();
-        };
-
+        const handleSemesterUpdate = () => fetchAllSemester();
         window.addEventListener("semesterUpdated", handleSemesterUpdate);
-
-        return () => {
-            window.removeEventListener("semesterUpdated", handleSemesterUpdate);
-        };
+        return () => window.removeEventListener("semesterUpdated", handleSemesterUpdate);
     }, []);
 
     useEffect(() => {
@@ -127,10 +119,21 @@ const AppLayout = () => {
 
     return (
         <div className="portal-container">
-            {/* Mobile Menu Button */}
-            <button className="mobile-toggle" onClick={() => setMobileOpen(true)}>
-                <FiMenu size={20} />
+
+            {/* ── Animated Hamburger Button ── */}
+            <button
+                className="mobile-toggle"
+                onClick={() => setMobileOpen(prev => !prev)}
+                aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            >
+                <div className={`hamburger-icon ${mobileOpen ? "is-open" : ""}`}>
+                    <span />
+                    <span />
+                    <span />
+                </div>
             </button>
+
+            {/* Overlay */}
             {mobileOpen && <div className="overlay" onClick={() => setMobileOpen(false)} />}
 
             {/* Sidebar */}
@@ -147,7 +150,11 @@ const AppLayout = () => {
                 <ul className="sidebar-menu">
                     {menuItems.map((item) => (
                         <li key={item.path}>
-                            <NavLink to={item.path} className="sidebar-link">
+                            <NavLink
+                                to={item.path}
+                                className="sidebar-link"
+                                onClick={() => setMobileOpen(false)}  /* close on nav */
+                            >
                                 <span className="menu-icon">{item.icon}</span>
                                 {!collapsed && <span>{item.name}</span>}
                             </NavLink>
@@ -159,12 +166,16 @@ const AppLayout = () => {
                 <div className="sidebar-footer">
                     {collapsed ? (
                         <div className="collapsed-user-trigger" onClick={() => setCollapsed(false)}>
-                            <div className="avatar-placeholder">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>
+                            <div className="avatar-placeholder">
+                                {user.username ? user.username.charAt(0).toUpperCase() : "U"}
+                            </div>
                         </div>
                     ) : (
                         <div className="user-card">
                             <div className="user-profile-info">
-                                <div className="avatar-placeholder">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>
+                                <div className="avatar-placeholder">
+                                    {user.username ? user.username.charAt(0).toUpperCase() : "U"}
+                                </div>
                                 <div className="user-details">
                                     <span className="user-name">{user.username || "User"}</span>
                                     {userType === "staff" && (
@@ -177,19 +188,23 @@ const AppLayout = () => {
                                                 color: roleColors[activeRole]?.color,
                                                 backgroundColor: roleColors[activeRole]?.bg
                                             }}
-
                                         >
                                             {user.roles.map((role) => (
                                                 <option key={role} value={role}>{role}</option>
                                             ))}
                                         </select>
                                     )}
-                                    {userType === "student" && <span className="student-badge">Student</span>}
+                                    {userType === "student" && (
+                                        <span className="student-badge">Student</span>
+                                    )}
                                 </div>
                             </div>
 
                             <div className="footer-actions">
-                                <button className="action-btn settings" onClick={() => navigate(`/${userType}/profile`)}>
+                                <button
+                                    className="action-btn settings"
+                                    onClick={() => navigate(`/${userType}/profile`)}
+                                >
                                     <FiSettings size={22} />
                                 </button>
                                 <button className="action-btn logout" onClick={logout}>
@@ -203,17 +218,15 @@ const AppLayout = () => {
 
             {/* Main Content */}
             <div className="main-content">
-
                 {!isSemesterLoading && (!currentSemester || !currentSemester._id) && (
                     <div className="semester-warning-alert">
                         <div className="alert-box">
-                            <FiAlertTriangle className="warning-icon" />
-                            <strong>Attention:</strong> The new academic semester hasn't started yet. Most functionalities may be limited or disabled.
-
+                            <div className="title" style={{ display: 'flex', gap: '5px' }}> <FiAlertTriangle className="warning-icon" />
+                                <strong>Attention:</strong></div>
+                            New semester hasn't started yet. Most functions may be limited or disabled.
                         </div>
                     </div>
                 )}
-
                 <Outlet />
             </div>
         </div>

@@ -570,3 +570,56 @@
 
 
 
+@media (max-width: 1024px) {
+    .insights-grid {
+        grid-template-columns: repeat(2, 1fr); /* عرض كارتين في كل صف */
+        gap: 15px;
+    }
+    
+    .insight-card {
+        padding: 18px;
+    }
+
+    .insight-value {
+        font-size: 1.6rem; /* تصغير الرقم قليلاً */
+    }
+}
+
+/* شاشات الموبايل (أقل من 600px) */
+@media (max-width: 600px) {
+    .insights-grid {
+        grid-template-columns: 1fr; /* كارت واحد في كل صف ليشغل العرض كاملاً */
+        gap: 12px;
+    }
+
+    .insight-card {
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* المحاذاة لليسار/البداية */
+    }
+
+    .insight-header {
+        margin-bottom: 10px;
+        gap: 8px;
+    }
+
+    .insight-label {
+        font-size: 0.85rem; /* تصغير حجم النص */
+    }
+
+    .insight-value {
+        font-size: 1.4rem; /* تصغير الرقم ليتناسب مع الموبايل */
+        line-height: 1.2;
+    }
+
+    .insight-footer {
+        font-size: 0.75rem; /* تصغير نص التوضيح الأسفل */
+    }
+
+    /* تصغير حجم الأيقونات قليلاً */
+    .insight-icon svg {
+        width: 16px;
+        height: 16px;
+    }
+}

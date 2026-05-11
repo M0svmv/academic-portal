@@ -298,12 +298,14 @@ const PreRegistrationManagementPage = () => {
                 <div>
                     <h2>Pre-Registration Management</h2>
                     {currentSemester ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div className="class-puplish" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <p className="semester-label">Semester: <strong>{currentSemester.name}</strong></p>
-                            <span className={`status-badge ${isPublished ? 'live' : 'draft'}`}>
-                                {isPublished ? "● Courses: Published" : "● Courses: Draft"}
-                            </span>
-                            {allowEnrollment && <span className="status-badge enrollment-on">● Student Portal: OPEN</span>}
+                            <div className="status-en" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <span className={`status-badge ${isPublished ? 'live' : 'draft'}`}>
+                                    {isPublished ? "● Courses: Published" : "● Courses: Draft"}
+                                </span>
+                                {allowEnrollment && <span className="status-badge enrollment-on">● Student Portal: OPEN</span>}
+                            </div>
                         </div>
 
                     ) : (

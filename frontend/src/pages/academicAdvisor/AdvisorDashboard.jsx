@@ -526,14 +526,10 @@ const AdvisorDashboard = () => {
                             </div>
                         </div>
 
-                        {loading ? (
-                            <div className="sd-loading-state">
-                                <div className="sd-custom-spinner"></div>
-                                <p>Updating feed...</p>
-                            </div>
-                        ) : !filteredAnnouncements || filteredAnnouncements.length === 0 ? (
-                            <div className="sd-empty-state">
-                                <p>No announcements found in this category.</p>
+                        {filteredAnnouncements.length === 0 ? (
+                            <div className="sd-empty-state" style={{ padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.4)', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                                <Megaphone size={32} style={{ color: '#94a3b8', marginBottom: '10px' }} />
+                                <p style={{ color: '#64748b', fontWeight: '500' }}>No announcements for this category yet.</p>
                             </div>
                         ) : (
                             <div className="sd-cards-stack">
@@ -553,7 +549,7 @@ const AdvisorDashboard = () => {
                                                     </span>
                                                 </div>
                                                 <span className="sd-semester-text">
-                                                    {/* حل مشكلة إذا كان السيمستر Object أو String مباشرة كما في الصورة */}
+
                                                     {typeof ann.semesterId === 'object' ? ann.semesterId?.name : ann.semesterId}
                                                 </span>
                                             </div>
@@ -613,7 +609,7 @@ const AdvisorDashboard = () => {
                     <div className="sd-glass-card sd-sidebar-card">
                         <div className="sd-sidebar-header">
                             <div className="sd-title-inline">
-                                <Video size={20} color="#0d9488" />
+
                                 <h3 className="sd-section-heading">My Meetings</h3>
                             </div>
                         </div>

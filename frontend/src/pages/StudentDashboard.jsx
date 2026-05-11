@@ -137,9 +137,17 @@ const StudentDashboard = () => {
     const getGraduationRequirements = () => {
         const regulation = details?.transcript?.regulation?.toLowerCase();
         if (regulation === "new") {
-            return { total: 165, programElective: 18, physics: 21, training: 2, project: 3 };
+            return {
+                total: 165,
+                programElective: 18,
+                physics: 3,
+                math: 3,
+                economy: 3,
+                training: 2,
+                project: 3
+            };
         }
-        return { total: 185, programElective: 18, physics: 21, training: 2, project: 3 }; // "Last" regulation
+        return { total: 185, programElective: 18, physics: 3, math: 3, economy: 3, training: 2, project: 3 };
     };
 
     const calculateProgress = (completed, total) => {
@@ -370,7 +378,6 @@ const StudentDashboard = () => {
                     <div className="st-glass-card-main">
                         <div className="st-header">
                             <div className="st-title-wrapper">
-                                {/* تم تغيير اللون للأزرق السماوي ليعبر عن الوقت والجدولة */}
                                 <Calendar className="st-icon-primary" size={20} color="#0ea5e9" />
                                 <h3 className="sd-section-heading">Semester Timeline: {details.semester.name || details.semester._id}</h3>
                             </div>
@@ -430,14 +437,13 @@ const StudentDashboard = () => {
                         <div className="sd-glass-card sd-insights-card">
                             <div className="sd-section-header-flex">
                                 <div className="sd-section-title-box">
-                                    {/* لون موف (Indigo) يعبر عن الذكاء والبيانات التحليلية */}
                                     <BarChart3 className="sd-primary-icon" size={20} color="#6366f1" />
                                     <h3 className="sd-section-heading">Academic Insights & Progress</h3>
                                 </div>
                             </div>
 
                             <div className="sd-insights-grid">
-                                {/* Detailed Degree Progress with Scroll */}
+
                                 <div className="sd-insight-group">
                                     <h4 className="sd-insight-subheading">Degree Progress Breakdown</h4>
                                     <div className="sd-progress-scroll-area">
@@ -448,64 +454,78 @@ const StudentDashboard = () => {
                                                 <span>{details.transcript?.completedCredits} / {requirements.total}</span>
                                             </div>
                                             <div className="sd-progress-bar-bg">
-                                                <div
-                                                    className="sd-progress-bar-fill progress-success"
+                                                <div className="sd-progress-bar-fill progress-success"
                                                     style={{ width: `${calculateProgress(details.transcript?.completedCredits, requirements.total)}%` }}
                                                 ></div>
                                             </div>
                                         </div>
 
-                                        {/* Core Credits */}
-                                        <div className="sd-progress-item">
-                                            <div className="sd-progress-label-flex">
-                                                <span>Core Courses Progress</span>
-                                                <span>{details.transcript?.coreCompletedCredits} / 72</span>
-                                            </div>
-                                            <div className="sd-progress-bar-bg">
-                                                <div
-                                                    className="sd-progress-bar-fill"
-                                                    style={{ width: `${calculateProgress(details.transcript?.coreCompletedCredits, 72)}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-
-                                        {/* Program Electives */}
-                                        <div className="sd-progress-item">
-                                            <div className="sd-progress-label-flex">
-                                                <span>Program Electives</span>
-                                                <span>{details.transcript?.electiveProgramCompletedCredits} / {requirements.programElective}</span>
-                                            </div>
-                                            <div className="sd-progress-bar-bg">
-                                                <div
-                                                    className="sd-progress-bar-fill accent-purple"
-                                                    style={{ width: `${calculateProgress(details.transcript?.electiveProgramCompletedCredits, requirements.programElective)}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-
-                                        {/* Physics Credits */}
-                                        <div className="sd-progress-item">
-                                            <div className="sd-progress-label-flex">
-                                                <span>Engineering Physics</span>
-                                                <span>{details.transcript?.engPhysicsCompletedCredits} / {requirements.physics}</span>
-                                            </div>
-                                            <div className="sd-progress-bar-bg">
-                                                <div
-                                                    className="sd-progress-bar-fill accent-orange"
-                                                    style={{ width: `${calculateProgress(details.transcript?.engPhysicsCompletedCredits, requirements.physics)}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-
-                                        {/* Training & Project */}
+                                        {/* Core & Electives Row */}
                                         <div className="sd-dual-progress-flex">
                                             <div className="sd-progress-item half">
-                                                <div className="sd-progress-label-flex"><span>Training</span><span>{details.transcript?.trainingCompletedCredits}/2</span></div>
-                                                <div className="sd-progress-bar-bg"><div className="sd-progress-bar-fill accent-green" style={{ width: `${calculateProgress(details.transcript?.trainingCompletedCredits, 2)}%` }}></div></div>
+                                                <div className="sd-progress-label-flex">
+                                                    <span>Core Courses</span>
+                                                    <span>{details.transcript?.coreCompletedCredits} / 100</span>
+                                                </div>
+                                                <div className="sd-progress-bar-bg">
+                                                    <div className="sd-progress-bar-fill" style={{ width: `${calculateProgress(details.transcript?.coreCompletedCredits, 72)}%` }}></div>
+                                                </div>
                                             </div>
                                             <div className="sd-progress-item half">
-                                                <div className="sd-progress-label-flex"><span>Grad. Project</span><span>{details.transcript?.graduationProjectCompletedCredits}/3</span></div>
-                                                <div className="sd-progress-bar-bg"><div className="sd-progress-bar-fill accent-green" style={{ width: `${calculateProgress(details.transcript?.graduationProjectCompletedCredits, 3)}%` }}></div></div>
+                                                <div className="sd-progress-label-flex">
+                                                    <span>Program Electives</span>
+                                                    <span>{details.transcript?.electiveProgramCompletedCredits} / {requirements.programElective}</span>
+                                                </div>
+                                                <div className="sd-progress-bar-bg">
+                                                    <div className="sd-progress-bar-fill accent-purple" style={{ width: `${calculateProgress(details.transcript?.electiveProgramCompletedCredits, requirements.programElective)}%` }}></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Engineering Science Breakdown (Physics, Math, Economy) */}
+                                        <div className="sd-insights-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '10px' }}>
+                                            <div className="sd-progress-item">
+                                                <div className="sd-progress-label-flex" style={{ fontSize: '11px' }}>
+                                                    <span>Physics</span>
+                                                    <span>{details.transcript?.engPhysicsCompletedCredits} / 3</span>
+                                                </div>
+                                                <div className="sd-progress-bar-bg"><div className="sd-progress-bar-fill accent-orange" style={{ width: `${calculateProgress(details.transcript?.engPhysicsCompletedCredits, 3)}%` }}></div></div>
+                                            </div>
+                                            <div className="sd-progress-item">
+                                                <div className="sd-progress-label-flex" style={{ fontSize: '11px' }}>
+                                                    <span>Math</span>
+                                                    <span>{details.transcript?.engMathCompletedCredits} / 3</span>
+                                                </div>
+                                                <div className="sd-progress-bar-bg"><div className="sd-progress-bar-fill accent-blue" style={{ width: `${calculateProgress(details.transcript?.engMathCompletedCredits, 3)}%` }}></div></div>
+                                            </div>
+                                            <div className="sd-progress-item">
+                                                <div className="sd-progress-label-flex" style={{ fontSize: '11px' }}>
+                                                    <span>Economy</span>
+                                                    <span>{details.transcript?.engEconomyCompletedCredits} / 3</span>
+                                                </div>
+                                                <div className="sd-progress-bar-bg"><div className="sd-progress-bar-fill accent-green" style={{ width: `${calculateProgress(details.transcript?.engEconomyCompletedCredits, 3)}%` }}></div></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Training & Project Row */}
+                                        <div className="sd-insights-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginTop: '10px' }}>
+                                            <div className="sd-progress-item half">
+                                                <div className="sd-progress-label-flex">
+                                                    <span>Summer Training</span>
+                                                    <span>{details.transcript?.trainingCompletedCredits} / 2</span>
+                                                </div>
+                                                <div className="sd-progress-bar-bg">
+                                                    <div className="sd-progress-bar-fill accent-cyan" style={{ width: `${calculateProgress(details.transcript?.trainingCompletedCredits, 2)}%` }}></div>
+                                                </div>
+                                            </div>
+                                            <div className="sd-progress-item half">
+                                                <div className="sd-progress-label-flex">
+                                                    <span>Graduation Project</span>
+                                                    <span>{details.transcript?.graduationProjectCompletedCredits} / 3</span>
+                                                </div>
+                                                <div className="sd-progress-bar-bg">
+                                                    <div className="sd-progress-bar-fill accent-indigo" style={{ width: `${calculateProgress(details.transcript?.graduationProjectCompletedCredits, 3)}%` }}></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -540,7 +560,7 @@ const StudentDashboard = () => {
                     <div className="sd-glass-card sd-announcements-card">
                         <div className="sd-section-header-flex">
                             <div className="sd-section-title-box">
-                                {/* لون برتقالي محمر يعبر عن التنبيهات والإعلانات */}
+
                                 <Megaphone className="sd-primary-icon" size={20} color="#f43f5e" />
                                 <h3 className="sd-section-heading">Recent Announcements</h3>
                             </div>

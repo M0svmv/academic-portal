@@ -757,3 +757,58 @@ font-weight: 500;
 } */
 
 
+.mobile-responsive-warning {
+    display: none; 
+    flex-direction: column;
+
+    
+}
+
+.warning-content {
+    background: white;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    text-align: center; 
+    border: 1px solid #edf2f7;
+}
+
+.warning-icon {
+    color: #3b82f6;
+    /* margin-bottom: 20px; */
+    display: flex;
+    justify-content: center;
+}
+
+.warning-content h2 {
+    color: #1a202c;
+    font-size: 24px;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.warning-content p {
+    color: #4a5568;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.warning-content .highlight {
+    color: #e53e3e; /* أحمر للتنبيه */
+    font-weight: 600;
+    margin-top: 15px;
+}
+
+.warning-content .btn-2 {
+    margin-top: 25px;
+    padding: 12px 30px;
+    cursor: pointer;
+}
+
+/* التفعيل فقط للشاشات الصغيرة */
+@media (max-width: 1024px) {
+    .mobile-responsive-warning {
+        display: flex; /* يظهر فقط هنا */
+    }
+}

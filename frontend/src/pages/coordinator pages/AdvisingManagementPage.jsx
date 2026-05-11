@@ -161,19 +161,16 @@ const AdvisingManagementPage = () => {
         staffAvailable: nonAdvisors.length
     };
 
-    // 1. Filter for Current Advisors
     const filteredAdvisors = advisors.filter(a =>
         (a.staffName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
         (a._id?.toLowerCase() || "").includes(searchTerm.toLowerCase())
     );
 
-    // 2. Filter for Advising Lists
     const filteredLists = allLists.filter(list =>
         (list.advisor?.staffName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
         (list._id?.toLowerCase() || "").includes(searchTerm.toLowerCase())
     );
 
-    // 3. Filter for Non-Advisors (Available Staff)
     const filteredNonAdvisors = nonAdvisors.filter(staff =>
         (staff.staffName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
         (staff._id?.toLowerCase() || "").includes(searchTerm.toLowerCase())

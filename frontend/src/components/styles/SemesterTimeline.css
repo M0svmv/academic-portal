@@ -153,3 +153,114 @@ box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 .cancel-btn:hover {
     background: #f8fafc;
 }
+
+/* ====== RESPONSIVE ====== */
+
+/* Tablet: ≤ 900px */
+@media (max-width: 900px) {
+  .timeline-events {
+    gap: 0;
+  }
+  .timeline-point {
+    width: 110px;
+  }
+  .label-content h4 {
+    font-size: 11px;
+  }
+  .label-content p,
+  .label-content small {
+    font-size: 10px;
+  }
+}
+
+/* Mobile: ≤ 640px — switch to vertical layout */
+@media (max-width: 640px) {
+  .timeline-wrapper {
+    padding: 10px 14px 16px;
+    align-items: center;
+  }
+
+  /* Hide horizontal line + progress */
+  .timeline-line {
+    display: none;
+  }
+
+  /* Stack events vertically */
+  .timeline-events {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding-left: 10px;
+    margin-left: 8px;
+    position: relative;
+  }
+
+  .timeline-point {
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+    text-align: left;
+    padding: 12px 0;
+    gap: 14px;
+    position: relative;
+  }
+
+  /* Dot on the left vertical line */
+  .timeline-point span {
+    position: absolute;
+    left: -8px;
+    top: 16px;
+    margin: 0;
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Blue vertical progress via border-left on reached items */
+  .timeline-point.reached {
+    border-left: 3px solid #365ca0;
+    margin-left: -3px;
+    padding-left: 3px;
+  }
+
+  .label-content {
+    padding-left: 20px;
+  }
+
+  .label-content h4 {
+    font-size: 13px;
+    white-space: normal;
+  }
+
+  .label-content p,
+  .label-content small {
+    font-size: 11px;
+    white-space: normal;
+  }
+
+  /* Edit button repositioned for vertical layout */
+  .edit-timeline-btn {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    left: auto;
+    transform: translateY(-50%);
+    opacity: 1;
+  }
+
+  .timeline-point:hover .edit-timeline-btn {
+    top: 50%;
+    opacity: 1;
+  }
+
+  /* Modal full-width on mobile */
+  .timeline-wrapper .modal-container {
+    width: 92vw !important;
+    max-width: 400px;
+  }
+
+  .current-semester-current{
+    display: flex;
+    flex-direction: column;
+  }
+}
