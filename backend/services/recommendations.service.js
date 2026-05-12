@@ -3,47 +3,96 @@ const Transcript = require("../models/Transcript");
 const Semester = require("../models/Semester");
 const Course = require("../models/Course");
 
+const LEVEL_ORDER = [
+  "freshman",
+  "sophomore",
+  "junior",
+  "senior-1",
+  "senior-2",
+  "senior",
+];
+
+// cache عشان منحسبش dependency tree كل مرة
+const dependencyCache = new Map();
+
 async function getRecommendations(studentId) {
-  // current semester
-  const semester = await Semester.findOne({ isCurrent: true });
+  // parallel fetching
+  const [semester, transcript] = await Promise.all([
+    Semester.findOne({ isCurrent: true }).lean(),
+    Transcript.findOne({ studentId }).lean(),
+  ]);
 
   if (!semester) {
     throw new Error("Current semester not found");
   }
 
-  // student transcript
-  const transcript = await Transcript.findOne({ studentId });
-
   if (!transcript) {
     throw new Error("Transcript not found");
   }
 
-  // passed courses
-  const completedCourses = transcript.completedCourses
-    .filter((c) => c.status === "passed")
-    .map((c) => c.courseId.toString());
+  // completed passed courses
+  const completedCourses = new Set(
+    transcript.completedCourses
+      .filter((c) => c.status === "passed")
+      .map((c) => c.courseId.toString())
+  );
 
-  // available offerings
+  /**
+   * ⚡ important optimization
+   * نفلتر بالـ regulation من البداية
+   * بدل ما نجيب كل المواد
+   */
+  const validCourses = await Course.find({
+    courseRegulation: transcript.regulation,
+  })
+    .select(
+      `
+      _id
+      courseName
+      courseCredits
+      courseLevel
+      prerequisiteCourses
+      courseType
+      courseRegulation
+    `
+    )
+    .lean();
+
+  const validCourseIds = validCourses.map((c) => c._id);
+
+  // map أسرع للوصول
+  const coursesMap = new Map();
+
+  validCourses.forEach((course) => {
+    coursesMap.set(course._id.toString(), course);
+  });
+
+  /**
+   * ⚡ هات الـ offerings الخاصة بالمواد المناسبة بس
+   */
   const offerings = await CourseOffering.find({
     semesterId: semester._id,
     status: { $in: ["open", "proposed"] },
-  }).populate("courseId");
+    courseId: { $in: validCourseIds },
+  }).lean();
 
   let results = [];
 
   for (const offer of offerings) {
-    const course = offer.courseId;
+    const course = coursesMap.get(
+      offer.courseId.toString()
+    );
 
     if (!course) continue;
 
-    // ❌ already completed
-    if (completedCourses.includes(course._id.toString())) {
+    // already passed
+    if (completedCourses.has(course._id.toString())) {
       continue;
     }
 
-    // ❌ prerequisites check
-    const prereqsMet = course.prerequisiteCourses.every((pr) =>
-      completedCourses.includes(pr.toString())
+    // prerequisites check
+    const prereqsMet = course.prerequisiteCourses.every(
+      (pr) => completedCourses.has(pr.toString())
     );
 
     if (!prereqsMet) continue;
@@ -51,28 +100,34 @@ async function getRecommendations(studentId) {
     // base score
     let score = calculateScore(course, transcript);
 
-    // dependency analysis
-    const dependencyData = await getDependencyScore(course._id);
+    // dependency score
+    const dependencyData = await getDependencyScore(
+      course._id.toString()
+    );
 
     score += dependencyData.score;
 
-    // crowded courses bonus
+    // critical roadmap courses
     if (dependencyData.totalUnlockedCourses >= 5) {
       score += 25;
     }
 
-    // extremely critical course
     if (dependencyData.totalUnlockedCourses >= 10) {
       score += 40;
     }
 
     results.push({
-      course: offer,
+      course: {
+        ...offer,
+        courseId: course,
+      },
+
       score,
 
       recommendationMeta: {
         dependencyScore: dependencyData.score,
-        unlockedCourses: dependencyData.totalUnlockedCourses,
+        unlockedCourses:
+          dependencyData.totalUnlockedCourses,
         unlockDepth: dependencyData.maxDepth,
       },
     });
@@ -84,20 +139,19 @@ async function getRecommendations(studentId) {
 }
 
 /**
- * dependency tree analysis
- * يحسب:
- * - عدد المواد اللي هتتفتح
- * - عمق الشجرة
- * - أهمية المادة
+ * ⚡ optimized dependency analysis
  */
 async function getDependencyScore(
   courseId,
   visited = new Set(),
   depth = 1
 ) {
-  const key = courseId.toString();
+  // cache hit
+  if (dependencyCache.has(courseId)) {
+    return dependencyCache.get(courseId);
+  }
 
-  if (visited.has(key)) {
+  if (visited.has(courseId)) {
     return {
       score: 0,
       totalUnlockedCourses: 0,
@@ -105,118 +159,106 @@ async function getDependencyScore(
     };
   }
 
-  visited.add(key);
+  visited.add(courseId);
 
-  // المواد اللي محتاجة المادة دي
   const dependentCourses = await Course.find({
     prerequisiteCourses: courseId,
-  });
+  })
+    .select("_id")
+    .lean();
 
-  let totalUnlockedCourses = dependentCourses.length;
+  let totalUnlockedCourses =
+    dependentCourses.length;
 
-  let score = 0;
+  let score = dependentCourses.length * 30;
 
   let maxDepth = depth;
 
-  /**
-   * 🎯 direct unlock bonus
-   * كل مادة بتتفتح بسبب المادة دي
-   */
-  score += dependentCourses.length * 30;
-
   for (const dependentCourse of dependentCourses) {
     const result = await getDependencyScore(
-      dependentCourse._id,
+      dependentCourse._id.toString(),
       visited,
       depth + 1
     );
 
-    totalUnlockedCourses += result.totalUnlockedCourses;
+    totalUnlockedCourses +=
+      result.totalUnlockedCourses;
 
-    /**
-     * 🎯 recursive chain bonus
-     * المواد اللي بعد المواد
-     */
     score += result.score * 0.7;
 
-    maxDepth = Math.max(maxDepth, result.maxDepth);
+    maxDepth = Math.max(
+      maxDepth,
+      result.maxDepth
+    );
   }
 
-  /**
-   * 🎯 deep roadmap bonus
-   */
+  // deep chains bonus
   score += maxDepth * 10;
 
-  /**
-   * 🎯 huge dependency tree bonus
-   */
+  // massive unlock tree
   score += totalUnlockedCourses * 5;
 
-  return {
+  const finalResult = {
     score,
     totalUnlockedCourses,
     maxDepth,
   };
+
+  // save in cache
+  dependencyCache.set(courseId, finalResult);
+
+  return finalResult;
 }
 
 function calculateScore(course, transcript) {
   let score = 0;
 
-  /**
-   * 🎯 level matching
-   */
-  if (course.courseLevel === transcript.level) {
+  const courseLevelIndex = LEVEL_ORDER.indexOf(
+    course.courseLevel
+  );
+
+  const studentLevelIndex = LEVEL_ORDER.indexOf(
+    transcript.level
+  );
+
+  const diff =
+    studentLevelIndex - courseLevelIndex;
+
+  // same level
+  if (diff === 0) {
     score += 30;
   }
 
-  /**
-   * 🎯 next level
-   */
-  else if (isNextLevel(course.courseLevel, transcript.level)) {
+  // next level
+  else if (diff === -1) {
     score += 15;
   }
 
-  /**
-   * 🎯 previous levels
-   */
-  else if (isPreviousLevel(course.courseLevel, transcript.level, 1)) {
+  // previous levels
+  else if (diff === 1) {
     score += 30;
-  } else if (
-    isPreviousLevel(course.courseLevel, transcript.level, 2)
-  ) {
+  } else if (diff === 2) {
     score += 35;
-  } else if (
-    isPreviousLevel(course.courseLevel, transcript.level, 3)
-  ) {
+  } else if (diff === 3) {
     score += 40;
-  } else if (
-    isPreviousLevel(course.courseLevel, transcript.level, 4)
-  ) {
+  } else if (diff >= 4) {
     score += 45;
   }
 
-  /**
-   * 🎯 far level penalty
-   */
+  // far mismatch
   else {
     score -= 10;
   }
 
-  /**
-   * 🎯 GPA factor
-   */
+  // GPA factor
   score += transcript.GPA * 10;
 
-  /**
-   * 🎯 at risk students
-   */
+  // at risk penalty
   if (transcript.atRisk) {
     score -= 20;
   }
 
-  /**
-   * 🎯 near graduation
-   */
+  // near graduation
   if (
     transcript.completedCredits > 120 &&
     course.courseLevel === "senior"
@@ -224,9 +266,7 @@ function calculateScore(course, transcript) {
     score += 20;
   }
 
-  /**
-   * 🎯 important course types
-   */
+  // course type weights
   switch (course.courseType) {
     case "Core":
       score += 35;
@@ -243,46 +283,9 @@ function calculateScore(course, transcript) {
     case "Program Elective":
       score += 10;
       break;
-
-    default:
-      score += 0;
   }
 
   return score;
-}
-
-function isPreviousLevel(courseLevel, studentLevel, level) {
-  const order = [
-    "freshman",
-    "sophomore",
-    "junior",
-    "senior-1",
-    "senior-2",
-    "senior",
-  ];
-
-  const c = order.indexOf(courseLevel);
-
-  const s = order.indexOf(studentLevel);
-
-  return c === s - level;
-}
-
-function isNextLevel(courseLevel, studentLevel) {
-  const order = [
-    "freshman",
-    "sophomore",
-    "junior",
-    "senior-1",
-    "senior-2",
-    "senior",
-  ];
-
-  const c = order.indexOf(courseLevel);
-
-  const s = order.indexOf(studentLevel);
-
-  return c === s + 1;
 }
 
 module.exports = {
