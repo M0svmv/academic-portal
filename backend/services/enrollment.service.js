@@ -108,7 +108,10 @@ exports.getStudentCurrentEnrollment = async (studentId) => {
 
 
 exports.getAvailableCourses = async (studentId) => {
-  const [currentSemester, transcript] = await Promise.all([getCurrentSemester(), Transcript.findOne({ studentId })]);
+  const [currentSemester, transcript] = await Promise.all([
+    getCurrentSemester(),
+    Transcript.findOne({ studentId }),
+  ]);
 
   if (!currentSemester) {
     const error = new Error("Current semester not found");
@@ -122,30 +125,54 @@ exports.getAvailableCourses = async (studentId) => {
     throw error;
   }
 
-  const completedCourses = transcript.completedCourses
-    .filter((c) => c.status === "passed")
-    .map((c) => c.courseId.toString());
+  // ⚡ normalize regulation (case insensitive)
+  const studentRegulation = String(transcript.regulation)
+    .trim()
+    .toLowerCase();
 
-  
-  let allowedCredits = await assignAllowedCredits(transcript.GPA, transcript.completedCourses.length);
-  
+  // ⚡ Set بدل array (أسرع بكتير)
+  const completedCourses = new Set(
+    transcript.completedCourses
+      .filter((c) => c.status === "passed")
+      .map((c) => c.courseId.toString())
+  );
+
+  const allowedCredits = await assignAllowedCredits(
+    transcript.GPA,
+    transcript.completedCourses.length
+  );
 
   const offerings = await CourseOffering.find({
     semesterId: currentSemester._id,
     status: { $in: ["open", "proposed"] },
   }).populate(
     "courseId",
-    "courseName _id courseCredits courseLevel prerequisiteCourses courseType",
+    "courseName _id courseCredits courseLevel prerequisiteCourses courseType courseRegulation"
   );
 
-  let availableOfferings = offerings.filter(
-    (offer) =>
-      !completedCourses.includes(offer.courseId._id.toString()),
-  );
+  const availableOfferings = offerings.filter((offer) => {
+    const course = offer.courseId;
 
-  availableOfferings = availableOfferings.filter((offer) => {
-    return offer.courseId.prerequisiteCourses.every((prereq) =>
-      completedCourses.includes(prereq.toString()),
+    if (!course) return false;
+
+    // ❌ already passed
+    if (completedCourses.has(course._id.toString())) {
+      return false;
+    }
+
+    // ❌ regulation (case-insensitive)
+    if (
+      String(course.courseRegulation).trim().toLowerCase() !==
+      studentRegulation
+    ) {
+      return false;
+    }
+
+    // ❌ prerequisites
+    const prereqs = course.prerequisiteCourses || [];
+
+    return prereqs.every((pr) =>
+      completedCourses.has(pr.toString())
     );
   });
 

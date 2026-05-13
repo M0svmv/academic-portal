@@ -37,8 +37,12 @@ const getScheduleData = async (
           "instructorId",
           "staffName"
         )
+        .populate(
+          "taId",
+          "staffName"
+        )
         .select(
-          "courseId schedule instructorId"
+          "courseId schedule instructorId taId"
         ),
     ]);
 
