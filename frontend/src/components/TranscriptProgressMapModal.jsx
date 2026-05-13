@@ -14,8 +14,8 @@ import {
     PlayCircle,
     AlertCircle,
     Clock,
-    Lock
-    , Loader2,
+    Lock,
+    Loader2,
     MonitorOff
 } from 'lucide-react';
 
@@ -50,7 +50,6 @@ const getLayoutedElements = (nodes, edges) => {
 };
 
 const TranscriptProgressMapModal = ({ isOpen, onClose, allCourses = [], studentData }) => {
-    // التحقق من مقاس الشاشة
     const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 
     useEffect(() => {
@@ -70,6 +69,13 @@ const TranscriptProgressMapModal = ({ isOpen, onClose, allCourses = [], studentD
             return { nodes: [], edges: [] };
         }
 
+        // ── فلتر الكورسات حسب regulation الطالب ──
+        const studentRegulation = studentData.transcript.regulation?.toLowerCase();
+        const filteredCourses = studentRegulation
+            ? allCourses.filter(course => course.courseRegulation?.toLowerCase() === studentRegulation)
+            : allCourses;
+        // ──────────────────────────────────────────
+
         const completed = studentData.transcript.completedCourses || [];
         const semesterWorks = studentData.semesterWorks || [];
 
@@ -86,7 +92,8 @@ const TranscriptProgressMapModal = ({ isOpen, onClose, allCourses = [], studentD
         const nodes = [];
         const edges = [];
 
-        allCourses.forEach(course => {
+        // ── استخدام filteredCourses بدل allCourses ──
+        filteredCourses.forEach(course => {
 
             let status = 'locked';
 

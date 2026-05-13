@@ -1,3 +1,4 @@
+/* ===== StudentSchedule.css ===== */
 
 .student-schedule-wrapper {
     background: #ffffff;
@@ -14,11 +15,13 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .title-section h2 {
     font-weight: 700;
-    color: var( --primary-blue-color);
+    color: var(--primary-blue-color);
     font-size: 1.4rem;
     margin: 0;
 }
@@ -32,9 +35,6 @@
     font-weight: 600;
     border: 1px solid #d1fae5;
 }
-
-
-
 
 .session-name {
     display: block;
@@ -54,16 +54,15 @@
 /* الخلايا */
 .day-cell {
     font-weight: 600;
-    color: var( --primary-blue-color);
-    background: #f1f5f9; 
-    /* border: 1px solid #f6f5f8; */
+    color: var(--primary-blue-color);
+    background: #f1f5f9;
     width: 100px;
     text-align: center;
 }
 
 .modern-schedule-table td {
     border: 1px solid #e2e8f0;
-    height: 90px; 
+    height: 90px;
     padding: 4px;
     vertical-align: center;
     background: #ffffff;
@@ -73,10 +72,9 @@
 .course-card-mini {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-left: 4px solid #3b82f6; /* نفس لمسة المنجمنت */
+    border-left: 4px solid #3b82f6;
     border-radius: 6px;
     padding: 6px;
-    /* height: 100%; */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -97,7 +95,7 @@
 .course-name {
     font-size: 0.8rem;
     font-weight: 600;
-    color: var( --primary-blue-color);
+    color: var(--primary-blue-color);
     line-height: 1.1;
     margin: 2px 0;
 }
@@ -146,20 +144,50 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
+/* ===== TABLE RESPONSIVE WRAPPER ===== */
+.sc-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+}
 
+/* إشارة scroll على الموبايل */
+.sc-table-wrapper-student {
+    position: relative;
+}
+
+.sc-table-wrapper-student::after {
+    content: '';
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 100%;
+    background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
+    pointer-events: none;
+    border-radius: 0 8px 8px 0;
+}
+
+@media (max-width: 768px) {
+    .sc-table-wrapper-student::after {
+        display: block;
+    }
+}
 
 .modern-schedule-table {
-    width: 100%;
-    border-collapse: separate; 
+   width: 100%;
+    min-width: 950px;
+    border-collapse: separate;
     border-spacing: 8px !important;
     table-layout: fixed;
-        background: #ffffff !important;
-
+    background: #ffffff !important;
 }
 
 /* عناوين الأيام والسيشن */
 .modern-schedule-table th {
-    background: var( --primary-blue-color);
+    background: var(--primary-blue-color);
     color: #ffffff;
     border-radius: 8px;
     padding: 12px;
@@ -167,16 +195,15 @@
 
 .day-cell {
     background: #f8fafc !important;
-    color: var( --primary-blue-color);
+    color: var(--primary-blue-color);
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     text-align: center;
 }
 
-
 .modern-schedule-table td {
-    background: #f8fafc; 
-    border: 2px dashed #e2e8f0; 
+    background: #f8fafc;
+    border: 2px dashed #e2e8f0;
     border-radius: 12px;
     padding: 8px;
 }
@@ -190,7 +217,7 @@
 .course-name {
     font-size: 0.85rem;
     font-weight: 700;
-    color: var( --primary-blue-color);
+    color: var(--primary-blue-color);
     line-height: 1.2;
     margin-bottom: 8px;
 }
@@ -206,45 +233,230 @@
 }
 
 .free-time {
-    display: none; 
+    display: none;
 }
 
 .header-actions {
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
-
-
- .advising-tabs {
-  display: flex;
-  gap: 12px;
-  /* margin-bottom: 24px; */
-  padding-bottom: 12px;
-
+.advising-tabs {
+    display: flex;
+    gap: 12px;
+    padding-bottom: 12px;
+    flex-wrap: wrap;
 }
 
 .advising-tabs button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 530;
-  cursor: pointer;
-  transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 530;
+    cursor: pointer;
+    transition: all 0.3s ease;
     background: #f1f5f9;
 }
 
- .advising-tabs button:hover {
-  background: #f1f5f9;
+.advising-tabs button:hover {
+    background: #f1f5f9;
 }
 
- .advising-tabs button.active {
-  background: #eff6ff;
-  color: #2563eb;
+.advising-tabs button.active {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .student-schedule-wrapper {
+        padding: 16px;
+    }
+
+    .modern-schedule-table {
+        border-spacing: 5px !important;
+    }
+
+    .modern-schedule-table th {
+        padding: 8px 6px;
+    }
+
+    .session-name {
+        font-size: 0.65rem;
+    }
+
+    .session-time {
+        font-size: 0.6rem;
+    }
+
+    .course-name {
+        font-size: 0.75rem;
+    }
+
+    .course-code {
+        font-size: 0.6rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .student-schedule-wrapper {
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .schedule-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .title-section h2 {
+        font-size: 1.1rem;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .advising-tabs {
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .advising-tabs button {
+        padding: 8px 14px;
+        font-size: 13px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .modern-schedule-table {
+        min-width: 900px;
+        border-spacing: 4px !important;
+    }
+
+    .modern-schedule-table th {
+        padding: 6px 4px;
+    }
+
+    .modern-schedule-table td {
+        padding: 4px;
+        height: 75px;
+    }
+
+    .session-name {
+        font-size: 0.6rem;
+    }
+
+    .session-time {
+        font-size: 0.55rem;
+    }
+
+    .course-card-mini {
+        padding: 4px;
+        border-left-width: 3px;
+    }
+
+    .course-name {
+        font-size: 0.7rem;
+        margin-bottom: 4px;
+    }
+
+    .course-code {
+        font-size: 0.55rem;
+    }
+
+    .course-meta {
+        padding: 1px 4px;
+        font-size: 0.55rem;
+    }
+
+    .detail-item-s span {
+        font-size: 0.55rem;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+    .student-schedule-wrapper {
+        padding: 8px;
+    }
+
+    .title-section h2 {
+        font-size: 1rem;
+    }
+
+    .modern-schedule-table {
+        min-width: 820px;
+        border-spacing: 3px !important;
+    }
+
+    .modern-schedule-table td {
+        height: 65px;
+        padding: 3px;
+    }
+
+    .modern-schedule-table th {
+        padding: 5px 3px;
+    }
+
+    .session-name {
+        font-size: 0.55rem;
+    }
+
+    .session-time {
+        font-size: 0.5rem;
+    }
+
+    .course-name {
+        font-size: 0.65rem;
+        margin-bottom: 2px;
+    }
+
+    .course-code {
+        font-size: 0.5rem;
+    }
+
+    .day-name {
+        font-size: 0.65rem;
+    }
+}
+
+
+/* ===== STICKY للـ schedule table تحديداً ===== */
+
+/* Header row */
+.sc-table-wrapper .modern-schedule-table thead tr th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--primary-blue-color);
+}
+
+/* أول column (الأيام) */
+.sc-table-wrapper .modern-schedule-table th:first-child,
+.sc-table-wrapper .modern-schedule-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: #f8fafc;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.06);
+}
+
+/* الـ corner cell */
+.sc-table-wrapper .modern-schedule-table thead tr th:first-child {
+    z-index: 4;
+    background: var(--primary-blue-color);
 }

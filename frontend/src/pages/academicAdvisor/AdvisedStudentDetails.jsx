@@ -50,7 +50,6 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
                 {/* Header */}
                 <div style={{ padding: '20px', borderBottom: '1px solid #333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <CalendarDays size={28} color="#4e73df" />
                         <div>
                             <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Academic Schedule</h3>
                             <p style={{ margin: 0, fontSize: '0.85rem', color: '#2c2f36' }}>
@@ -64,11 +63,11 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
                 </div>
 
                 {/* Body */}
-                <div style={{ padding: '20px', overflowX: 'auto', overflowY: 'auto' }}>
+                <div className="sc-table-wrapper" >
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '40px' }}><div className="loader"></div></div>
                     ) : scheduleData ? (
-                        <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'separate', borderSpacing: '8px' }}>
+                        <table className="modern-schedule-table " >
                             <thead>
                                 <tr>
                                     <th style={{ backgroundColor: 'var( --primary-blue-color)', color: 'f8fafc', padding: '15px', borderRadius: '8px', minWidth: '100px' }}>Days</th>

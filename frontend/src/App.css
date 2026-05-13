@@ -283,3 +283,37 @@ th {
         transform: rotate(360deg);
     }
 }
+
+/* ===== STICKY TABLE: أول row وأول column في أي جدول ===== */
+
+/* أول row (header) sticky لفوق */
+.table-wrapper table thead tr th,
+.table-wrapper table tr:first-child th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--primary-blue-color);
+}
+
+/* أول column sticky لشمال */
+.table-wrapper table th:first-child,
+.table-wrapper table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: #ffffff;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.06);
+}
+
+/* الـ corner cell (intersection) يبقى أعلى z-index */
+.table-wrapper table thead tr th:first-child,
+.table-wrapper table tr:first-child th:first-child {
+    z-index: 4;
+    background: var(--primary-blue-color);
+}
+
+/* td أول column يبقى background واضح */
+.table-wrapper table tbody td:first-child {
+    background: #ffffff;
+    z-index: 2;
+}

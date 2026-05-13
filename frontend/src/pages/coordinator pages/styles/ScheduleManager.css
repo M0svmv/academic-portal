@@ -150,6 +150,8 @@
 
 /* تحسين الكاردات */
 .uniform-card-s {
+    flex-wrap: wrap;
+    max-width: 150px;
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-left: 4px solid #3b82f6; 
@@ -440,6 +442,7 @@
 
 
 .schedule-table td {
+    min-width: fit-content;
     background: #f8fafc;
     border: 1px dashed var(--border);
     border-radius: var(--radius);
@@ -731,6 +734,8 @@ font-weight: 500;
 
 /* تصغير الخط في الكارد داخل الجدول */
 .grid-version .course-name-text-s {
+    max-width: 100px;
+    
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 4px;

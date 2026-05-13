@@ -106,10 +106,8 @@
     }
 
     .split-button-container {
-        width: 100%;
         justify-content: flex-start;
         flex-wrap: wrap;
-        gap: 8px;
     }
 .header-actions{
     width: 100%;
