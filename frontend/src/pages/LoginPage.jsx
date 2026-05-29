@@ -88,7 +88,7 @@ const LoginPage = () => {
                             alt="ECE Logo"
                             className="login-logo"
                         />
-                        <h2>ECE Academic Portal</h2>
+                        <h2>Orbit Academic Portal</h2>
                     </div>
                 </div>
 
