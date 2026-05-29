@@ -69,12 +69,12 @@ const TranscriptProgressMapModal = ({ isOpen, onClose, allCourses = [], studentD
             return { nodes: [], edges: [] };
         }
 
-        // ── فلتر الكورسات حسب regulation الطالب ──
+
         const studentRegulation = studentData.transcript.regulation?.toLowerCase();
         const filteredCourses = studentRegulation
             ? allCourses.filter(course => course.courseRegulation?.toLowerCase() === studentRegulation)
             : allCourses;
-        // ──────────────────────────────────────────
+
 
         const completed = studentData.transcript.completedCourses || [];
         const semesterWorks = studentData.semesterWorks || [];

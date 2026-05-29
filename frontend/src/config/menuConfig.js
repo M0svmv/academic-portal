@@ -204,16 +204,16 @@ export const menuConfig = {
             path: "/staff/admin/dashboard",
             icon: <ShieldCheck size={iconSize} />
         },
-        {
-            name: "User Management",
-            path: "/staff/admin/users",
-            icon: <UserCog size={iconSize} />
-        },
-        {
-            name: "System Settings",
-            path: "/staff/admin/settings",
-            icon: <Settings2 size={iconSize} />
-        }
+        // {
+        //     name: "User Management",
+        //     path: "/staff/admin/users",
+        //     icon: <UserCog size={iconSize} />
+        // },
+        // {
+        //     name: "System Settings",
+        //     path: "/staff/admin/settings",
+        //     icon: <Settings2 size={iconSize} />
+        // }
     ],
 
     "control-member": [

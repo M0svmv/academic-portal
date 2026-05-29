@@ -3,12 +3,14 @@ import api from "../../services/api";
 import swalService from "../../services/swal";
 import {
     Edit, UserPlus, ListPlus, UserCheck, Trash2, PlusCircle, Edit3, X, Save, Search, Eye, ChevronDown,
-    Users, AlertCircle, UserMinus, BarChart3
-    , Loader2
+    Users, AlertCircle, UserMinus, BarChart3, Loader2, FileDown
 } from 'lucide-react';
 import "../styles/AdvisingManagement.css";
 import { useNavigate, useParams } from "react-router-dom";
+import AdvisingReportModal from "./Advisingreportmodal";
+
 const VALID_TABS = ["manage-lists", "promote"];
+
 const AdvisingManagementPage = () => {
     const navigate = useNavigate();
     const [advisors, setAdvisors] = useState([]);
@@ -20,8 +22,7 @@ const AdvisingManagementPage = () => {
 
     const [isUnassignedModalOpen, setIsUnassignedModalOpen] = useState(false);
     const [isEmptyListsModalOpen, setIsEmptyListsModalOpen] = useState(false);
-
-
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
     const [activeTab, setActiveTab] = useState(() => {
         const saved = localStorage.getItem("activeAdvisingTab");
@@ -100,7 +101,6 @@ const AdvisingManagementPage = () => {
 
     const fetchUnassignedStudents = async () => {
         const res = await api.get("/advisors/advising-lists/unassigned-students");
-        console.log("unass:", res)
         setUnassignedStudents(res.data || []);
     };
 
@@ -176,10 +176,8 @@ const AdvisingManagementPage = () => {
         (staff._id?.toLowerCase() || "").includes(searchTerm.toLowerCase())
     );
 
-
     const filteredUnassignedStudents = unassignedStudents.filter(s => {
         const studentId = s.studentId?._id;
-
         return (
             (
                 (s.studentId?.studentName?.toLowerCase() || "").includes(studentSearch.toLowerCase()) ||
@@ -195,6 +193,29 @@ const AdvisingManagementPage = () => {
                 <div>
                     <h2>Advising Management</h2>
                 </div>
+                {/* Export Report Button */}
+                <button
+                    className="btn-export-report"
+                    onClick={() => setIsReportModalOpen(true)}
+                    title="Export PDF"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 20px',
+                        backgroundColor: '#1e293b',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s',
+                    }}
+                >
+                    <FileDown size={18} />
+                    Export PDF
+                </button>
             </header>
 
             {/* --- INSIGHTS CARDS SECTION --- */}
@@ -265,37 +286,6 @@ const AdvisingManagementPage = () => {
             </div>
 
             <div className="advising-content">
-                {/* {activeTab === "current-advisors" && (
-                    <div className="table-wrapper">
-                        <table className="advising-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Advisor Name</th>
-                                    <th>Email</th>
-                                    <th>Contact</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredAdvisors.length > 0 ? filteredAdvisors.map(adv => (
-                                    <tr key={adv._id}>
-                                        <td className="course-id-cell">{adv._id}</td>
-                                        <td style={{ fontWeight: '600', color: 'var( --primary-blue-color)' }}>{adv.staffName}</td>
-                                        <td>{adv.email}</td>
-                                        <td>{adv.phone}</td>
-                                        <td>
-                                            <button onClick={() => handleViewStudents(adv._id)} title="View Students" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                                                <Eye size={18} color="#3a86ff" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                )) : <tr><td colSpan="5" className="text-center">No advisors found.</td></tr>}
-                            </tbody>
-                        </table>
-                    </div>
-                )} */}
-
                 {activeTab === "manage-lists" && (
                     <div className="manageLists">
                         <div className="table-header-actions">
@@ -367,25 +357,14 @@ const AdvisingManagementPage = () => {
                                                         `Are you sure you want to promote ${staff.staffName} to an advisor?`,
                                                         "Yes, Promote!"
                                                     );
-
-
                                                     if (result.isConfirmed) {
                                                         try {
                                                             swalService.showLoading("Promoting staff...");
-
                                                             const response = await api.post("/advisors/advisor", { _id: staff._id });
-
                                                             loadData();
-
-                                                            swalService.success(
-                                                                "Success!",
-                                                                `${staff.staffName} is now an advisor.`
-                                                            );
+                                                            swalService.success("Success!", `${staff.staffName} is now an advisor.`);
                                                         } catch (err) {
-                                                            swalService.error(
-                                                                "Action Failed",
-                                                                err.response?.data?.message || "Could not complete the promotion."
-                                                            );
+                                                            swalService.error("Action Failed", err.response?.data?.message || "Could not complete the promotion.");
                                                         }
                                                     }
                                                 }}
@@ -555,9 +534,7 @@ const AdvisingManagementPage = () => {
                                                         </td>
                                                         <td style={{ padding: '6px 12px', textAlign: 'right' }}>
                                                             <button
-                                                                onClick={() => {
-                                                                    toggleStudentSelection(id); // ✅ FIXED
-                                                                }}
+                                                                onClick={() => { toggleStudentSelection(id); }}
                                                                 style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
                                                             >
                                                                 <X size={16} />
@@ -589,7 +566,7 @@ const AdvisingManagementPage = () => {
                 </div>
             )}
 
-            {/* --- NEW MODAL: Empty Lists Insights --- */}
+            {/* --- MODAL: Empty Lists Insights --- */}
             {isEmptyListsModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content">
@@ -631,6 +608,7 @@ const AdvisingManagementPage = () => {
                 </div>
             )}
 
+            {/* --- MODAL: All Advisors --- */}
             {isAdvisorsModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content modal-large" style={{ minWidth: '1000px' }}>
@@ -640,7 +618,6 @@ const AdvisingManagementPage = () => {
                                 <X size={20} />
                             </button>
                         </div>
-
                         <div className="modal-body-ad">
                             <div className="table-wrapper">
                                 <table className="advising-table">
@@ -673,23 +650,30 @@ const AdvisingManagementPage = () => {
                                             </tr>
                                         )) : (
                                             <tr>
-                                                <td colSpan="5" className="text-center">
-                                                    No advisors found.
-                                                </td>
+                                                <td colSpan="5" className="text-center">No advisors found.</td>
                                             </tr>
                                         )}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-
                         <div className="modal-footer">
-                            <button className="btn-2" onClick={() => setIsAdvisorsModalOpen(false)}>
-                                Close
-                            </button>
+                            <button className="btn-2" onClick={() => setIsAdvisorsModalOpen(false)}>Close</button>
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* --- PDF REPORT MODAL --- */}
+            {isReportModalOpen && (
+                <AdvisingReportModal
+                    onClose={() => setIsReportModalOpen(false)}
+                    advisors={advisors}
+                    allLists={allLists}
+                    unassignedStudents={unassignedStudents}
+                    nonAdvisors={nonAdvisors}
+                    stats={stats}
+                />
             )}
         </div>
     );
