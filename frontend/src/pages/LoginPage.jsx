@@ -84,11 +84,11 @@ const LoginPage = () => {
                 <div className="login-left">
                     <div className="left-content">
                         <img
-                            src="/images/department-logo.png"
+                            src="/images/orbitLogo.png"
                             alt="ECE Logo"
                             className="login-logo"
                         />
-                        <h2>Electrical And<br />Computer Engineering</h2>
+                        <h2>ECE Academic Portal</h2>
                     </div>
                 </div>
 

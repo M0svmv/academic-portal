@@ -174,7 +174,7 @@ const AdvisedStudentDetails = () => {
 
     const fetchAllCourses = async () => {
         try {
-            const res = await api.get("/academic-advisors/me/department-courses");
+            const res = await api.get("/academic-advisors/me/courses");
             setAllCourses(res.data);
         } catch (err) {
             console.error("Failed to fetch courses", err);

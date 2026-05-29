@@ -48,7 +48,7 @@
     height: 80px;
     width: auto;
     transition: opacity 0.3s;
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 1));
 }
 
 .sidebar.collapsed .sidebar-logo {
