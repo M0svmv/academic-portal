@@ -46,9 +46,13 @@
 
 .sidebar-logo {
     height: 80px;
-    width: auto;
+    width: 80px;
+    border-radius: 50%;
+    background: #f9f9f9;
+    padding: 6px;
+    object-fit: contain;
     transition: opacity 0.3s;
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 1));
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
 }
 
 .sidebar.collapsed .sidebar-logo {

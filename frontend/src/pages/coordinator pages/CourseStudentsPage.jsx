@@ -13,6 +13,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
     PieChart, Pie, Cell, ResponsiveContainer, Legend
 } from "recharts";
+import { arabicTextToImageData, containsArabic } from "../../services/Transcriptutils";
 import "../styles/StudentDetails.css";
 
 // ─── Color palette ─────────────────────────────────────────────────────────────
@@ -85,7 +86,6 @@ const CourseStudentsPage = () => {
 
     const courseName = location.state?.courseName || "Course Students";
 
-    // ── FIX: keep instructor & TA in local state so we can update after assign ──
     const [currentInstructor, setCurrentInstructor] = useState(location.state?.instructorId || null);
     const [currentTA, setCurrentTA] = useState(location.state?.taId || null);
 
@@ -144,14 +144,12 @@ const CourseStudentsPage = () => {
         const newReg = filteredStudents.filter(s => s.studentId?.transcript?.regulation === "New").length;
         const oldReg = filteredStudents.filter(s => s.studentId?.transcript?.regulation === "last").length;
 
-        // Level breakdown
         const levelBreakdown = {};
         filteredStudents.forEach(s => {
             const lv = s.studentId?.transcript?.level || "Unknown";
             levelBreakdown[lv] = (levelBreakdown[lv] || 0) + 1;
         });
 
-        // Grade averages (only where not N/A)
         const gradeFields = ["midTermGrade", "attendanceGrade", "labGrade", "practicalGrade", "bonusGrade", "finalGrade", "totalGrade"];
         const gradeAverages = {};
         gradeFields.forEach(field => {
@@ -163,7 +161,6 @@ const CourseStudentsPage = () => {
                 : "N/A";
         });
 
-        // Pass/fail distribution (based on totalGrade >= 60)
         const graded = filteredStudents.filter(s => s.grade?.totalGrade !== undefined && s.grade?.totalGrade !== null);
         const passed = graded.filter(s => Number(s.grade.totalGrade) >= 60).length;
         const failed = graded.filter(s => Number(s.grade.totalGrade) < 60).length;
@@ -173,14 +170,12 @@ const CourseStudentsPage = () => {
 
     // ─── Chart data ───────────────────────────────────────────────────────────────
     const chartData = useMemo(() => {
-        // Level distribution pie
         const levelPie = Object.entries(stats.levelBreakdown).map(([level, count]) => ({
             name: level.charAt(0).toUpperCase() + level.slice(1),
             value: count,
             fill: LEVEL_COLOR[level] || COLORS.slate,
         }));
 
-        // Grade averages bar
         const gradeBar = [
             { name: "Mid Exam", avg: parseFloat(stats.gradeAverages.midTermGrade) || 0 },
             { name: "Attend.", avg: parseFloat(stats.gradeAverages.attendanceGrade) || 0 },
@@ -190,13 +185,11 @@ const CourseStudentsPage = () => {
             { name: "Final", avg: parseFloat(stats.gradeAverages.finalGrade) || 0 },
         ].filter(d => !isNaN(d.avg));
 
-        // Regulation pie
         const regPie = [
             { name: "New Regulation", value: stats.newReg, fill: COLORS.primary },
             { name: "Last Regulation", value: stats.oldReg, fill: COLORS.pink },
         ].filter(d => d.value > 0);
 
-        // Pass / fail pie
         const passPie = [
             { name: "Passed (≥60)", value: stats.passed, fill: COLORS.success },
             { name: "Failed (<60)", value: stats.failed, fill: COLORS.danger },
@@ -206,13 +199,12 @@ const CourseStudentsPage = () => {
         return { levelPie, gradeBar, regPie, passPie };
     }, [stats]);
 
-    // ─── Assign handlers (FIX: update local state after success) ────────────────
+    // ─── Assign handlers ────────────────────────────────────────────────────────
     const handleAssignInstructor = async () => {
         if (!selectedStaff) return swalService.error("Wait!", "Please select a lecturer");
         setAssigning(true);
         try {
             await api.post(`/course-offerings/${offeringId}/assign-instructor`, { instructorId: selectedStaff });
-            // find staff name and update local state → fixes the display bug
             const staff = lecturers.find(l => l._id === selectedStaff);
             if (staff) setCurrentInstructor(staff.staffName);
             swalService.success("Success", "Instructor assigned successfully!");
@@ -229,7 +221,6 @@ const CourseStudentsPage = () => {
         setAssigning(true);
         try {
             await api.post(`/course-offerings/${offeringId}/assign-ta`, { taId: selectedStaff });
-            // find staff name and update local state → fixes the display bug
             const staff = tas.find(t => t._id === selectedStaff);
             if (staff) setCurrentTA(staff.staffName);
             swalService.success("Success", "TA assigned successfully!");
@@ -409,15 +400,26 @@ const CourseStudentsPage = () => {
         doc.text(`Student Grade Sheet — ${courseName}`, 14, 12);
 
         const cols = ["#", "Student ID", "Student Name", "Level", "Reg.", "Mid", "Attend.", "Lab", "Pract.", "Bonus", "Final", "Total", "Status"];
+
+        // ── بنبني الـ rows مع معالجة الأسماء العربية ──
         const rows = filteredStudents.map((s, idx) => {
             const total = s.grade?.totalGrade;
             const status = total === undefined || total === null
                 ? "Not graded"
                 : Number(total) >= 50 ? "Pass" : "Fail";
+
+            const rawName = s.studentId?.studentName || "N/A";
+            const nameCell = containsArabic(rawName)
+                ? {
+                    content: " ",
+                    _arabicImg: arabicTextToImageData(rawName, 8, "#1e293b"),
+                }
+                : rawName;
+
             return [
                 idx + 1,
                 s.studentId?._id || "N/A",
-                s.studentId?.studentName || "N/A",
+                nameCell,
                 s.studentId?.transcript?.level || "N/A",
                 s.studentId?.transcript?.regulation || "N/A",
                 s.grade?.midTermGrade ?? "—",
@@ -454,15 +456,38 @@ const CourseStudentsPage = () => {
                 12: { halign: "center", cellWidth: 18 },
             },
             styles: { fontSize: 7.5, cellPadding: 2.5 },
-            didParseCell: (data) => {
-                if (data.section === "body" && data.column.index === 12) {
-                    const v = data.cell.raw;
+
+            // ── رسم الأسماء العربية كـ images ──
+            didDrawCell(hookData) {
+                if (hookData.section !== "body") return;
+                const cell = hookData.cell;
+                if (!cell.raw?._arabicImg) return;
+
+                const { dataUrl, widthMm, heightMm } = cell.raw._arabicImg;
+                const cellH = cell.height;
+                const imgH = Math.min(cellH - 1, 4.5);
+                const scale = imgH / (heightMm || 1);
+                const imgW = Math.min(widthMm * scale, cell.width - 2);
+                const imgX = cell.x + cell.width - imgW - 1; // محاذاة يمين
+                const imgY = cell.y + (cellH - imgH) / 2;
+                doc.addImage(dataUrl, "PNG", imgX, imgY, imgW, imgH);
+            },
+
+            didParseCell(hookData) {
+                // نخفي الـ placeholder text للخلايا العربية
+                if (hookData.section === "body" && hookData.cell.raw?._arabicImg) {
+                    hookData.cell.styles.textColor = [255, 255, 255, 0];
+                }
+
+                // Pass / Fail coloring
+                if (hookData.section === "body" && hookData.column.index === 12) {
+                    const v = hookData.cell.raw;
                     if (v === "Pass") {
-                        data.cell.styles.textColor = [16, 185, 129];
-                        data.cell.styles.fontStyle = "bold";
+                        hookData.cell.styles.textColor = [16, 185, 129];
+                        hookData.cell.styles.fontStyle = "bold";
                     } else if (v === "Fail") {
-                        data.cell.styles.textColor = [239, 68, 68];
-                        data.cell.styles.fontStyle = "bold";
+                        hookData.cell.styles.textColor = [239, 68, 68];
+                        hookData.cell.styles.fontStyle = "bold";
                     }
                 }
             },
@@ -545,7 +570,6 @@ const CourseStudentsPage = () => {
                     <UserCheck size={18} color="#3a86ff" />
                     <div>
                         <span style={{ fontSize: "0.7rem", color: "#6b7280", display: "block", textTransform: "uppercase" }}>Course Instructor</span>
-                        {/* FIX: now reads from local state, updates instantly after assign */}
                         <span style={{ fontWeight: 600, color: "#111827" }}>{currentInstructor || "Not Assigned"}</span>
                     </div>
                 </div>
@@ -553,7 +577,6 @@ const CourseStudentsPage = () => {
                     <Users size={18} color="#06d6a0" />
                     <div>
                         <span style={{ fontSize: "0.7rem", color: "#6b7280", display: "block", textTransform: "uppercase" }}>Teaching Assistant</span>
-                        {/* FIX: now reads from local state, updates instantly after assign */}
                         <span style={{ fontWeight: 600, color: "#111827" }}>{currentTA || "Not Assigned"}</span>
                     </div>
                 </div>

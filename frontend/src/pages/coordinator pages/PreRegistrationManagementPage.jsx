@@ -382,6 +382,46 @@ const PreRegistrationManagementPage = () => {
                     </div>
                 </div>
 
+                <div className="publish-section">
+                    {!isPublished ? (
+                        <div className="action-card">
+                            <p>To set statuses in the table above and generate the official list click publish.</p>
+                            <button className="publish-btn" onClick={publishCourses}>
+                                Publish Courses List
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="action-card success">
+                            <div className="enrollment-management-box" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <p>Open or pause students' enrollment</p>
+                                <div className="enrollment-buttons" style={{ display: 'flex', gap: '10px' }}>
+                                    {!allowEnrollment ? (
+                                        <button
+                                            className="btn-1"
+                                            onClick={handleStartRegistration}
+                                            disabled={!isWithinPreRegPeriod}
+                                            title={!isWithinPreRegPeriod ? "Registration period has ended" : ""}
+                                        >
+                                            <Play size={18} /> Start Enrollment
+                                        </button>
+                                    ) : (
+                                        <button className="btn-1" onClick={handleStopRegistration}>
+                                            <Square size={18} /> Pause Enrollment
+                                        </button>
+                                    )}
+
+                                    <button
+                                        className="btn-2"
+                                        onClick={() => navigate(`/staff/${role}/enrollment-stats/${currentSemester._id}`)}
+                                    >
+                                        <BarChart3 size={18} /> Enrollment Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 <div className="table-wrapper">
                     <table className="courses-table">
                         <thead>
@@ -423,45 +463,7 @@ const PreRegistrationManagementPage = () => {
                     </table>
                 </div>
 
-                <div className="publish-section">
-                    {!isPublished ? (
-                        <div className="action-card">
-                            <p>To set statuses in the table above and generate the official list click publish.</p>
-                            <button className="publish-btn" onClick={publishCourses}>
-                                Publish Courses List
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="action-card success">
-                            <div className="enrollment-management-box">
-                                <p>Open or pause students' enrollment</p>
-                                <div className="enrollment-buttons" style={{ display: 'flex', gap: '10px' }}>
-                                    {!allowEnrollment ? (
-                                        <button
-                                            className="btn-1"
-                                            onClick={handleStartRegistration}
-                                            disabled={!isWithinPreRegPeriod}
-                                            title={!isWithinPreRegPeriod ? "Registration period has ended" : ""}
-                                        >
-                                            <Play size={18} /> Start Enrollment
-                                        </button>
-                                    ) : (
-                                        <button className="btn-1" onClick={handleStopRegistration}>
-                                            <Square size={18} /> Pause Enrollment
-                                        </button>
-                                    )}
 
-                                    <button
-                                        className="btn-2"
-                                        onClick={() => navigate(`/staff/${role}/enrollment-stats/${currentSemester._id}`)}
-                                    >
-                                        <BarChart3 size={18} /> Enrollment Details
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
             </div>
         </div>
     );

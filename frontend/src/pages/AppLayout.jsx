@@ -140,7 +140,7 @@ const AppLayout = () => {
             <div className={`sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "open" : ""}`}>
                 {/* Top Part */}
                 <div className="sidebar-header">
-                    <img src="/images/orbitLogo2.png" alt="logo" className="sidebar-logo" />
+                    <img src="/images/orbitLogo.png" alt="logo" className="sidebar-logo" />
                     <button className="collapse-btn" onClick={() => setCollapsed(!collapsed)}>
                         {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
                     </button>
