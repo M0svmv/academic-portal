@@ -195,23 +195,9 @@ const AdvisingManagementPage = () => {
                 </div>
                 {/* Export Report Button */}
                 <button
-                    className="btn-export-report"
+                    className="btn-1"
                     onClick={() => setIsReportModalOpen(true)}
                     title="Export PDF"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '10px 20px',
-                        backgroundColor: '#1e293b',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '10px',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'background 0.2s',
-                    }}
                 >
                     <FileDown size={18} />
                     Export PDF

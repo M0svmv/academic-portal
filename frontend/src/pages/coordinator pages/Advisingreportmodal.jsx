@@ -96,7 +96,7 @@ const AdvisingReportModal = ({ onClose, advisors, allLists, unassignedStudents, 
         <div style={{
             fontSize: '15px', fontWeight: '700', color: '#1e293b',
             borderLeft: `4px solid ${color}`, paddingLeft: '12px',
-            marginBottom: '16px', marginTop: '28px'
+            marginBottom: '16px',
         }}>
             {children}
         </div>
@@ -167,9 +167,7 @@ const AdvisingReportModal = ({ onClose, advisors, allLists, unassignedStudents, 
                             <h3 style={{ color: '#fff', margin: 0, fontSize: '18px', fontWeight: '700' }}>
                                 Academic Advising Report
                             </h3>
-                            <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>
-                                Detailed advising status report
-                            </p>
+
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -200,7 +198,7 @@ const AdvisingReportModal = ({ onClose, advisors, allLists, unassignedStudents, 
                     }}>
 
                         {/* Report Header */}
-                        <div style={{
+                        {/* <div style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
                             borderBottom: '3px solid #1e293b', paddingBottom: '20px', marginBottom: '30px'
                         }}>
@@ -216,7 +214,7 @@ const AdvisingReportModal = ({ onClose, advisors, allLists, unassignedStudents, 
                                 <div style={{ fontSize: '13px', fontWeight: '600', color: '#1e293b' }}>{reportDate}</div>
                                 <div style={{ marginTop: '2px' }}>Report Generated</div>
                             </div>
-                        </div>
+                        </div> */}
 
                         {/* Stats Overview */}
                         <SectionTitle color="#3b82f6">Summary Overview</SectionTitle>
