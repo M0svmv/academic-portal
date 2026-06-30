@@ -58,7 +58,7 @@ const ScheduleManager = () => {
         try {
             const res = await api.get('/schedule');
             setOfferings(res.data.courseOfferings || []);
-            console.log(res.data.courseOfferings)
+
             const fetchedPeriods = res.data.schedule[0]?.periodsTime || [];
             setPeriods(fetchedPeriods);
             setTempPeriods(fetchedPeriods);
@@ -370,7 +370,10 @@ const ScheduleManager = () => {
                     justifyContent: 'space-between'
                 }}>
                     <p className="course-name-text-s">
-                        {offering.courseId?.courseName || "Unknown"}
+                        {(() => {
+                            const name = offering.courseId?.courseName || "Unknown";
+                            return isInsideGrid && name.length > 22 ? name.slice(0, 22) + "…" : name;
+                        })()}
                     </p>
                     {!isInsideGrid && (
                         <div className="compact-actions">
@@ -534,7 +537,15 @@ const ScheduleManager = () => {
                     </header>
                     <div className="sc-table-wrapper" id="printable-schedule">
                         <table className="schedule-table">
+
+                            <colgroup>
+                                <col style={{ width: '90px' }} />
+                                {[...Array(6)].map((_, i) => (
+                                    <col key={i} style={{ width: 'calc((100% - 90px) / 6)' }} />
+                                ))}
+                            </colgroup>
                             <thead>
+
                                 <tr>
                                     <th className="sticky-row sticky-col corner-header">Days</th>
                                     {[...Array(6)].map((_, i) => {

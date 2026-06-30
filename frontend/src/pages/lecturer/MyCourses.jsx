@@ -52,7 +52,7 @@ const MyCourses = () => {
         setLoading(true);
         try {
             const res = await api.get("/lecturers/me/courses");
-            console.log("my courses", res.data)
+
             setCourses(res.data);
         } catch (err) {
             console.error("Error fetching courses", err);

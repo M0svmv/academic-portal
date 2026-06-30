@@ -48,7 +48,7 @@ const Announcements = () => {
     const fetchStudents = async () => {
         try {
             const res = await api.get("/transcripts");
-            console.log(res.data)
+
             const data = res.data?.data || res.data || [];
             setStudents(data);
         } catch (err) {
@@ -82,7 +82,7 @@ const Announcements = () => {
 
             if (activeTab === "department") {
                 res = await api.get("/announcements/");
-                console.log(res.data)
+
 
                 const filtered = res.data.filter(
                     ann => ann.target === "all" || ann.target === "specificStudents"

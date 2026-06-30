@@ -18,8 +18,9 @@ import {
     Check,
     Eye,
     User,
-    Calendar, ArrowUpCircle, ArrowDownCircle, XCircle
-    , Loader2
+    Calendar, ArrowUpCircle, ArrowDownCircle, XCircle,
+    Loader2,
+    RefreshCw
 } from 'lucide-react';
 import '../styles/ProgramCourses.css';
 import './styles/StuReq.css'
@@ -47,6 +48,9 @@ const StudentRequestsManagement = () => {
     const [availableCourses, setAvailableCourses] = useState([]);
     const [passedCourses, setPassedCourses] = useState([]);
 
+    const [isLoading, setIsLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(null);
+
     const [formData, setFormData] = useState({
         courseId: '',
         withdrawalReason: '',
@@ -57,12 +61,16 @@ const StudentRequestsManagement = () => {
     });
 
     const fetchRequests = async () => {
+        setIsLoading(true);
+        setFetchError(null);
         try {
             const res = await api.get("/student/me/academic-requests");
-            console.log(res)
             setRequests(res.data.Requests || []);
         } catch (err) {
             console.error(err);
+            setFetchError(err.response?.data?.message || "Failed to load your requests. Please try again.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -71,7 +79,7 @@ const StudentRequestsManagement = () => {
             const enrolledRes = await api.get("/student/me/enrollments/current");
 
             const coursesList = enrolledRes.data.courses || [];
-            console.log(coursesList)
+ 
 
             const normalized = coursesList.map(c => ({
                 _id: c.courseOfferingId?.courseId?._id,
@@ -156,7 +164,6 @@ const StudentRequestsManagement = () => {
         e.preventDefault();
         swalService.showLoading("Submitting your request...");
 
-        // دالة مبسطة لأننا جهزنا البيانات في الـ fetch
         const mapToIds = (ids, sourceArray) => {
             return ids.map(id => {
                 const found = sourceArray.find(item => item._id === id);
@@ -186,23 +193,14 @@ const StudentRequestsManagement = () => {
                         studentSuggestion: formData.studentSuggestion
                     };
                     break;
-
                 case 'improve':
-
                     endpoint = "/student/me/academic-requests/improve-grade";
-
                     payload = {
-
                         courseId: formData.courseId,
-
                         writtenReason: formData.writtenReason,
-
                         studentSuggestion: formData.studentSuggestion
-
                     };
-
                     break;
-
                 case 'overload':
                     endpoint = "/student/me/academic-requests/overload";
                     payload = {
@@ -221,6 +219,7 @@ const StudentRequestsManagement = () => {
             swalService.error("Submission Failed", err.response?.data?.message || "Something went wrong");
         }
     };
+
     const deleteRequest = async (requestId) => {
         const result = await swalService.confirm(
             "Cancel Request?",
@@ -332,31 +331,133 @@ const StudentRequestsManagement = () => {
         );
     };
 
-
-    const sortedRequests = [...filteredRequests].sort((a, b) =>
-        new Date(b.createdAt) - new Date(a.createdAt)
-    );
-
-    const RequestSummaryView = ({ request }) => {
-        const courseName = request.courseId?._id || request.courseId || "Multiple Courses";
-
-        switch (request.requestType) {
-            case 'Add Drop':
-                return (
-                    <div style={{ fontSize: '14px', display: 'flex', gap: '5px' }}>
-                        <div style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}><ArrowUpCircle size={16} /> Added: {request.addedCourses?.length || 0}</div>
-                        <div style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}><ArrowDownCircle size={16} /> Dropped: {request.droppedCourses?.length || 0}</div>
-                    </div>
-                );
-            case 'Withdrawal':
-                return <div style={{ fontSize: '14px', color: '#ef4444', fontWeight: '500' }}>Withdraw: {courseName}</div>;
-            case 'improve Grade':
-                return <div style={{ fontSize: '14px', color: '#6366f1', fontWeight: '500' }}>Improve: {courseName}</div>;
-            case 'Overload':
-                return <div style={{ fontSize: '14px', color: '#f59e0b', fontWeight: '500' }}>{request.addedCourses?.length || 0} Overload</div>;
-            default:
-                return <span>{courseName}</span>;
+    const renderTableBody = () => {
+        // حالة 1: جاري التحميل
+        if (isLoading) {
+            return (
+                <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '52px 16px', color: '#9ca3af' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                            <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: '#6366f1' }} />
+                            <span style={{ fontSize: '14px' }}>Loading your requests...</span>
+                        </div>
+                    </td>
+                </tr>
+            );
         }
+
+        if (fetchError) {
+            return (
+                <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '48px 16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                            <div style={{
+                                width: '48px', height: '48px', borderRadius: '50%',
+                                background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                <AlertCircle size={24} color="#ef4444" />
+                            </div>
+                            <p style={{ margin: 0, fontWeight: '600', fontSize: '15px', color: '#ef4444' }}>
+                                Couldn't load requests
+                            </p>
+                            <p style={{ margin: 0, fontSize: '13px', color: '#9ca3af' }}>{fetchError}</p>
+                            <button
+                                onClick={fetchRequests}
+                                style={{
+                                    marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px',
+                                    padding: '7px 18px', borderRadius: '8px', border: '1px solid #fca5a5',
+                                    background: '#fef2f2', color: '#ef4444', cursor: 'pointer',
+                                    fontSize: '13px', fontWeight: '500'
+                                }}
+                            >
+                                <RefreshCw size={14} /> Try Again
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            );
+        }
+
+        if (requests.length === 0) {
+            return (
+                <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '52px 16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                            <div style={{
+                                width: '52px', height: '52px', borderRadius: '50%',
+                                background: '#f0f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                <ClipboardList size={26} color="#6366f1" />
+                            </div>
+                            <p style={{ margin: 0, fontWeight: '600', fontSize: '15px', color: '#374151' }}>
+                                No requests yet
+                            </p>
+                            <p style={{ margin: 0, fontSize: '13px', color: '#9ca3af' }}>
+                                You haven't submitted any academic requests. Use "New Request" to get started.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+            );
+        }
+
+
+        if (filteredRequests.length === 0) {
+            return (
+                <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '52px 16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                            <div style={{
+                                width: '48px', height: '48px', borderRadius: '50%',
+                                background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                <Search size={22} color="#9ca3af" />
+                            </div>
+                            <p style={{ margin: 0, fontWeight: '600', fontSize: '15px', color: '#374151' }}>
+                                No results found
+                            </p>
+                            <p style={{ margin: 0, fontSize: '13px', color: '#9ca3af' }}>
+                                Try adjusting your search or filter to find what you're looking for.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+            );
+        }
+
+
+        return [...filteredRequests]
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .map(req => (
+                <tr key={req._id} className={req.requestType === 'Withdrawal' ? 'type-withdrawal-row' : 'type-adddrop-row'}>
+                    <td style={{ fontWeight: '600' }}>
+                        <div className="type-column-info">
+                            {req.requestType}
+                        </div>
+                    </td>
+                    <td>
+                        <RequestSummaryView request={req} />
+                    </td>
+                    <td>
+                        <StatusBadge status={req.status} />
+                    </td>
+                    <td style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+                        {new Date(req.createdAt).toLocaleDateString()}
+                    </td>
+                    <td>
+                        <div className="action-btns">
+                            <button className="btn-icon btn-view" title="View Details" onClick={() => setViewingRequest(req)}>
+                                <Eye size={18} />
+                            </button>
+                            {req.status === 'pending' && (
+                                <button className="btn-icon btn-delete" title="Delete Request" onClick={() => deleteRequest(req._id)}>
+                                    <Trash2 size={18} />
+                                </button>
+                            )}
+                        </div>
+                    </td>
+                </tr>
+            ));
     };
 
     return (
@@ -402,7 +503,6 @@ const StudentRequestsManagement = () => {
                     </div>
                     <div className="insight-value">{stats.total}</div>
                 </div>
-
                 <div className="insight-card">
                     <div className="insight-header">
                         <span className="insight-icon icon-orange"><Clock size={18} /></span>
@@ -410,7 +510,6 @@ const StudentRequestsManagement = () => {
                     </div>
                     <div className="insight-value">{stats.pending}</div>
                 </div>
-
                 <div className="insight-card">
                     <div className="insight-header">
                         <span className="insight-icon icon-green"><CheckCircle2 size={18} /></span>
@@ -418,7 +517,6 @@ const StudentRequestsManagement = () => {
                     </div>
                     <div className="insight-value">{stats.approved}</div>
                 </div>
-
                 <div className="insight-card">
                     <div className="insight-header">
                         <span className="insight-icon icon-purple"><AlertCircle size={18} /></span>
@@ -446,55 +544,19 @@ const StudentRequestsManagement = () => {
                 </select>
             </div>
 
-            {/* --- جدول الطلبات الأكاديمية --- */}
             <div className="table-wrapper">
                 <table>
                     <thead>
                         <tr>
                             <th>Type</th>
-                            <th >Course / Action</th>
+                            <th>Course / Action</th>
                             <th>Status</th>
                             <th>Date</th>
                             <th style={{ textAlign: 'center' }}>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {/* ترتيب المصفوفة: الأحدث (التاريخ الأكبر) يظهر أولاً */}
-                        {[...filteredRequests]
-                            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                            .map(req => (
-                                <tr key={req._id} className={req.requestType === 'Withdrawal' ? 'type-withdrawal-row' : 'type-adddrop-row'}>
-                                    <td style={{ fontWeight: '600' }}>
-                                        <div className="type-column-info">
-                                            {req.requestType}
-
-                                        </div>
-                                    </td>
-                                    <td >
-                                        <RequestSummaryView request={req} />
-                                    </td>
-                                    <td >
-                                        <StatusBadge status={req.status} />
-                                    </td>
-                                    <td style={{ color: '#6b7280', fontSize: '0.85rem' }}>
-                                        {new Date(req.createdAt).toLocaleDateString()}
-                                    </td>
-                                    <td>
-                                        <div className="action-btns">
-                                            {/* زرار عرض التفاصيل يفتح الدرور */}
-                                            <button className="btn-icon btn-view" title="View Details" onClick={() => setViewingRequest(req)}>
-                                                <Eye size={18} />
-                                            </button>
-
-                                            {req.status === 'pending' && (
-                                                <button className="btn-icon btn-delete" title="Delete Request" onClick={() => deleteRequest(req._id)}>
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                        {renderTableBody()}
                     </tbody>
                 </table>
             </div>
@@ -503,8 +565,6 @@ const StudentRequestsManagement = () => {
             {viewingRequest && (
                 <div className="details-drawer-overlay" onClick={() => setViewingRequest(null)}>
                     <div className="details-drawer" onClick={(e) => e.stopPropagation()}>
-
-                        {/* Header - موحد مع ثيم الإعلانات */}
                         <div className="drawer-header">
                             <div className="drawer-title-area">
                                 <span className={`badge-type status-${viewingRequest.status.toLowerCase()}`}>
@@ -533,10 +593,7 @@ const StudentRequestsManagement = () => {
 
                             <hr className="drawer-divider" />
 
-                            {/* --- عرض التفاصيل بناءً على نوع الطلب --- */}
                             <div className="specific-details">
-
-                                {/* 1. طلبات الـ Withdrawal أو improve Grade (تستخدم courseId) */}
                                 {(viewingRequest.requestType === "Withdrawal" || viewingRequest.requestType === "improve Grade") && (
                                     <div className="detail-group">
                                         <label>Target Course</label>
@@ -547,7 +604,6 @@ const StudentRequestsManagement = () => {
                                     </div>
                                 )}
 
-                                {/* 2. سبب السحب (فقط في طلبات السحب) */}
                                 {viewingRequest.requestType === "Withdrawal" && (
                                     <div className="detail-group">
                                         <label>Withdrawal Reason</label>
@@ -555,7 +611,6 @@ const StudentRequestsManagement = () => {
                                     </div>
                                 )}
 
-                                {/* 3. طلبات الـ Add Drop أو Overload (تستخدم المصفوفات) */}
                                 {(viewingRequest.requestType === "Add Drop" || viewingRequest.requestType === "Overload") && (
                                     <div className="detail-row">
                                         <div className="detail-group">
@@ -588,7 +643,6 @@ const StudentRequestsManagement = () => {
                                     </div>
                                 )}
 
-                                {/* 4. السبب المكتوب (للسحب، التحسين، الأوفر لود) */}
                                 {viewingRequest.writtenReason && (
                                     <div className="detail-group">
                                         <label>Detailed Statement / Reason</label>
@@ -599,7 +653,6 @@ const StudentRequestsManagement = () => {
 
                             <hr className="drawer-divider" />
 
-                            {/* ملاحظات الطالب */}
                             <div className="detail-group">
                                 <label>Your Suggestion/Notes</label>
                                 <p className="detail-value content-full">
@@ -607,7 +660,6 @@ const StudentRequestsManagement = () => {
                                 </p>
                             </div>
 
-                            {/* المرشد الأكاديمي */}
                             <div className="detail-group advisor-section">
                                 <label><User size={14} /> Academic Advisor</label>
                                 <div className="student-detail-chip">
@@ -622,12 +674,7 @@ const StudentRequestsManagement = () => {
                                     </div>
                                 </div>
                             </div>
-                            {/* Footer Action */}
-                            <div style={{ marginTop: '30px' }}>
-                                {/* <button className="btn-cancel" style={{ width: '100%' }} onClick={() => setViewingRequest(null)}>
-                                    Close Details
-                                </button> */}
-                            </div>
+                            <div style={{ marginTop: '30px' }}></div>
                         </div>
                     </div>
                 </div>
@@ -740,7 +787,6 @@ const StudentRequestsManagement = () => {
                                         value={formData.writtenReason}
                                         onChange={e => setFormData({ ...formData, writtenReason: e.target.value })}
                                         placeholder="Explain why you are making this request..."
-
                                     />
                                 </div>
 
@@ -791,6 +837,7 @@ const StatusBadge = ({ status }) => {
         </span>
     );
 };
+
 const RequestSummaryView = ({ request }) => {
     const courseName = request.courseId?.courseName || request.courseId || "Multiple Courses";
 
@@ -814,6 +861,3 @@ const RequestSummaryView = ({ request }) => {
 };
 
 export default StudentRequestsManagement;
-
-
-

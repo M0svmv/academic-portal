@@ -103,7 +103,7 @@ const ControlDashboard = () => {
     const fetchCourses = async () => {
         try {
             const res = await api.get("/control/courses");
-            console.log("control", res)
+
             const coursesData = Array.isArray(res.data) ? res.data : [];
             setCourses(coursesData);
             if (coursesData.length > 0) {

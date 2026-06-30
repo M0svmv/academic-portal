@@ -25,7 +25,7 @@ const LoginPage = () => {
             const endpoint = roleType === "student" ? "/student/login" : "/staff/login";
 
             const { data } = await api.post(endpoint, { username, password });
-            console.log("Login response:", data);
+
 
             if (!data.token) {
                 throw new Error("No token returned from server");
@@ -35,7 +35,7 @@ const LoginPage = () => {
 
             const userRes = await api.get(roleType === "student" ? "/student/me" : "/staff/me");
             const user = userRes.data;
-            console.log("User data:", user);
+
 
             Cookies.set("currentUser", JSON.stringify(user), { expires: 1 });
 

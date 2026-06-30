@@ -49,7 +49,7 @@ const CooEnrollmentPage = () => {
         setLoading(true);
         try {
             const detailsRes = await api.get(`/students/${studentId}/details`);
-            console.log(detailsRes.data);
+
             const sData = detailsRes.data;
 
 
@@ -60,7 +60,7 @@ const CooEnrollmentPage = () => {
             setAvailableCourses(availableRes.data?.data?.availableOfferings || availableRes.data.availableOfferings || []);
             setAllowedCredits(availableRes?.data?.allowedCredits || 0);
 
-            console.log(availableRes)
+
             // 3. Fetch Currently Enrolled Courses
             const enrolledRes = await api.get(`/enrollments/student/${studentId}`);
             const enrolledData = enrolledRes.data?.courses || [];

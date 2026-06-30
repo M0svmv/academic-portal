@@ -54,7 +54,7 @@ const CourseGrading = () => {
             ]);
 
             setCourse(detailsRes.data.course);
-            console.log("stu per course", studentRes.data)
+
             setLocalGrades(studentRes.data);
             setOriginalGrades(JSON.parse(JSON.stringify(studentRes.data)));
         } catch (err) {

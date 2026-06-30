@@ -22,7 +22,7 @@ const StudentSchedule = () => {
             try {
                 // Fetch Personal Schedule
                 const personalRes = await api.get('/student/me/courses/my-schedule');
-                console.log('schedule', personalRes.data)
+
                 if (personalRes.data.schedule && personalRes.data.schedule.length > 0) {
                     setPersonalSchedule(personalRes.data);
                     setIsAnnounced(personalRes.data.schedule[0].isAnnounced ?? true);
@@ -116,14 +116,20 @@ const StudentSchedule = () => {
     if (!isAnnounced || !personalSchedule) {
         return (
             <div className="not-announced-container">
-                <AlertCircle size={48} className="text-amber-500" />
-                <h3>Schedule Under Review</h3>
-                <p>The academic schedule hasn't been finalized yet. Please check back later.</p>
+                <div className="not-announced-icon-wrap">
+                    <Clock size={36} strokeWidth={1.8} />
+                </div>
+                <h3>Your schedule is on its way</h3>
+                {/* <p>Coordinator is still finalizing time slots for this semester.</p> */}
+                <p>Once it's ready, it'll show up here automatically.</p>
+                <div className="not-announced-status">
+                    <span className="dot"></span>
+                    Waiting for announcement
+                </div>
             </div>
         );
     }
 
-    // Determine which data to show based on active tab
     const currentData = activeTab === 'mySchedule' ? personalSchedule : fullSchedule;
     const { schedule, offerings } = currentData || { schedule: [], offerings: [] };
     const periods = schedule.length > 0 ? schedule[0].periodsTime : [];

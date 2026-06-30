@@ -60,8 +60,8 @@ const TranscriptProgressMapModal = ({ isOpen, onClose, allCourses = [], studentD
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    console.log(allCourses);
-    console.log(studentData);
+
+
 
     const { nodes, edges } = useMemo(() => {
 

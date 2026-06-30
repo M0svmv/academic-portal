@@ -35,7 +35,7 @@ const AdvisingDetails = () => {
         try {
             const res = await api.get(`/advisors/${advisorId}/advisors/advising-lists`);
             setData(res.data);
-            console.log('details', res.data)
+
         } catch (err) {
             console.error(err);
             swalService.error("Error", "Failed to load advisor details.");
@@ -107,7 +107,6 @@ const AdvisingDetails = () => {
 
     const { advisor, students, studentsCount } = data;
 
-    // ---------------- FILTERING LOGIC ----------------
     const filteredStudents = students?.filter(item => {
         const s = item.student;
         const nameMatch = s?.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) || s?._id?.includes(searchTerm);
@@ -139,7 +138,6 @@ const AdvisingDetails = () => {
 
     const capacity = getCapacityDetails(studentsCount);
 
-    // Inline Styles for Filters
     const filterSelectStyle = {
         padding: '10px 14px',
         borderRadius: '10px',

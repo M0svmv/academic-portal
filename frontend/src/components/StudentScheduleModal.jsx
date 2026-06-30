@@ -46,7 +46,7 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
             >
                 {/* Header */}
                 <div style={{
-                    padding: "20px", borderBottom: "1px solid #333",
+                    padding: "20px",
                     display: "flex", justifyContent: "space-between", alignItems: "center",
                 }}>
                     <div>

@@ -50,7 +50,7 @@ const AdviserEnrollmentPage = () => {
         try {
 
             const detailsRes = await api.get(`/academic-advisors/me/students/${studentId}`);
-            console.log(detailsRes.data);
+
             const sData = detailsRes.data;
             setStudentRegulation(sData?.transcript?.regulation || "last");
             setSemesterData(sData?.semester);

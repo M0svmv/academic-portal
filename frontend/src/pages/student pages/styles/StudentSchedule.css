@@ -1,10 +1,10 @@
 /* ===== StudentSchedule.css ===== */
 
 .student-schedule-wrapper {
-    background: #ffffff;
+    /* background: #ffffff; */
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    /* box-shadow: 0 1px 3px rgba(0,0,0,0.05); */
     -webkit-font-smoothing: antialiased;
     letter-spacing: -0.022em;
     height: fit-content;
@@ -51,7 +51,7 @@
     margin-top: 2px;
 }
 
-/* الخلايا */
+
 .day-cell {
     font-weight: 600;
     color: var(--primary-blue-color);
@@ -68,7 +68,7 @@
     background: #ffffff;
 }
 
-/* الكارد الصغير */
+
 .course-card-mini {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -79,6 +79,10 @@
     flex-direction: column;
     justify-content: space-between;
     transition: all 0.2s ease;
+    overflow: hidden;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .course-card-mini:hover {
@@ -118,7 +122,7 @@
     font-weight: 200;
 }
 
-/* Loader & Error states */
+
 .loader { text-align: center; padding: 50px; }
 .not-announced-container {
     text-align: center;
@@ -138,10 +142,10 @@
 }
 
 .student-schedule-wrapper {
-    background: #ffffff !important;
+    /* background: #ffffff !important; */
     border-radius: 12px;
     padding: 24px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    /* box-shadow: 0 4px 15px rgba(0,0,0,0.05); */
 }
 
 /* ===== TABLE RESPONSIVE WRAPPER ===== */
@@ -206,12 +210,17 @@
     border: 2px dashed #e2e8f0;
     border-radius: 12px;
     padding: 8px;
+    overflow: hidden;
+    min-width: 0;
 }
 
 .course-code {
     font-size: 0.7rem;
     color: #64748b;
     margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .course-name {
@@ -220,6 +229,10 @@
     color: var(--primary-blue-color);
     line-height: 1.2;
     margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }
 
 .course-meta {
@@ -230,6 +243,22 @@
     display: inline-flex;
     align-items: center;
     width: fit-content;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.detail-item-s {
+    overflow: hidden;
+    min-width: 0;
+}
+
+.detail-item-s span.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: middle;
 }
 
 .free-time {
@@ -274,6 +303,107 @@
     background: #eff6ff;
     color: #2563eb;
 }
+
+
+/* ====== NOT ANNOUNCED / SCHEDULE PENDING STATE ====== */
+.not-announced-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    max-width: 480px;
+    margin: 6vh auto;
+    padding: 48px 40px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.not-announced-icon-wrap {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.not-announced-icon-wrap::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1.5px dashed #bfdbfe;
+    animation: orbit-spin 14s linear infinite;
+}
+
+@keyframes orbit-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .not-announced-icon-wrap::after {
+        animation: none;
+    }
+}
+
+.not-announced-icon-wrap svg {
+    color: #2563eb;
+}
+
+.not-announced-container h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 10px 0;
+}
+
+.not-announced-container p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #64748b;
+    margin: 0 0 4px 0;
+}
+
+/* شارة صغيرة بتوضح إن الموضوع مؤقت مش error */
+.not-announced-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 20px;
+    padding: 6px 14px;
+    background: #f1f5f9;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.not-announced-status .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #f59e0b;
+    animation: pulse-dot 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .not-announced-status .dot {
+        animation: none;
+    }
+}
+
 
 /* ===== RESPONSIVE BREAKPOINTS ===== */
 
@@ -435,9 +565,7 @@
 }
 
 
-/* ===== STICKY للـ schedule table تحديداً ===== */
 
-/* Header row */
 .sc-table-wrapper .modern-schedule-table thead tr th {
     position: sticky;
     top: 0;
@@ -445,7 +573,7 @@
     background: var(--primary-blue-color);
 }
 
-/* أول column (الأيام) */
+
 .sc-table-wrapper .modern-schedule-table th:first-child,
 .sc-table-wrapper .modern-schedule-table td:first-child {
     position: sticky;
@@ -455,7 +583,7 @@
     box-shadow: 2px 0 6px rgba(0, 0, 0, 0.06);
 }
 
-/* الـ corner cell */
+
 .sc-table-wrapper .modern-schedule-table thead tr th:first-child {
     z-index: 4;
     background: var(--primary-blue-color);

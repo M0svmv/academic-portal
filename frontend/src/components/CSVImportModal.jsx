@@ -187,7 +187,7 @@ const CSVImportModal = ({ isOpen, onClose, onUploadSuccess }) => {
         if (!hasErrors && data.length > 0) {
 
             try {
-                console.log(JSON.stringify(data, null, 2));
+
                 await api.post("/courses/list", data);
                 swalService.success("Courses imported successfully");
                 onClose();

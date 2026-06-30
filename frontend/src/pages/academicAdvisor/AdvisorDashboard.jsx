@@ -99,7 +99,7 @@ const AdvisorDashboard = () => {
     const fetchStudents = async () => {
         try {
             const res = await api.get("/academic-advisors/me/list");
-            console.log("Full API Response:", res.data);
+
 
             const allStudentsRaw = res.data.flatMap(item => item.students.map(s => s.student)) || [];
             setStudents(allStudentsRaw);

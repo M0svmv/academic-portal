@@ -17,7 +17,6 @@ const Profile = () => {
     const [formData, setFormData] = useState({});
     const [isEditMode, setIsEditMode] = useState(false);
 
-    // --- حالة جديدة لتحديد ما إذا كانت البيانات ناقصة فعلياً ---
     const [isDataIncomplete, setIsDataIncomplete] = useState(false);
 
     const [passwordData, setPasswordData] = useState({
@@ -80,10 +79,10 @@ const Profile = () => {
 
         setSaving(true);
         try {
-            // نرسل الـ formData المعدلة للـ API
+
             const response = await api.put(endpoint, formData);
 
-            // تصحيح: نعتمد على formData الحالية لو الـ API مرجعش الـ Object كامل
+
             const updatedDataFromApi = (response.data && response.data[emailKey]) ? response.data : formData;
 
             setFormData(updatedDataFromApi);

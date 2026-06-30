@@ -42,7 +42,7 @@ const Students = () => {
             const res = await api.get("/transcripts", {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            console.log(res)
+
             const data = res.data?.data || res.data || [];
             setStudents(data);
             setLoading(false);
@@ -60,7 +60,7 @@ const Students = () => {
     const fetchUnassignedStudents = async () => {
         try {
             const res = await api.get("/advisors/advising-lists/unassigned-students");
-            console.log(res);
+
             setUnassignedStudents(res.data || []);
         } catch (err) {
             console.error("Error fetching unassigned:", err);

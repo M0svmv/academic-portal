@@ -17,8 +17,8 @@ import {
 import { AlertTriangle, CalendarX } from 'lucide-react';
 import "../styles/StudentOfferings.css";
 import {
-    Trash2, X, Sparkles, Star, Plus
-    , Loader2
+    Trash2, X, Sparkles, Star, Plus,
+    Loader2, AlertCircle, BookOpen, RefreshCw, FilterX, CircleDashed
 } from 'lucide-react';
 
 const StudentCourseOfferingsPage = () => {
@@ -32,6 +32,8 @@ const StudentCourseOfferingsPage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
+
+    const [fetchError, setFetchError] = useState(null);
 
     const [semesterData, setSemesterData] = useState(null);
     const [timeLeft, setTimeLeft] = useState("");
@@ -47,7 +49,6 @@ const StudentCourseOfferingsPage = () => {
     }, [studentRegulation]);
 
     useEffect(() => {
-        // استدعاء الفانكشن الجديدة للتحقق من الترم أولاً
         const init = async () => {
             setLoading(true);
             const hasSemester = await fetchCurrentSemester();
@@ -101,7 +102,6 @@ const StudentCourseOfferingsPage = () => {
         return draftIds !== originalIds;
     }, [draftEnrolled, enrolledCourses, loading]);
 
-    // الفانكشن المطلوبة للتحقق من وجود ترم دراسي
     const fetchCurrentSemester = async () => {
         try {
             const res = await api.get("/semesters/current");
@@ -119,7 +119,6 @@ const StudentCourseOfferingsPage = () => {
     const fetchStudentDetails = async () => {
         try {
             const res = await api.get("/student/me/details");
-            // هنا نحدث بيانات الترم من تفاصيل الطالب أيضاً لضمان الدقة
             if (res.data.semester) setSemesterData(res.data.semester);
             setStudentRegulation(res.data.transcript?.regulation || "New");
         } catch (err) {
@@ -127,7 +126,9 @@ const StudentCourseOfferingsPage = () => {
         }
     };
 
+
     const fetchData = async () => {
+        setFetchError(null);
         try {
             const availableRes = await api.get("/student/me/available-courses");
             setAvailableCourses(availableRes.data.availableOfferings || []);
@@ -144,6 +145,7 @@ const StudentCourseOfferingsPage = () => {
             setDraftEnrolled(currentIds);
         } catch (err) {
             console.error(err);
+            setFetchError(err.response?.data?.message || "Failed to load courses. Please try again.");
         }
     };
 
@@ -233,6 +235,198 @@ const StudentCourseOfferingsPage = () => {
         };
     };
 
+
+    const EmptyStateCell = ({ colSpan, iconNode, title, subtitle, action }) => (
+        <tr>
+            <td colSpan={colSpan} style={{ textAlign: 'center', padding: '44px 16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                    {iconNode}
+                    <p style={{ margin: 0, fontWeight: '600', fontSize: '14px', color: title.color || '#374151' }}>
+                        {title.text}
+                    </p>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#9ca3af' }}>{subtitle}</p>
+                    {action}
+                </div>
+            </td>
+        </tr>
+    );
+
+
+    const IconCircle = ({ bg, children }) => (
+        <div style={{
+            width: '46px', height: '46px', borderRadius: '50%',
+            background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+            {children}
+        </div>
+    );
+
+
+    const RetryButton = () => (
+        <button
+            onClick={fetchData}
+            style={{
+                marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '6px',
+                padding: '6px 16px', borderRadius: '8px', border: '1px solid #fca5a5',
+                background: '#fef2f2', color: '#ef4444', cursor: 'pointer',
+                fontSize: '12px', fontWeight: '500'
+            }}
+        >
+            <RefreshCw size={13} /> Try Again
+        </button>
+    );
+
+
+    const renderAvailableTableBody = () => {
+
+        if (fetchError) {
+            return (
+                <EmptyStateCell
+                    colSpan={5}
+                    iconNode={<IconCircle bg="#fef2f2"><AlertCircle size={22} color="#ef4444" /></IconCircle>}
+                    title={{ text: "Couldn't load courses", color: '#ef4444' }}
+                    subtitle={fetchError}
+                    action={<RetryButton />}
+                />
+            );
+        }
+
+        const filteredByLevel = availableCourses.filter(
+            o => o.courseId.courseLevel?.toLowerCase() === activeTab.toLowerCase()
+        );
+
+
+        if (filteredByLevel.length === 0) {
+            return (
+                <EmptyStateCell
+                    colSpan={5}
+                    iconNode={<IconCircle bg="#f9fafb"><FilterX size={22} color="#9ca3af" /></IconCircle>}
+                    title={{ text: 'No courses for this level' }}
+                    subtitle="There are no offerings available at this level yet. Try a different tab."
+                />
+            );
+        }
+
+
+        return filteredByLevel.map((offering) => {
+            const isInDraft = draftEnrolled.includes(offering._id);
+            const credits = offering.courseId.courseCredits;
+            const isDisabled = !isInDraft && (currentTotalCredits + credits > allowedCredits);
+
+            return (
+                <tr key={offering._id} className={isInDraft ? "row-selected" : ""}>
+                    <td>{offering.courseId._id}</td>
+                    <td>{offering.courseId.courseName}</td>
+                    <td>{credits}</td>
+                    <td>
+                        <span className={`status-badge ${offering.status.toLowerCase()}`}>
+                            {offering.status}
+                        </span>
+                    </td>
+                    <td>
+                        {isInDraft ? (
+                            <button className="btn-delete" onClick={() => removeCourse(offering._id)}>
+                                <X size={22} />
+                            </button>
+                        ) : (
+                            <button
+                                className={`btn-view ${isDisabled || !semesterData?.settings?.allowEnrollment ? "disabled-btn" : ""}`}
+                                onClick={() => addCourse(offering._id)}
+                                disabled={isDisabled || !semesterData?.settings?.allowEnrollment}
+                                title={isDisabled ? "Credit limit reached" : "Add Course"}
+                            >
+                                <Plus size={22} />
+                            </button>
+                        )}
+                    </td>
+                </tr>
+            );
+        });
+    };
+
+
+    const renderEnrolledTableBody = () => {
+        if (draftEnrolled.length === 0) {
+            return (
+                <EmptyStateCell
+                    colSpan={4}
+                    iconNode={<IconCircle bg="#f9fafb"><CircleDashed size={22} color="#9ca3af" /></IconCircle>}
+                    title={{ text: 'No courses selected yet' }}
+                    subtitle="Add courses from the available list above to build your enrollment."
+                />
+            );
+        }
+
+        return draftEnrolled.map((id) => {
+            const offering = availableCourses.find(o => o._id === id);
+            if (!offering) return null;
+            return (
+                <tr key={id}>
+                    <td>{offering.courseId._id}</td>
+                    <td>{offering.courseId.courseName}</td>
+                    <td>{offering.courseId.courseCredits}</td>
+                    <td>
+                        <button className="remove-btn" onClick={() => removeCourse(id)}>
+                            <Trash2 size={18} />
+                        </button>
+                    </td>
+                </tr>
+            );
+        });
+    };
+
+    const renderRecommendationsTableBody = () => {
+        return recommendations.map((rec, index) => {
+            const offering = rec.course;
+            const isInDraft = draftEnrolled.includes(offering._id);
+            const credits = offering.courseId?.courseCredits || 0;
+            const isDisabled = !isInDraft && (currentTotalCredits + credits > allowedCredits);
+
+            return (
+                <tr
+                    key={offering._id}
+                    className={isInDraft ? "row-selected" : "rec-row"}
+                    style={!isInDraft ? getScoreStyle(rec.score, index) : {}}
+                >
+                    <td>
+                        {index === 0 ? (
+                            <span className="rank-badge gold"><FaTrophy size={14} /> Top Pick</span>
+                        ) : index === 1 ? (
+                            <span className="rank-badge silver"><FaAward size={14} /> Highly Rec.</span>
+                        ) : index === 2 ? (
+                            <span className="rank-badge bronze"><FaMedal size={14} /> Recommended</span>
+                        ) : (
+                            <span className="rank-number">#{index + 1}</span>
+                        )}
+                    </td>
+                    <td><strong>{offering.courseId?._id}</strong></td>
+                    <td>{offering.courseId?.courseName}</td>
+                    <td>
+                        <span className="type-badge-minimal">
+                            {offering.courseId?.courseType}
+                        </span>
+                    </td>
+                    <td>
+                        {isInDraft ? (
+                            <button className="btn-delete" onClick={() => removeCourse(offering._id)}>
+                                <X size={22} />
+                            </button>
+                        ) : (
+                            <button
+                                className={`btn-view ${isDisabled || !semesterData?.settings?.allowEnrollment ? "disabled-btn" : ""}`}
+                                onClick={() => addCourse(offering._id)}
+                                disabled={isDisabled || !semesterData?.settings?.allowEnrollment}
+                                title={isDisabled ? "Credit limit reached" : "Add Course"}
+                            >
+                                <Plus size={22} />
+                            </button>
+                        )}
+                    </td>
+                </tr>
+            );
+        });
+    };
+
     if (loading) return (
         <div
             className="management-container"
@@ -277,9 +471,6 @@ const StudentCourseOfferingsPage = () => {
             </div>
         );
     }
-
-
-
 
     return (
         <div className="management-container student-offerings-container">
@@ -336,6 +527,7 @@ const StudentCourseOfferingsPage = () => {
                 </div>
             </div>
 
+            {/* --- Available Courses --- */}
             <div className="section">
                 <h3>Available Courses ({activeTab})</h3>
                 <div className="tabs-navigation">
@@ -361,47 +553,13 @@ const StudentCourseOfferingsPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {availableCourses
-                                .filter(o => o.courseId.courseLevel?.toLowerCase() === activeTab.toLowerCase())
-                                .map((offering) => {
-                                    const isInDraft = draftEnrolled.includes(offering._id);
-                                    const credits = offering.courseId.courseCredits;
-                                    const isDisabled = !isInDraft && (currentTotalCredits + credits > allowedCredits);
-
-                                    return (
-                                        <tr key={offering._id} className={isInDraft ? "row-selected" : ""}>
-                                            <td>{offering.courseId._id}</td>
-                                            <td>{offering.courseId.courseName}</td>
-                                            <td>{credits}</td>
-                                            <td>
-                                                <span className={`status-badge ${offering.status.toLowerCase()}`}>
-                                                    {offering.status}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {isInDraft ? (
-                                                    <button className="btn-delete" onClick={() => removeCourse(offering._id)}>
-                                                        <X size={22} />
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        className={`btn-view ${isDisabled || !semesterData?.settings?.allowEnrollment ? "disabled-btn" : ""}`}
-                                                        onClick={() => addCourse(offering._id)}
-                                                        disabled={isDisabled || !semesterData?.settings?.allowEnrollment}
-                                                        title={isDisabled ? "Credit limit reached" : "Add Course"}
-                                                    >
-                                                        <Plus size={22} />
-                                                    </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                            {renderAvailableTableBody()}
                         </tbody>
                     </table>
                 </div>
             </div>
 
+            {/* --- Current Enrollment --- */}
             <div className="section">
                 <h3>Current Enrollment</h3>
                 <div className="table-wrapper">
@@ -415,26 +573,7 @@ const StudentCourseOfferingsPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {draftEnrolled.length === 0 ? (
-                                <tr><td colSpan="4"><p className="empty-msg">No courses selected</p></td></tr>
-                            ) : (
-                                draftEnrolled.map((id) => {
-                                    const offering = availableCourses.find(o => o._id === id);
-                                    if (!offering) return null;
-                                    return (
-                                        <tr key={id}>
-                                            <td>{offering.courseId._id}</td>
-                                            <td>{offering.courseId.courseName}</td>
-                                            <td>{offering.courseId.courseCredits}</td>
-                                            <td>
-                                                <button className="remove-btn" onClick={() => removeCourse(id)}>
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
+                            {renderEnrolledTableBody()}
                         </tbody>
                     </table>
                 </div>
@@ -453,6 +592,8 @@ const StudentCourseOfferingsPage = () => {
                     {saving ? "Saving..." : "Save Enrollment"}
                 </button>
             </div>
+
+            {/* --- Recommendations --- */}
             {recommendations.length > 0 && (
                 <div className={`section recommendations-section animated-border ${!isRecVisible ? "collapsed" : ""}`}>
                     <div
@@ -480,55 +621,7 @@ const StudentCourseOfferingsPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {recommendations.map((rec, index) => {
-                                        const offering = rec.course;
-                                        const isInDraft = draftEnrolled.includes(offering._id);
-                                        const credits = offering.courseId?.courseCredits || 0;
-                                        const isDisabled = !isInDraft && (currentTotalCredits + credits > allowedCredits);
-
-                                        return (
-                                            <tr
-                                                key={offering._id}
-                                                className={isInDraft ? "row-selected" : "rec-row"}
-                                                style={!isInDraft ? getScoreStyle(rec.score, index) : {}}
-                                            >
-                                                <td>
-                                                    {index === 0 ? (
-                                                        <span className="rank-badge gold"><FaTrophy size={14} /> Top Pick</span>
-                                                    ) : index === 1 ? (
-                                                        <span className="rank-badge silver"><FaAward size={14} /> Highly Rec.</span>
-                                                    ) : index === 2 ? (
-                                                        <span className="rank-badge bronze"><FaMedal size={14} /> Recommended</span>
-                                                    ) : (
-                                                        <span className="rank-number">#{index + 1}</span>
-                                                    )}
-                                                </td>
-                                                <td><strong>{offering.courseId?._id}</strong></td>
-                                                <td>{offering.courseId?.courseName}</td>
-                                                <td>
-                                                    <span className="type-badge-minimal">
-                                                        {offering.courseId?.courseType}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    {isInDraft ? (
-                                                        <button className="btn-delete" onClick={() => removeCourse(offering._id)}>
-                                                            <X size={22} />
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            className={`btn-view ${isDisabled || !semesterData?.settings?.allowEnrollment ? "disabled-btn" : ""}`}
-                                                            onClick={() => addCourse(offering._id)}
-                                                            disabled={isDisabled || !semesterData?.settings?.allowEnrollment}
-                                                            title={isDisabled ? "Credit limit reached" : "Add Course"}
-                                                        >
-                                                            <Plus size={22} />
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                    {renderRecommendationsTableBody()}
                                 </tbody>
                             </table>
                         </div>

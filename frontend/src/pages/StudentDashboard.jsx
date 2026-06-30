@@ -33,7 +33,7 @@ const StudentDashboard = () => {
             const results = await Promise.allSettled([
                 api.get("/student/me/announcements"),
                 api.get("/student/me/meetings"),
-                api.get("/student/me/profile"),
+                api.get("/student/me"),
                 api.get("/student/me/details"),
                 api.get("/student/me/academic-requests"),
                 api.get('/student/me/courses/my-schedule').catch(err => {

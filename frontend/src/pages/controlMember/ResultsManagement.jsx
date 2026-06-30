@@ -39,7 +39,7 @@ const ResultsManagement = () => {
             const detailsRes = await api.get(`/control/courses/${id}/students`);
             const studentRes = detailsRes.data.semesterWorks || [];
 
-            console.log(studentRes)
+
 
             setCourse(detailsRes.data.course);
             setLocalGrades(studentRes);

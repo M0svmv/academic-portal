@@ -34,7 +34,7 @@ const CoursesWStudents = () => {
         try {
             const res = await api.get("/control/courses");
             setCourses(res.data);
-            console.log(res.data)
+
         } catch (err) {
             console.error("Error fetching courses", err);
         }
