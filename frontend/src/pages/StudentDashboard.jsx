@@ -37,7 +37,6 @@ const StudentDashboard = () => {
                 api.get("/student/me/details"),
                 api.get("/student/me/academic-requests"),
                 api.get('/student/me/courses/my-schedule').catch(err => {
-                    console.error("Schedule failed, returning empty data");
                     return { data: { offerings: [], schedule: [] } };
                 }),
             ]);
