@@ -18,7 +18,7 @@ import { AlertTriangle, CalendarX } from 'lucide-react';
 import "../styles/StudentOfferings.css";
 import {
     Trash2, X, Sparkles, Star, Plus,
-    Loader2, AlertCircle, BookOpen, RefreshCw, FilterX, CircleDashed
+    Loader2, AlertCircle, BookOpen, RefreshCw, FilterX, CircleDashed, Search
 } from 'lucide-react';
 
 const StudentCourseOfferingsPage = () => {
@@ -29,6 +29,7 @@ const StudentCourseOfferingsPage = () => {
     const [isRecVisible, setIsRecVisible] = useState(false);
     const [allowedCredits, setAllowedCredits] = useState(0);
     const [activeTab, setActiveTab] = useState("Freshman");
+    const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -295,20 +296,27 @@ const StudentCourseOfferingsPage = () => {
             o => o.courseId.courseLevel?.toLowerCase() === activeTab.toLowerCase()
         );
 
+        const filteredBySearch = searchTerm.trim()
+            ? filteredByLevel.filter(o =>
+                o.courseId.courseName?.toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
+                o.courseId._id?.toLowerCase().includes(searchTerm.trim().toLowerCase())
+            )
+            : filteredByLevel;
 
-        if (filteredByLevel.length === 0) {
+
+        if (filteredBySearch.length === 0) {
             return (
                 <EmptyStateCell
                     colSpan={5}
                     iconNode={<IconCircle bg="#f9fafb"><FilterX size={22} color="#9ca3af" /></IconCircle>}
-                    title={{ text: 'No courses for this level' }}
-                    subtitle="There are no offerings available at this level yet. Try a different tab."
+                    title={{ text: searchTerm.trim() ? 'No courses match your search' : 'No courses for this level' }}
+                    subtitle={searchTerm.trim() ? "Try a different course name or code." : "There are no offerings available at this level yet. Try a different tab."}
                 />
             );
         }
 
 
-        return filteredByLevel.map((offering) => {
+        return filteredBySearch.map((offering) => {
             const isInDraft = draftEnrolled.includes(offering._id);
             const credits = offering.courseId.courseCredits;
             const isDisabled = !isInDraft && (currentTotalCredits + credits > allowedCredits);
@@ -530,16 +538,83 @@ const StudentCourseOfferingsPage = () => {
             {/* --- Available Courses --- */}
             <div className="section">
                 <h3>Available Courses ({activeTab})</h3>
-                <div className="tabs-navigation">
-                    {levels.map(level => (
-                        <button
-                            key={level}
-                            className={`tab-item ${activeTab === level ? "active" : ""}`}
-                            onClick={() => setActiveTab(level)}
-                        >
-                            {level}
-                        </button>
-                    ))}
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                    }}
+                >
+                    <div
+                        className="tabs-navigation"
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'flex-start',
+                            margin: 0,
+                        }}
+                    >
+                        {levels.map(level => (
+                            <button
+                                key={level}
+                                className={`tab-item ${activeTab === level ? "active" : ""}`}
+                                onClick={() => setActiveTab(level)}
+                            >
+                                {level}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div
+                        style={{
+                            position: 'relative',
+                            display: 'flex',
+                            alignItems: 'center',
+                            width: '260px',
+                            flexShrink: 0
+                        }}
+                    >
+                        <Search
+                            size={16}
+                            style={{
+                                position: 'absolute',
+                                left: '12px',
+                                color: '#9ca3af',
+                                pointerEvents: 'none'
+                            }}
+                        />
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search by course name..."
+                            style={{
+                                width: '100%',
+                                padding: '8px 32px 8px 32px',
+                                borderRadius: '8px',
+                                border: '1px solid #e5e7eb',
+                                outline: 'none',
+                                fontSize: '13px'
+                            }}
+                        />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm("")}
+                                style={{
+                                    position: 'absolute',
+                                    right: '8px',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color: '#9ca3af',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
+                                title="Clear search"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
+                    </div>
                 </div>
                 <div className="table-wrapper">
                     <table className="offerings-table">
