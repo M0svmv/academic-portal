@@ -3,13 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import swalService from "../../services/swal";
 import {
-    ArrowLeft, Users, Search, Lock, Unlock,
+    ArrowLeft, Users, Search, Lock, Unlock, Clock,
     GraduationCap, BookOpen, AlertCircle, CheckCircle2,
     FileText, UserSquare2, Loader2, BarChart2, TrendingUp
 } from "lucide-react";
 import { FaArrowLeft } from "react-icons/fa";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import html2canvas from "html2canvas";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
     PieChart, Pie, Cell, ResponsiveContainer, RadialBarChart, RadialBar,
@@ -28,6 +28,14 @@ const CHART_COLORS = {
     slate: "#64748b",
 };
 const PIE_COLORS = [CHART_COLORS.primary, CHART_COLORS.warning, CHART_COLORS.success, CHART_COLORS.danger, CHART_COLORS.purple, CHART_COLORS.slate];
+
+// ─── Status configuration (single source of truth for colors / icons / labels) ─
+const STATUS_CONFIG = {
+    open: { label: "Open", color: CHART_COLORS.success, bg: "#10b98120", icon: Unlock },
+    closed: { label: "Closed", color: CHART_COLORS.danger, bg: "#ef444420", icon: Lock },
+    proposed: { label: "Proposed", color: CHART_COLORS.warning, bg: "#f59e0b20", icon: Clock },
+};
+const getStatusCfg = (status) => STATUS_CONFIG[status] || { label: status || "N/A", color: "#64748b", bg: "#64748b20", icon: AlertCircle };
 
 // ─── Custom Tooltip ────────────────────────────────────────────────────────────
 const CustomBarTooltip = ({ active, payload, label }) => {
@@ -66,7 +74,7 @@ const SectionTitle = ({ icon: Icon, title, subtitle }) => (
         <div style={{
             width: 38, height: 38, borderRadius: 10,
             background: "linear-gradient(135deg,#2563eb22,#2563eb44)",
-            display: "flex", alignItems: "center", justifyContent: "center"
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
         }}>
             <Icon size={18} color="#2563eb" />
         </div>
@@ -85,9 +93,56 @@ const ChartCard = ({ children, style }) => (
         padding: "22px 24px",
         border: "1px solid #e2e8f0",
         boxShadow: "0 2px 12px #0f172a0a",
+        minWidth: 0, 
         ...style
     }}>
         {children}
+    </div>
+);
+
+// ─── Status badge (colored per status, not just open/closed) ──────────────────
+const StatusBadge = ({ status }) => {
+    const cfg = getStatusCfg(status);
+    return (
+        <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            padding: "4px 10px", borderRadius: 20,
+            fontSize: 11.5, fontWeight: 700, letterSpacing: 0.3,
+            background: cfg.bg, color: cfg.color,
+        }}>
+            {cfg.label.toUpperCase()}
+        </span>
+    );
+};
+
+// ─── Status action buttons (Open / Close / Proposed) ──────────────────────────
+const StatusActions = ({ current, onChange }) => (
+    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
+            const Icon = cfg.icon;
+            const active = current === key;
+            return (
+                <button
+                    key={key}
+                    type="button"
+                    title={cfg.label}
+                    disabled={active}
+                    onClick={() => onChange(key)}
+                    style={{
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        borderRadius: 8,
+                        border: `1.5px solid ${cfg.color}`,
+                        background: active ? cfg.color : "#fff",
+                        color: active ? "#fff" : cfg.color,
+                        cursor: active ? "default" : "pointer",
+                        opacity: active ? 1 : 0.9,
+                        transition: "all .15s ease",
+                    }}
+                >
+                    <Icon size={12} />
+                </button>
+            );
+        })}
     </div>
 );
 
@@ -107,6 +162,7 @@ const EnrollmentStatsPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [typeFilter, setTypeFilter] = useState("All");
     const [showCharts, setShowCharts] = useState(true);
+    const [exporting, setExporting] = useState(false);
 
     // ─── Navigation ──────────────────────────────────────────────────────────
     const handleViewStudents = (courseId, offeringId, courseName, instructorId, taId) => {
@@ -131,11 +187,11 @@ const EnrollmentStatsPage = () => {
 
     useEffect(() => { if (semesterId) fetchData(); }, [semesterId]);
 
-    // ─── Toggle status ────────────────────────────────────────────────────────
-    const handleToggleStatus = async (offeringId, currentStatus) => {
+    // ─── Change status (Open / Closed / Proposed) ─────────────────────────────
+    const handleStatusChange = async (offeringId, newStatus) => {
         const offering = offerings.find(o => o._id === offeringId);
-        const enrolledCount = offering?.enrolledCount || 0;
-        const newStatus = currentStatus === "open" ? "closed" : "open";
+        if (!offering || offering.status === newStatus) return;
+        const enrolledCount = offering.enrolledCount || 0;
 
         if (newStatus === "closed") {
             let title = "Close Course?";
@@ -145,6 +201,15 @@ const EnrollmentStatsPage = () => {
                 text = `This course has (${enrolledCount}) students enrolled. Closing it will PERMANENTLY block their registration!`;
             }
             const result = await swalService.confirm(title, text, "Yes, close it!");
+            if (!result.isConfirmed) return;
+        }
+
+        if (newStatus === "proposed") {
+            const result = await swalService.confirm(
+                "Mark as Proposed?",
+                "This will mark the course as PROPOSED",
+                "Yes, mark as proposed"
+            );
             if (!result.isConfirmed) return;
         }
 
@@ -170,13 +235,14 @@ const EnrollmentStatsPage = () => {
         const total = offerings.length;
         const open = offerings.filter(o => o.status === "open").length;
         const closed = offerings.filter(o => o.status === "closed").length;
+        const proposed = offerings.filter(o => o.status === "proposed").length;
         const empty = offerings.filter(o => (o.enrolledCount || 0) === 0).length;
         const withGrads = offerings.filter(o => (o.graduatingCount || 0) > 0).length;
         const suggestions = offerings.filter(o => o.status === "open" && (o.enrolledCount || 0) < 5 && (o.graduatingCount || 0) === 0).length;
         const totalStudents = offerings.reduce((sum, o) => sum + (o.enrolledCount || 0), 0);
         const totalGrads = offerings.reduce((sum, o) => sum + (o.graduatingCount || 0), 0);
         const avgEnrollment = total > 0 ? (totalStudents / total).toFixed(1) : 0;
-        return { total, open, closed, empty, withGrads, suggestions, totalStudents, totalGrads, avgEnrollment };
+        return { total, open, closed, proposed, empty, withGrads, suggestions, totalStudents, totalGrads, avgEnrollment };
     }, [offerings]);
 
     // ─── Chart data ───────────────────────────────────────────────────────────
@@ -194,10 +260,11 @@ const EnrollmentStatsPage = () => {
                 Graduating: o.graduatingCount || 0,
             }));
 
-        // Status breakdown for pie
+        // Status breakdown for pie (now includes Proposed)
         const statusPie = [
-            { name: "Open", value: stats.open, fill: CHART_COLORS.success },
-            { name: "Closed", value: stats.closed, fill: CHART_COLORS.danger },
+            { name: "Open", value: stats.open, fill: STATUS_CONFIG.open.color },
+            { name: "Closed", value: stats.closed, fill: STATUS_CONFIG.closed.color },
+            { name: "Proposed", value: stats.proposed, fill: STATUS_CONFIG.proposed.color },
         ].filter(d => d.value > 0);
 
         // Enrollment category breakdown
@@ -256,270 +323,344 @@ const EnrollmentStatsPage = () => {
         });
     }, [offerings, searchTerm, statusFilter, typeFilter]);
 
-    // ─── Export PDF ───────────────────────────────────────────────────────────
-    const exportToPDF = () => {
-        const doc = new jsPDF("l", "mm", "a4"); // landscape for more room
+    // ─── Helper: render an HTML table off-screen and rasterize it (html2canvas) ─
+    // This is what fixes Arabic text turning into broken glyphs/symbols: jsPDF's
+    // built-in fonts don't support Arabic Unicode shaping at all, but the real
+    // browser DOM renders Arabic perfectly, so we snapshot the DOM instead of
+    // asking jsPDF to draw the text itself.
+    const addHtmlTableToPdf = async (doc, buildTableEl, title) => {
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
-        const now = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+        const marginX = 14;
+        const headerH = 18;
+        const usableW = pageW - marginX * 2;
+        const usableH = pageH - headerH - 10;
 
-        // ── Cover / Header ──────────────────────────────────────────────────
-        doc.setFillColor(30, 41, 59);
-        doc.rect(0, 0, pageW, 38, "F");
-
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(20);
-        doc.setFont("helvetica", "bold");
-        doc.text("Enrollment Statistics Report", 14, 16);
-
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(148, 163, 184);
-        doc.text(`Semester: ${semesterId}  |  Generated: ${now}  |  Filter: ${typeFilter}`, 14, 25);
-        doc.text(`Total Offerings Shown: ${filteredData.length} / ${offerings.length}`, 14, 32);
-
-        // ── KPI Summary Cards ───────────────────────────────────────────────
-        const kpis = [
-            { label: "Total Offerings", value: stats.total, color: [37, 99, 235] },
-            { label: "Open Courses", value: stats.open, color: [16, 185, 129] },
-            { label: "Closed Courses", value: stats.closed, color: [239, 68, 68] },
-            { label: "Total Students", value: stats.totalStudents, color: [37, 99, 235] },
-            { label: "Empty Courses", value: stats.empty, color: [245, 158, 11] },
-            { label: "Avg Enrollment", value: stats.avgEnrollment, color: [139, 92, 246] },
-            { label: "Grad Critical", value: stats.withGrads, color: [16, 185, 129] },
-            { label: "Suggestions", value: stats.suggestions, color: [239, 68, 68] },
-        ];
-        const cardW = (pageW - 28) / 4;
-        kpis.forEach((kpi, i) => {
-            const col = i % 4;
-            const row = Math.floor(i / 4);
-            const x = 14 + col * cardW;
-            const y = 44 + row * 22;
-            doc.setFillColor(248, 250, 252);
-            doc.roundedRect(x, y, cardW - 4, 19, 2, 2, "F");
-            doc.setDrawColor(...kpi.color);
-            doc.setLineWidth(0.8);
-            doc.roundedRect(x, y, cardW - 4, 19, 2, 2, "S");
-            doc.setFontSize(16);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(...kpi.color);
-            doc.text(String(kpi.value), x + 6, y + 12);
-            doc.setFontSize(8);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(100, 116, 139);
-            doc.text(kpi.label, x + 6, y + 17);
-        });
-
-        // ── Chart: Enrollment Distribution (bar via rectangles) ─────────────
-        const chartY = 94;
-        doc.setTextColor(15, 23, 42);
-        doc.setFontSize(11);
-        doc.setFont("helvetica", "bold");
-        doc.text("Enrollment Distribution by Range", 14, chartY);
-
-        const distData = chartData.distributionBar;
-        const maxVal = Math.max(...distData.map(d => d.Courses), 1);
-        const barAreaW = 120;
-        const barH = 8;
-        const barStartX = 50;
-        const barStartY = chartY + 6;
-
-        distData.forEach((d, i) => {
-            const y = barStartY + i * 11;
-            const barW = (d.Courses / maxVal) * barAreaW;
-            // label
-            doc.setFontSize(8);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(71, 85, 105);
-            doc.text(d.range, 14, y + 6);
-            // bar bg
-            doc.setFillColor(226, 232, 240);
-            doc.roundedRect(barStartX, y, barAreaW, barH, 2, 2, "F");
-            // bar fill
-            if (barW > 0) {
-                doc.setFillColor(37, 99, 235);
-                doc.roundedRect(barStartX, y, barW, barH, 2, 2, "F");
-            }
-            // count
-            doc.setTextColor(37, 99, 235);
-            doc.setFont("helvetica", "bold");
-            doc.text(String(d.Courses), barStartX + barAreaW + 4, y + 6);
-        });
-
-        // ── Chart: Status Breakdown ─────────────────────────────────────────
-        const statusX = 190;
-        doc.setTextColor(15, 23, 42);
-        doc.setFontSize(11);
-        doc.setFont("helvetica", "bold");
-        doc.text("Course Status Breakdown", statusX, chartY);
-
-        const pieData = [
-            { label: "Open", value: stats.open, color: [16, 185, 129] },
-            { label: "Closed", value: stats.closed, color: [239, 68, 68] },
-        ];
-        const total2 = stats.open + stats.closed || 1;
-        const cx = statusX + 35, cy = chartY + 30, r = 22;
-        let startAngle = -Math.PI / 2;
-        pieData.forEach(seg => {
-            const angle = (seg.value / total2) * Math.PI * 2;
-            const endAngle = startAngle + angle;
-            const x1 = cx + r * Math.cos(startAngle);
-            const y1 = cy + r * Math.sin(startAngle);
-            const x2 = cx + r * Math.cos(endAngle);
-            const y2 = cy + r * Math.sin(endAngle);
-            const largeArc = angle > Math.PI ? 1 : 0;
-            if (seg.value > 0) {
-                doc.setFillColor(...seg.color);
-                // jsPDF doesn't support SVG arc natively, so draw donut via text summary instead
-            }
-            startAngle = endAngle;
-        });
-        // Pie legend as colored blocks + text
-        pieData.forEach((seg, i) => {
-            const lx = statusX;
-            const ly = chartY + 16 + i * 12;
-            doc.setFillColor(...seg.color);
-            doc.roundedRect(lx, ly, 8, 8, 1, 1, "F");
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(...seg.color);
-            doc.text(`${seg.value}`, lx + 10, ly + 6);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(71, 85, 105);
-            doc.text(seg.label, lx + 20, ly + 6);
-        });
-
-        // Category breakdown
-        const catY = chartY + 54;
-        doc.setTextColor(15, 23, 42);
-        doc.setFontSize(11);
-        doc.setFont("helvetica", "bold");
-        doc.text("Enrollment Health Breakdown", statusX, catY);
-
-        const catData = [
-            { label: "Normal (5+)", value: offerings.filter(o => (o.enrolledCount || 0) >= 5).length, color: [37, 99, 235] },
-            { label: "Low Demand", value: stats.suggestions, color: [245, 158, 11] },
-            { label: "Empty", value: stats.empty, color: [239, 68, 68] },
-            { label: "With Grads", value: stats.withGrads, color: [16, 185, 129] },
-        ];
-        catData.forEach((c, i) => {
-            const lx = statusX;
-            const ly = catY + 8 + i * 11;
-            doc.setFillColor(...c.color);
-            doc.roundedRect(lx, ly, 8, 8, 1, 1, "F");
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(...c.color);
-            doc.text(`${c.value}`, lx + 10, ly + 6);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(71, 85, 105);
-            doc.text(c.label, lx + 22, ly + 6);
-        });
-
-        // ── Main Data Table ─────────────────────────────────────────────────
-        doc.addPage("l");
-        doc.setFillColor(30, 41, 59);
-        doc.rect(0, 0, pageW, 18, "F");
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(13);
-        doc.setFont("helvetica", "bold");
-        doc.text("Course Offerings Detail", 14, 12);
-
-        const tableColumn = ["#", "Course Name", "Code", "Instructor", "TA", "Status", "Students", "Graduating", "System Hint"];
-        const tableRows = [...filteredData]
-            .sort((a, b) => (b.enrolledCount || 0) - (a.enrolledCount || 0))
-            .map((off, idx) => [
-                idx + 1,
-                off.courseId?.courseName || "N/A",
-                off.courseId?._id || "N/A",
-                off.instructorId?.staffName || "-",
-                off.taId?.staffName || "-",
-                (off.status || "N/A").toUpperCase(),
-                off.enrolledCount || 0,
-                off.graduatingCount || 0,
-                (off.enrolledCount || 0) < 5 && off.status === "open" && (off.graduatingCount || 0) === 0
-                    ? "⚠ Low Demand"
-                    : (off.graduatingCount || 0) > 0
-                        ? "✓ Mandatory"
-                        : "Normal",
-            ]);
-
-        autoTable(doc, {
-            startY: 24,
-            head: [tableColumn],
-            body: tableRows,
-            theme: "grid",
-            headStyles: { fillColor: [37, 99, 235], halign: "center", fontSize: 8, fontStyle: "bold" },
-            alternateRowStyles: { fillColor: [248, 250, 252] },
-            columnStyles: {
-                0: { halign: "center", cellWidth: 8 },
-                1: { cellWidth: 50 },
-                2: { cellWidth: 20, halign: "center" },
-                3: { cellWidth: 35 },
-                4: { cellWidth: 35 },
-                5: { halign: "center", cellWidth: 20 },
-                6: { halign: "center", cellWidth: 20 },
-                7: { halign: "center", cellWidth: 20 },
-                8: { halign: "center", cellWidth: 30 },
-            },
-            styles: { fontSize: 8, cellPadding: 2.5 },
-            didParseCell: (data) => {
-                if (data.section === "body" && data.column.index === 5) {
-                    const val = data.cell.raw;
-                    data.cell.styles.textColor = val === "OPEN" ? [16, 185, 129] : [239, 68, 68];
-                    data.cell.styles.fontStyle = "bold";
-                }
-                if (data.section === "body" && data.column.index === 8) {
-                    const val = data.cell.raw;
-                    if (val.includes("Low")) data.cell.styles.textColor = [245, 158, 11];
-                    else if (val.includes("Mandatory")) data.cell.styles.textColor = [16, 185, 129];
-                }
-            },
-        });
-
-        // ── Staff Load Page ─────────────────────────────────────────────────
-        if (chartData.staffLoad.length > 0) {
-            doc.addPage("l");
+        const drawPageHeader = (label) => {
             doc.setFillColor(30, 41, 59);
-            doc.rect(0, 0, pageW, 18, "F");
+            doc.rect(0, 0, pageW, headerH, "F");
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(13);
             doc.setFont("helvetica", "bold");
-            doc.text("Instructor Load Analysis", 14, 12);
+            doc.text(label, marginX, 12);
+        };
 
-            autoTable(doc, {
-                startY: 24,
-                head: [["Instructor", "Courses Assigned", "Total Students", "Load Level"]],
-                body: chartData.staffLoad.map(s => [
-                    s.name,
-                    s.courses,
-                    s.students,
-                    s.courses >= 4 ? "High" : s.courses >= 2 ? "Medium" : "Low",
-                ]),
-                theme: "grid",
-                headStyles: { fillColor: [37, 99, 235], halign: "center", fontSize: 9 },
-                columnStyles: {
-                    1: { halign: "center" },
-                    2: { halign: "center" },
-                    3: { halign: "center" },
-                },
-                styles: { fontSize: 9, cellPadding: 3 },
-            });
+        doc.addPage("l");
+        drawPageHeader(title);
+
+        const container = document.createElement("div");
+        container.style.position = "fixed";
+        container.style.left = "-99999px";
+        container.style.top = "0";
+        container.style.width = "1600px";
+        container.style.background = "#ffffff";
+        container.appendChild(buildTableEl());
+        document.body.appendChild(container);
+
+        let canvas;
+        try {
+            canvas = await html2canvas(container, { scale: 2, backgroundColor: "#ffffff" });
+        } finally {
+            document.body.removeChild(container);
         }
 
-        // ── Footer on all pages ─────────────────────────────────────────────
-        const totalPages = doc.internal.getNumberOfPages();
-        for (let p = 1; p <= totalPages; p++) {
-            doc.setPage(p);
-            doc.setFontSize(7);
+        const pxToMm = usableW / canvas.width;
+        const imgHmm = canvas.height * pxToMm;
+
+        let renderedMm = 0;
+        let firstPage = true;
+        while (renderedMm < imgHmm) {
+            if (!firstPage) {
+                doc.addPage("l");
+                drawPageHeader(`${title} (cont.)`);
+            }
+            const sliceHmm = Math.min(usableH, imgHmm - renderedMm);
+            const sliceHpx = Math.max(1, Math.round(sliceHmm / pxToMm));
+            const srcYpx = Math.round(renderedMm / pxToMm);
+
+            const sliceCanvas = document.createElement("canvas");
+            sliceCanvas.width = canvas.width;
+            sliceCanvas.height = sliceHpx;
+            const ctx = sliceCanvas.getContext("2d");
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+            ctx.drawImage(canvas, 0, srcYpx, canvas.width, sliceHpx, 0, 0, canvas.width, sliceHpx);
+
+            doc.addImage(sliceCanvas.toDataURL("image/png"), "PNG", marginX, headerH + 4, usableW, sliceHmm);
+
+            renderedMm += sliceHmm;
+            firstPage = false;
+        }
+    };
+
+    // ─── Export PDF ───────────────────────────────────────────────────────────
+    const exportToPDF = async () => {
+        try {
+            setExporting(true);
+            const doc = new jsPDF("l", "mm", "a4"); // landscape for more room
+            const pageW = doc.internal.pageSize.getWidth();
+            const pageH = doc.internal.pageSize.getHeight();
+            const now = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+            // ── Cover / Header ──────────────────────────────────────────────────
+            doc.setFillColor(30, 41, 59);
+            doc.rect(0, 0, pageW, 38, "F");
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont("helvetica", "bold");
+            doc.text("Enrollment Statistics Report", 14, 16);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
             doc.setTextColor(148, 163, 184);
-            doc.text(
-                `Page ${p} of ${totalPages}  |  Enrollment Report — Semester ${semesterId}  |  ${now}`,
-                14, pageH - 6
-            );
-        }
+            doc.text(`Semester: ${semesterId}  |  Generated: ${now}  |  Filter: ${typeFilter}`, 14, 25);
+            doc.text(`Total Offerings Shown: ${filteredData.length} / ${offerings.length}`, 14, 32);
 
-        doc.save(`Enrollment_Report_${semesterId}.pdf`);
+            // ── KPI Summary Cards ───────────────────────────────────────────────
+            const kpis = [
+                { label: "Total Offerings", value: stats.total, color: [37, 99, 235] },
+                { label: "Open Courses", value: stats.open, color: [16, 185, 129] },
+                { label: "Closed Courses", value: stats.closed, color: [239, 68, 68] },
+                { label: "Proposed Courses", value: stats.proposed, color: [245, 158, 11] },
+                { label: "Total Students", value: stats.totalStudents, color: [37, 99, 235] },
+                { label: "Empty Courses", value: stats.empty, color: [245, 158, 11] },
+                { label: "Avg Enrollment", value: stats.avgEnrollment, color: [139, 92, 246] },
+                { label: "Grad Critical", value: stats.withGrads, color: [16, 185, 129] },
+                { label: "Suggestions", value: stats.suggestions, color: [239, 68, 68] },
+            ];
+            const cols = 4;
+            const cardW = (pageW - 28) / cols;
+            kpis.forEach((kpi, i) => {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                const x = 14 + col * cardW;
+                const y = 44 + row * 22;
+                doc.setFillColor(248, 250, 252);
+                doc.roundedRect(x, y, cardW - 4, 19, 2, 2, "F");
+                doc.setDrawColor(...kpi.color);
+                doc.setLineWidth(0.8);
+                doc.roundedRect(x, y, cardW - 4, 19, 2, 2, "S");
+                doc.setFontSize(16);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(...kpi.color);
+                doc.text(String(kpi.value), x + 6, y + 12);
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(100, 116, 139);
+                doc.text(kpi.label, x + 6, y + 17);
+            });
+
+            const kpiRows = Math.ceil(kpis.length / cols);
+            const chartY = 44 + kpiRows * 22 + 12;
+
+            // ── Chart: Enrollment Distribution (bar via rectangles) ─────────────
+            doc.setTextColor(15, 23, 42);
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text("Enrollment Distribution by Range", 14, chartY);
+
+            const distData = chartData.distributionBar;
+            const maxVal = Math.max(...distData.map(d => d.Courses), 1);
+            const barAreaW = 120;
+            const barH = 8;
+            const barStartX = 50;
+            const barStartY = chartY + 6;
+
+            distData.forEach((d, i) => {
+                const y = barStartY + i * 11;
+                const barW = (d.Courses / maxVal) * barAreaW;
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(71, 85, 105);
+                doc.text(d.range, 14, y + 6);
+                doc.setFillColor(226, 232, 240);
+                doc.roundedRect(barStartX, y, barAreaW, barH, 2, 2, "F");
+                if (barW > 0) {
+                    doc.setFillColor(37, 99, 235);
+                    doc.roundedRect(barStartX, y, barW, barH, 2, 2, "F");
+                }
+                doc.setTextColor(37, 99, 235);
+                doc.setFont("helvetica", "bold");
+                doc.text(String(d.Courses), barStartX + barAreaW + 4, y + 6);
+            });
+
+            // ── Chart: Status Breakdown (now Open / Closed / Proposed) ──────────
+            const statusX = 190;
+            doc.setTextColor(15, 23, 42);
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text("Course Status Breakdown", statusX, chartY);
+
+            const pieData = [
+                { label: "Open", value: stats.open, color: [16, 185, 129] },
+                { label: "Closed", value: stats.closed, color: [239, 68, 68] },
+                { label: "Proposed", value: stats.proposed, color: [245, 158, 11] },
+            ];
+            pieData.forEach((seg, i) => {
+                const lx = statusX;
+                const ly = chartY + 8 + i * 12;
+                doc.setFillColor(...seg.color);
+                doc.roundedRect(lx, ly, 8, 8, 1, 1, "F");
+                doc.setFontSize(9);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(...seg.color);
+                doc.text(`${seg.value}`, lx + 10, ly + 6);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(71, 85, 105);
+                doc.text(seg.label, lx + 20, ly + 6);
+            });
+
+            // Category breakdown
+            // const catY = chartY + 8 + pieData.length * 12 + 12;
+            // doc.setTextColor(15, 23, 42);
+            // doc.setFontSize(11);
+            // doc.setFont("helvetica", "bold");
+            // doc.text("Enrollment Health Breakdown", statusX, catY);
+
+            // const catData = [
+            //     { label: "Normal (5+)", value: offerings.filter(o => (o.enrolledCount || 0) >= 5).length, color: [37, 99, 235] },
+            //     { label: "Low Demand", value: stats.suggestions, color: [245, 158, 11] },
+            //     { label: "Empty", value: stats.empty, color: [239, 68, 68] },
+            //     { label: "With Grads", value: stats.withGrads, color: [16, 185, 129] },
+            // ];
+            // catData.forEach((c, i) => {
+            //     const lx = statusX;
+            //     const ly = catY + 8 + i * 11;
+            //     doc.setFillColor(...c.color);
+            //     doc.roundedRect(lx, ly, 8, 8, 1, 1, "F");
+            //     doc.setFontSize(9);
+            //     doc.setFont("helvetica", "bold");
+            //     doc.setTextColor(...c.color);
+            //     doc.text(`${c.value}`, lx + 10, ly + 6);
+            //     doc.setFont("helvetica", "normal");
+            //     doc.setTextColor(71, 85, 105);
+            //     doc.text(c.label, lx + 22, ly + 6);
+            // });
+
+            // ── Main Data Table (rendered as real HTML -> image, so Arabic renders correctly) ─
+            const statusColor = (val) => val === "OPEN" ? "#10b981" : val === "CLOSED" ? "#ef4444" : "#f59e0b";
+            const hintColor = (val) => val.includes("Low") ? "#f59e0b" : val.includes("Mandatory") ? "#10b981" : "#64748b";
+
+            const tableColumn = ["#", "Course Name", "Code", "Instructor", "TA", "Status", "Students", "Graduating", "System Hint"];
+            const tableRows = [...filteredData]
+                .sort((a, b) => (b.enrolledCount || 0) - (a.enrolledCount || 0))
+                .map((off, idx) => [
+                    idx + 1,
+                    off.courseId?.courseName || "N/A",
+                    off.courseId?._id || "N/A",
+                    off.instructorId?.staffName || "-",
+                    off.taId?.staffName || "-",
+                    (off.status || "N/A").toUpperCase(),
+                    off.enrolledCount || 0,
+                    off.graduatingCount || 0,
+                    (off.enrolledCount || 0) < 5 && off.status === "open" && (off.graduatingCount || 0) === 0
+                        ? "Low Demand"
+                        : (off.graduatingCount || 0) > 0
+                            ? "Mandatory"
+                            : "Normal",
+                ]);
+
+            await addHtmlTableToPdf(doc, () => {
+                const table = document.createElement("table");
+                table.style.cssText = "border-collapse:collapse;width:100%;font-family:'Segoe UI',Tahoma,Arial,sans-serif;font-size:14px;";
+
+                const colWidths = ["4%", "24%", "10%", "15%", "15%", "10%", "8%", "8%", "10%"];
+                const colgroup = document.createElement("colgroup");
+                colWidths.forEach(w => {
+                    const col = document.createElement("col");
+                    col.style.width = w;
+                    colgroup.appendChild(col);
+                });
+                table.appendChild(colgroup);
+
+                const thead = document.createElement("thead");
+                const headRow = document.createElement("tr");
+                tableColumn.forEach(label => {
+                    const th = document.createElement("th");
+                    th.textContent = label;
+                    th.style.cssText = "background:#2563eb;color:#fff;padding:10px 8px;border:1px solid #cbd5e1;text-align:center;font-weight:700;";
+                    headRow.appendChild(th);
+                });
+                thead.appendChild(headRow);
+                table.appendChild(thead);
+
+                const tbody = document.createElement("tbody");
+                tableRows.forEach((row, i) => {
+                    const tr = document.createElement("tr");
+                    tr.style.background = i % 2 === 0 ? "#ffffff" : "#f8fafc";
+                    row.forEach((cell, ci) => {
+                        const td = document.createElement("td");
+                        td.textContent = cell;
+                        td.setAttribute("dir", "auto"); // lets Arabic names render RTL, English/numbers stay LTR
+                        let color = "#0f172a";
+                        let weight = "400";
+                        if (ci === 5) { color = statusColor(cell); weight = "700"; }
+                        if (ci === 8) { color = hintColor(cell); weight = "600"; }
+                        td.style.cssText = `padding:7px 8px;border:1px solid #e2e8f0;text-align:center;color:${color};font-weight:${weight};`;
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                return table;
+            }, "Course Offerings Detail");
+
+            // ── Staff Load Page (also rendered as HTML -> image, instructor names may be Arabic too) ─
+            if (chartData.staffLoad.length > 0) {
+                await addHtmlTableToPdf(doc, () => {
+                    const table = document.createElement("table");
+                    table.style.cssText = "border-collapse:collapse;width:100%;font-family:'Segoe UI',Tahoma,Arial,sans-serif;font-size:14px;";
+
+                    const thead = document.createElement("thead");
+                    const headRow = document.createElement("tr");
+                    ["Instructor", "Courses Assigned", "Total Students", "Load Level"].forEach(label => {
+                        const th = document.createElement("th");
+                        th.textContent = label;
+                        th.style.cssText = "background:#2563eb;color:#fff;padding:10px 8px;border:1px solid #cbd5e1;text-align:center;font-weight:700;";
+                        headRow.appendChild(th);
+                    });
+                    thead.appendChild(headRow);
+                    table.appendChild(thead);
+
+                    const tbody = document.createElement("tbody");
+                    chartData.staffLoad.forEach((s, i) => {
+                        const tr = document.createElement("tr");
+                        tr.style.background = i % 2 === 0 ? "#ffffff" : "#f8fafc";
+                        const load = s.courses >= 4 ? "High" : s.courses >= 2 ? "Medium" : "Low";
+                        [s.name, s.courses, s.students, load].forEach((cell, ci) => {
+                            const td = document.createElement("td");
+                            td.textContent = cell;
+                            if (ci === 0) td.setAttribute("dir", "auto");
+                            td.style.cssText = "padding:7px 8px;border:1px solid #e2e8f0;text-align:center;color:#0f172a;";
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+                    table.appendChild(tbody);
+                    return table;
+                }, "Instructor Load Analysis");
+            }
+
+            // ── Footer on all pages ─────────────────────────────────────────────
+            const totalPages = doc.internal.getNumberOfPages();
+            for (let p = 1; p <= totalPages; p++) {
+                doc.setPage(p);
+                doc.setFontSize(7);
+                doc.setTextColor(148, 163, 184);
+                doc.text(
+                    `Page ${p} of ${totalPages}  |  Enrollment Report — Semester ${semesterId}  |  ${now}`,
+                    14, pageH - 6
+                );
+            }
+
+            doc.save(`Enrollment_Report_${semesterId}.pdf`);
+        } catch (err) {
+            console.error("Failed to export PDF", err);
+            swalService.error("Export Failed", "Could not generate the PDF report. Please try again.");
+        } finally {
+            setExporting(false);
+        }
     };
 
     // ─── Loading screen ───────────────────────────────────────────────────────
@@ -539,14 +680,14 @@ const EnrollmentStatsPage = () => {
 
             {/* ── Header ── */}
             <div className="prereg-header">
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", flexWrap: "wrap", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
                         <button onClick={() => navigate(-1)} className="back-btn-round">
                             <FaArrowLeft />
                         </button>
                         <h2>Live Enrollment</h2>
                     </div>
-                    <div style={{ display: "flex", gap: 10 }}>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                         <button
                             className="btn-2"
                             onClick={() => setShowCharts(v => !v)}
@@ -555,9 +696,9 @@ const EnrollmentStatsPage = () => {
                             <BarChart2 size={17} />
                             {showCharts ? "Hide Charts" : "Show Charts"}
                         </button>
-                        <button className="btn-2" onClick={exportToPDF} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <FileText size={18} />
-                            Export Report
+                        <button className="btn-2" onClick={exportToPDF} disabled={exporting} style={{ display: "flex", alignItems: "center", gap: 8, opacity: exporting ? 0.7 : 1 }}>
+                            {exporting ? <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> : <FileText size={18} />}
+                            {exporting ? "Generating..." : "Export Report"}
                         </button>
                     </div>
                 </div>
@@ -615,15 +756,15 @@ const EnrollmentStatsPage = () => {
                 </div>
             </div>
 
-            {/* ── Charts Section ── */}
+            {/* ── Charts Section (now fully responsive via auto-fit grids) ── */}
             {showCharts && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 20, marginBottom: 24 }}>
 
                     {/* Row 1: Bar chart (top courses) + Pie (status) */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 20 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
 
                         {/* Top courses by enrollment */}
-                        <ChartCard>
+                        <ChartCard style={{ flex: "2 1 480px" }}>
                             <SectionTitle
                                 icon={BarChart2}
                                 title="Top Courses by Enrollment"
@@ -684,15 +825,51 @@ const EnrollmentStatsPage = () => {
                         </ChartCard>
                     </div>
 
-                    {/* Row 2: Distribution histogram + Staff load */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                    {/* Row 2: Status pie + Distribution histogram + Staff load */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
+
+                        {/* Status breakdown pie (Open/Closed/Proposed) */}
+                        <ChartCard>
+                            <SectionTitle
+                                icon={CheckCircle2}
+                                title="Status Breakdown"
+                                subtitle="Open vs Closed vs Proposed"
+                            />
+                            <ResponsiveContainer width="100%" height={200}>
+                                <PieChart>
+                                    <Pie
+                                        data={chartData.statusPie}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={52}
+                                        outerRadius={80}
+                                        paddingAngle={3}
+                                        dataKey="value"
+                                    >
+                                        {chartData.statusPie.map((entry, i) => (
+                                            <Cell key={i} fill={entry.fill} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<CustomPieTooltip />} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                                {chartData.statusPie.map((d, i) => (
+                                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
+                                        <div style={{ width: 10, height: 10, borderRadius: 3, background: d.fill, flexShrink: 0 }} />
+                                        <span style={{ color: "#475569", flex: 1 }}>{d.name}</span>
+                                        <strong style={{ color: d.fill }}>{d.value}</strong>
+                                    </div>
+                                ))}
+                            </div>
+                        </ChartCard>
 
                         {/* Enrollment distribution */}
                         <ChartCard>
                             <SectionTitle
                                 icon={Users}
                                 title="Enrollment Distribution"
-                                subtitle="Number of courses per student-count range"
+                                subtitle="Courses per student-count range"
                             />
                             <ResponsiveContainer width="100%" height={220}>
                                 <BarChart data={chartData.distributionBar} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
@@ -772,6 +949,7 @@ const EnrollmentStatsPage = () => {
                         <option value="All">All Statuses</option>
                         <option value="open">Open</option>
                         <option value="closed">Closed</option>
+                        <option value="proposed">Proposed</option>
                     </select>
                     <select
                         className="filter-dropdown"
@@ -827,9 +1005,7 @@ const EnrollmentStatsPage = () => {
                                         <div style={{ color: "#6b7280" }}>T: {off.taId?.staffName || "-"}</div>
                                     </td>
                                     <td>
-                                        <span className={`status-badge ${off.status === "open" ? "live" : "draft"}`}>
-                                            {off.status ? off.status.toUpperCase() : "N/A"}
-                                        </span>
+                                        <StatusBadge status={off.status} />
                                     </td>
                                     <td>{off.enrolledCount || 0}</td>
                                     <td className="text-center">
@@ -847,13 +1023,10 @@ const EnrollmentStatsPage = () => {
                                         )}
                                     </td>
                                     <td className="text-center">
-                                        <button
-                                            className={`status-toggle-btn ${off.status === "open" ? "st-close" : "st-open"}`}
-                                            onClick={() => handleToggleStatus(off._id, off.status)}
-                                        >
-                                            {off.status === "open" ? <Lock size={14} /> : <Unlock size={14} />}
-                                            {off.status === "open" ? "Close" : "Open"}
-                                        </button>
+                                        <StatusActions
+                                            current={off.status}
+                                            onChange={(newStatus) => handleStatusChange(off._id, newStatus)}
+                                        />
                                     </td>
                                 </tr>
                             ))}
